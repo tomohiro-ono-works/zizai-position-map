@@ -1,0 +1,21 @@
+# Confidential user data and environment files
+.env
+.env.*
+!.env.example
+*.yaml
+*.yml
+*.json
+*.csv
+*.xlsx
+*.xls
+*.tsv
+upload/
+private/
+secrets/
+node_modules/
+
+# Local editor and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+*.local.*

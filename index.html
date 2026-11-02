@@ -1,0 +1,1495 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DX案件ワークスペース｜項目定義・入力・分析</title>
+<style>
+:root{--bg:#f4f7fb;--ink:#182b43;--muted:#64768c;--line:#dce5f0;--blue:#2865dc;--nav:#102e52;--teal:#078e83;--pale:#edf4ff;--soft:#e9f7f3;--red:#a63d4c;--shadow:0 10px 30px #253e6010}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 system-ui,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}[hidden]{display:none!important}button:disabled{opacity:.45;cursor:default}
+header{background:linear-gradient(110deg,#102e52,#164d72);color:#fff;padding:8px max(16px,calc((100vw - 1240px)/2)) 0}.header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{display:flex;gap:8px;align-items:center;min-width:0;flex:1}.brand-icon{width:27px;height:27px;border-radius:7px;background:#358ddd;display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:6px;flex-shrink:0}.brand-icon i{background:#d9f7ff;border-radius:2px}.brand h1{font-size:17px;letter-spacing:-.025em;margin:0;line-height:1.4;min-width:0}.workspace-title{width:min(520px,calc(100vw - 95px));max-width:100%;font:inherit;font-weight:800;letter-spacing:inherit;color:#fff;background:transparent;border:1px solid transparent;border-radius:4px;padding:1px 4px;outline:0}.workspace-title:hover{border-bottom-color:#b7d7eb}.workspace-title:focus{background:#ffffff16;border-color:#a5daed}.workspace-title::placeholder{color:#d2e8fa}.switch.header-format-switch{flex-shrink:0;margin-left:auto;padding:2px}.switch.header-format-switch button{padding:4px 10px}.nav{display:flex;gap:5px;margin-top:5px;overflow-x:auto}.nav button{padding:7px 13px;border:0;border-bottom:3px solid transparent;background:transparent;color:#b8cce4;font-weight:750;white-space:nowrap}.nav button.active{color:#fff;border-bottom-color:#65dbca;background:#ffffff12}.nav small{opacity:.65;margin-right:7px}
+main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex;justify-content:flex-end;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}.panel{border:1px solid var(--line);background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:19px;min-width:0}.panel h3{font-size:16px;margin:0 0 4px}.desc{font-size:11px;color:var(--muted);margin:0 0 13px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:12px}.panel-head h3{margin:0}.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{background:#fff;color:#365575;border:1px solid #cdd9e7;padding:9px 13px;border-radius:8px;font-weight:750;font-size:12px}.btn:hover{background:#f5f9ff}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:#1b53ba}.btn.soft{background:var(--soft);border-color:#c9e9e0;color:#08746b}.btn.danger{color:var(--red);border-color:#edcdd3;background:#fff9fa}.btn.small{padding:6px 9px;font-size:11px}.control{min-width:0;border:1px solid #c8d5e4;background:#fff;color:var(--ink);padding:9px 10px;border-radius:8px;outline:0}.control:focus,.yaml-area:focus,.markdown:focus{border-color:#5286df;box-shadow:0 0 0 3px #ddeaff}.switch{display:inline-flex;gap:4px;padding:4px;border-radius:9px;background:#e7edf5}.switch button{border:0;border-radius:6px;background:transparent;color:#657791;font-size:12px;font-weight:800;padding:8px 14px}.switch button.active{background:#fff;color:var(--blue);box-shadow:0 2px 6px #1a45631a}
+.field-card{border:1px solid var(--line);border-radius:10px;background:#fbfcff;padding:12px;margin:9px 0}.field-main{display:flex;gap:8px;align-items:center}.field-main input{flex:1}.field-main select{width:152px}.field-extra{padding:10px 0 0 0}.field-extra label{display:block;font-size:11px;font-weight:800;color:#586c85;margin:0 0 5px}.option-area{display:block;width:100%;min-height:78px;resize:vertical;padding:9px 11px;border:1px solid #c8d5e4;border-radius:8px;font-size:12px;outline:0}
+.yaml-area{width:100%;min-height:490px;resize:vertical;display:block;background:#122840;color:#e6f1ff;border:1px solid #365675;border-radius:9px;padding:16px;font:12px/1.7 Consolas,"Yu Gothic",monospace;outline:0;tab-size:2}.yaml-info{margin:11px 0 0;color:var(--muted);font-size:11px}.error{font-size:12px;color:#ac3542;background:#fff1f2;border:1px solid #f1d3d7;border-radius:8px;padding:10px 12px;margin-top:12px;white-space:pre-wrap}
+.project{margin:12px 0}.project-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.project-header strong{font-size:14px}.markdown{display:block;width:100%;height:320px;resize:vertical;border:1px solid #c8d5e4;border-radius:9px;padding:14px;font:12px/1.6 Consolas,"Yu Gothic",Meiryo,monospace;outline:0}.add-wide{display:block;width:100%;border:1px dashed #83b7ae;border-radius:10px;background:#edf9f6;color:#08766c;padding:14px;margin-top:13px;font-weight:800}.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:11px}.entry-table{width:100%;min-width:1120px;table-layout:fixed;border-collapse:collapse}.entry-table th{background:#edf4fb;color:#46617e;padding:11px;text-align:left;font-size:11px;border-bottom:1px solid var(--line)}.entry-table tbody tr{height:160px}.entry-table td{position:relative;border-top:1px solid var(--line);border-right:1px solid var(--line);padding:5px;vertical-align:top}.entry-table td.text-cell,.entry-table td.choice-cell{padding:0}.entry-table td:last-child{border-right:0}.entry-table .control{width:100%;font-size:12px}.entry-table textarea.control{min-height:100px;resize:vertical;border:0;border-radius:0;background:transparent;padding:5px 3px;box-shadow:none;outline:none}.entry-table textarea.control:focus{border:0;box-shadow:none;background:#eef5ff}.checklist{border:1px solid #e0e8f0;background:#fbfcfe;border-radius:8px;max-height:190px;overflow:auto;padding:5px}.checklist label{display:flex;gap:7px;align-items:center;padding:6px;font-size:11px;cursor:pointer}.checklist label:hover{background:#f1f6fc}.checklist input{accent-color:var(--teal)}.select-summary{font-size:11px;color:#4d687b;margin:4px 0 7px}.input-note{font-size:11px;color:var(--muted);margin:12px 0}
+.analysis-layout{display:flex;flex-direction:column;gap:12px}.analysis-layout>.panel,.analysis-results{width:100%;min-width:0}.filter-group{padding:14px 0;border-top:1px solid var(--line)}.filter-group:first-of-type{border:0}.filter-group>label{display:block;font-weight:800;font-size:12px;margin-bottom:8px}.picker{border:1px solid #c8d5e4;border-radius:9px;background:#fff}.picker summary{padding:10px;font-size:11px;cursor:pointer;overflow-wrap:anywhere}.picker-options{padding:7px;max-height:240px;overflow:auto;border-top:1px solid var(--line)}.picker-options label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;padding:5px}.picker-options label:hover{background:#eef5fc}.picker-options input{accent-color:var(--blue)}.summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.summary span{border:1px solid var(--line);background:#fff;padding:7px 11px;border-radius:8px;font-size:11px;color:var(--muted)}.summary b{color:var(--ink);font-size:16px;margin-right:4px}.pivot-box{overflow:auto;border:1px solid var(--line);border-radius:11px;background:#fff;min-height:180px}.pivot{width:100%;border-collapse:separate;border-spacing:0}.pivot th,.pivot td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px;min-width:160px;vertical-align:top}.pivot tr>*:last-child{border-right:0}.pivot tr:last-child>*{border-bottom:0}.pivot th{background:#eff5ff;color:#395f92;text-align:left;font-size:11px;white-space:pre-line}.pivot th.corner{background:#163958;color:#fff;position:sticky;left:0;z-index:2;min-width:180px}.pivot tbody th{position:sticky;left:0;background:#f7faff;z-index:1}.cell-list{display:flex;flex-wrap:wrap;gap:5px}.cell-item{display:inline-block;border:1px solid #c8e8df;background:#eefaf6;color:#296e64;border-radius:6px;padding:4px 7px;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}.empty{color:#b5bfcd}.status{position:fixed;right:18px;bottom:18px;max-width:90vw;background:#163e57;color:#fff;padding:11px 14px;border-radius:9px;box-shadow:0 7px 24px #17395050;font-size:12px;z-index:10}
+/* Definition view: short rows and on-demand editors. */
+#definition-gui{display:flex;flex-direction:column;gap:14px;max-width:1040px}
+#definition-gui .panel{padding:16px 20px}
+#field-editor{overflow-x:auto}
+#field-editor .field-card{margin:0;padding:10px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px minmax(0,1fr) 164px 62px;column-gap:8px;row-gap:5px;min-width:710px;align-items:center}
+#field-editor .field-card:last-child{border-bottom:0}
+#field-editor .field-card>input.control{width:100%;min-width:0}
+#field-editor .field-card>select.control:not(.cardinality-select){width:164px}
+#field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{width:102px!important;height:38px;display:flex;align-items:center;justify-content:center}
+#field-editor .field-card>.btn{width:62px;padding:6px 3px;height:34px}
+#field-editor .field-settings{grid-column:3 / 5;display:flex;align-items:center;gap:12px;min-width:0}
+#field-editor .field-settings>.definition-accordion{flex:1;min-width:0;align-self:stretch}
+.definition-accordion{margin:7px 0 0;border-radius:8px;background:#f6f9fc}
+.definition-accordion>summary{cursor:pointer;list-style-position:inside;padding:8px 11px;font-size:11px;color:#4e6480;font-weight:700}
+.definition-accordion[open]>summary{border-bottom:1px solid var(--line)}
+.definition-accordion .field-extra{padding:10px 12px 12px}
+.definition-accordion .option-area{min-height:70px}
+.field-order{display:flex;gap:3px;flex-shrink:0}.field-order .btn{min-width:27px;padding:5px}.root-mark{border-radius:7px;background:#e8f6f1;color:#127567;padding:6px 9px;white-space:nowrap;font-size:11px;font-weight:800}.cardinality-select{width:94px!important;flex:none!important}.root-help{font-size:11px;color:var(--muted);margin:0 0 8px}
+.entry-table .root-cell{background:#f7fbff;min-width:170px}.entry-table tr.project-first>td{border-top:2px solid #b7c9df}.entry-table tr.detail-follow>td{border-top:1px dashed #d7e3ee}.entry-table textarea.control{min-height:68px}.entry-editor-text{position:absolute;inset:0}.entry-editor-text>textarea.control{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:7px 6px 31px;resize:none}.cell-entry-actions{display:flex;gap:3px;justify-content:flex-end;margin-top:5px}.entry-editor-text>.cell-entry-actions{position:absolute;right:6px;bottom:6px;margin:0}.cell-entry-actions .btn{font-size:9px;padding:1px 5px;min-width:20px;min-height:20px;line-height:1.2}.entry-table .detail-empty{background:#fbfcfe}
+.entry-editor-choice{position:absolute;inset:0;display:flex;flex-direction:column;padding:5px;min-height:0}.entry-editor-choice>div{display:flex;flex-direction:column;flex:1;min-height:0}.entry-editor-choice .detail-message-wrap{flex:1;display:flex;flex-direction:column;min-height:0;margin-top:5px}.entry-editor-choice .detail-message-wrap textarea.control{flex:1;height:100%;min-height:0;resize:none;padding:5px 4px 29px}.entry-editor-choice>.cell-entry-actions{position:absolute;right:6px;bottom:6px;margin:0}.entry-editor-choice:has(.multi-picker[open]){z-index:2}
+.field-detail-toggle{display:flex!important;align-items:center;gap:7px;margin:0!important;padding:7px 9px;border:1px solid #c8d5e4;border-radius:8px;background:#fff;font-size:11px!important;white-space:nowrap;cursor:pointer}.field-detail-toggle input{accent-color:var(--teal);width:16px;height:16px}.multi-picker{border:1px solid #c8d5e4;border-radius:8px;background:#fff;max-width:100%}.multi-picker summary{cursor:pointer;font-size:11px;color:#4d687b;padding:9px 10px;overflow-wrap:anywhere;font-weight:700}.multi-picker[open] summary{border-bottom:1px solid var(--line)}.multi-picker .checklist{border:0;border-radius:0;max-height:190px}.detail-message-wrap{margin-top:8px}.detail-message-wrap label{display:block;color:#60788d;font-size:10px;font-weight:700;margin-bottom:4px}.entry-table .detail-message-wrap textarea.control{min-height:65px;font-size:11px}.entry-table .entry-editor-choice .detail-message-wrap textarea.control{min-height:0}
+.pivot{width:max-content;table-layout:fixed}.pivot th,.pivot td{min-width:0;overflow-wrap:anywhere;box-sizing:border-box}.pivot .pivot-row-header{min-width:0;width:auto;max-width:none;overflow-wrap:anywhere}.pivot .pivot-column-header{position:relative;overflow-wrap:anywhere}.pivot th.corner{z-index:3;min-width:0}.pivot .pivot-resize-handle{position:absolute;top:0;right:0;bottom:0;width:8px;cursor:col-resize;touch-action:none;z-index:4}.pivot .pivot-resize-handle:hover,.pivot .pivot-resize-handle:focus{background:#2a83bd66;outline:none}.matrix-settings>summary{font-weight:800;font-size:16px;cursor:pointer;list-style-position:inside}.matrix-settings-body{padding-top:10px}.matrix-controls{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:12px;align-items:start;overflow-x:auto;padding-bottom:4px}.matrix-controls .filter-group{padding:0;border:0;min-width:0}.matrix-reset-row{display:flex;justify-content:flex-end;margin-top:12px}.color-settings{margin-top:11px;border:1px solid var(--line);border-radius:8px;background:#f7faff}.color-settings>summary{font-size:11px;font-weight:800;cursor:pointer;padding:9px 10px;color:#44678b}.color-settings-body{padding:9px 10px 10px;border-top:1px solid var(--line)}.color-settings-body select.control{width:100%;font-size:11px;padding:7px 8px}.color-settings-tools{display:flex;align-items:center;gap:8px;margin-top:8px}.color-settings-tools input[type=color]{width:45px;height:33px;padding:3px;border:1px solid #c8d5e4;border-radius:7px;background:#fff;cursor:pointer}.color-settings-tools .btn{flex:1}.analysis-filter-bar{display:block;padding:12px;margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px}.analysis-filter-bar .filter-bar-heading{font-weight:800;font-size:12px;margin:0 0 7px}.analysis-filter-bar #analysis-filter-values{display:flex;align-items:start;flex-wrap:wrap;gap:8px}.analysis-filter-bar .filter-value-group{margin-top:0;min-width:170px;flex:0 1 230px}
+.axis-order{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;min-height:26px}.axis-chip{display:flex;gap:9px;align-items:center;padding:5px 8px;border:1px solid #bed3e8;border-radius:7px;background:#f0f6ff;color:#285378;font-size:11px;font-weight:750;cursor:grab;user-select:none;max-width:100%}.axis-chip:active{cursor:grabbing}.axis-chip:focus{outline:2px solid var(--blue)}.axis-chip .grip{color:#7596b4;font-size:13px;letter-spacing:-3px}.axis-empty{font-size:11px;color:#94a5b8}.filter-value-group{margin-top:9px;border:1px solid var(--line);border-radius:8px;background:#fbfcfe}.filter-value-group summary{font-size:11px;font-weight:750;padding:8px 10px;cursor:pointer}.filter-value-list{max-height:185px;overflow:auto;border-top:1px solid var(--line);padding:5px 8px}.filter-value-list label{display:flex;align-items:center;gap:6px;font-size:11px;padding:5px;cursor:pointer}.filter-value-list input{accent-color:var(--teal)}.pivot .hover-enabled{cursor:help}.analysis-hover-tooltip{position:fixed;z-index:200;width:max-content;min-width:220px;max-width:min(360px,85vw);max-height:58vh;overflow:auto;pointer-events:none;background:#15344f;color:#f4f9ff;padding:11px 13px;border-radius:9px;box-shadow:0 8px 22px #0c2c4866;font-size:11px}.analysis-hover-tooltip .tooltip-field{margin:0 0 8px}.analysis-hover-tooltip .tooltip-field:last-child{margin:0}.analysis-hover-tooltip strong{display:block;font-size:11px;color:#b8d8ee;margin-bottom:3px}.analysis-hover-tooltip .tooltip-value{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:2px 0}
+.add-field-footer{display:flex;justify-content:flex-start;margin-top:12px}.matrix-settings>summary{font-size:13px}
+.analysis-extra-tabs{display:flex;gap:5px;flex-shrink:0}.nav .add-analysis-tab{align-self:center;display:flex;align-items:center;justify-content:center;width:27px;height:27px;border:1px solid #6388ac;border-radius:6px;padding:0;background:#224e74;color:#fff;font-size:18px;line-height:1;margin:0 0 3px 1px}.nav .add-analysis-tab:hover{background:#2d6593}.analysis-color-bar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;background:#f7faff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px}.analysis-color-heading{font-size:12px;font-weight:800;color:#2d4864}.analysis-color-bar select{min-width:200px;max-width:min(340px,100%);flex:0 1 270px;font-size:11px}.analysis-color-bar input[type=color]{width:43px;height:34px;cursor:pointer;border:1px solid #c8d5e4;border-radius:7px;padding:3px;background:#fff}.header-file-tools{display:flex;align-items:center;gap:6px;flex-shrink:0}.header-file-tools .btn{padding:6px 10px}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}@media(max-width:520px){header{padding-left:12px;padding-right:12px}main{padding:20px 10px 55px}.panel{padding:14px}.view-head h2{font-size:21px}.field-main{flex-wrap:wrap}.field-main input{flex-basis:100%}.field-main select{flex:1}.nav button{padding:11px 13px}.tools{width:100%}.tools .btn{flex:1}#field-editor .field-main select{width:auto;flex:1}#definition-gui .panel{padding:14px}}
+.prompt-action-bar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<header><div class="header-top"><div class="brand"><div class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h1><input id="workspace-title" class="workspace-title" type="text" aria-label="ワークスペースのタイトル" placeholder="DX案件ワークスペース" maxlength="80"></h1></div><div class="header-file-tools"><button id="workspace-yaml-save" class="btn small" type="button">YAML保存</button><button id="workspace-yaml-load" class="btn small" type="button">YAML読込</button><input id="workspace-yaml-file" type="file" accept=".yaml,.yml,text/yaml,text/x-yaml" aria-label="全体YAMLファイルを選択" multiple hidden></div><div class="switch header-format-switch" role="group" aria-label="共通表示形式"><button class="active" data-format-tab="table" type="button">表形式</button><button data-format-tab="yaml" type="button">YAML形式</button></div></div><nav class="nav" aria-label="画面切り替え"><button class="active" data-view-tab="definition"><small>01</small>項目定義</button><button data-view-tab="input"><small>02</small>項目入力</button><button data-view-tab="analysis"><small>03</small>項目分析</button><span id="analysis-extra-tabs" class="analysis-extra-tabs"></span><button id="add-analysis-tab" type="button" class="add-analysis-tab" aria-label="分析タブを追加" title="分析タブを追加">＋</button></nav></header>
+<main>
+<section id="definition-view">
+  <div class="prompt-action-bar"><button id="load-five-axis-sample" class="btn small" type="button">5軸サンプルに切替</button><button id="copy-definition-prompt" class="btn small soft" type="button">整形プロンプトをコピー</button></div>
+  <div id="definition-gui" class="two-col">
+    <article class="panel"><div id="field-editor"></div><div class="add-field-footer"><button id="add-field" class="btn small soft" type="button">＋ 項目追加</button></div></article>
+  </div>
+  <div id="definition-yaml-view" class="panel" hidden><div class="panel-head"><div><h3>YAMLで入力項目を編集</h3><p class="desc">項目の順序でルートキーが決まります。編集後に「定義を適用」を押してください。</p></div><button id="apply-yaml" type="button" class="btn primary">定義を適用</button></div><textarea id="definition-yaml" class="yaml-area" spellcheck="false" aria-label="定義YAML"></textarea><div id="yaml-error" class="error" hidden></div><p class="yaml-info">対応形式：`columns`、`name`、`type`、`options`、`cardinality`、`allowDetail`。</p></div>
+</section>
+<section id="input-view" hidden>
+  <div class="prompt-action-bar"><button id="copy-input-prompt" class="btn small soft" type="button">整形プロンプトをコピー</button></div>
+  <div id="markdown-input"><div id="markdown-projects"></div></div>
+  <div id="table-input" hidden><div class="table-wrap"><table class="entry-table"><thead id="entry-head"></thead><tbody id="entry-body"></tbody></table></div><p class="input-note">1:Nは直前の項目に対する関係です。「＋」で同じ親の子項目とその下位フォームを追加します。</p></div>
+  <div id="yaml-input" class="panel" hidden><div class="panel-head"><div><h3>案件データをYAMLで編集</h3><p class="desc">項目名ごとに親子関係を記述します。変更後は表に反映できます。</p></div><button id="apply-input-yaml" type="button" class="btn primary">表に反映</button></div><textarea id="input-yaml" class="yaml-area" spellcheck="false" aria-label="案件データYAML"></textarea><div id="input-yaml-error" class="error" hidden></div><p class="yaml-info">1:Nはリスト（- value）、1:1は value で表現します。詳細メッセージは detail に入力します。</p></div>
+</section>
+<section id="analysis-view" hidden>
+  <div id="analysis-table-view">
+  <div id="analysis-layout" class="analysis-layout">
+    <aside class="panel">
+      <details id="matrix-settings" class="matrix-settings" open>
+        <summary>マトリクス設定</summary>
+        <div class="matrix-settings-body">
+          <div class="matrix-controls">
+          <div class="filter-group"><label>行（Rows）</label><details class="picker" data-picker="rows"><summary></summary><div class="picker-options"></div></details><div id="analysis-row-order" class="axis-order" aria-label="行の項目順序"></div></div>
+          <div class="filter-group"><label>列（Columns）</label><details class="picker" data-picker="columns"><summary></summary><div class="picker-options"></div></details><div id="analysis-column-order" class="axis-order" aria-label="列の項目順序"></div></div>
+          <div class="filter-group">
+            <label>セルの値（Values）</label><details class="picker" data-picker="values"><summary></summary><div class="picker-options"></div></details>
+          </div>
+          <div class="filter-group"><label>フィルター項目</label><details class="picker" data-picker="filters"><summary></summary><div class="picker-options"></div></details></div>
+          <div class="filter-group"><label>マウスオーバー</label><details class="picker" data-picker="tooltip"><summary></summary><div class="picker-options"></div></details></div>
+          </div>
+          <div id="analysis-color-bar" class="analysis-color-bar"><span class="analysis-color-heading">セル値の色</span><select id="analysis-color-target" class="control" aria-label="色を付ける値"></select><input id="analysis-color-input" type="color" aria-label="選択した値の背景色"><button id="analysis-color-clear" class="btn small" type="button">色を解除</button></div>
+          <div class="matrix-reset-row"><button id="reset-pivot" type="button" class="btn">初期設定に戻す</button></div>
+        </div>
+      </details>
+    </aside>
+    <div class="analysis-results">
+      <div id="analysis-filter-bar" class="analysis-filter-bar"><div class="filter-bar-heading">値のフィルター</div><div id="analysis-filter-values"></div></div>
+      <div id="pivot-host" class="pivot-box"></div>
+      <p class="input-note">行・列は値のみを表示します。同じ上位値は見出しセルを結合します。セル内の重複文字列は排除します。列見出しの右端をドラッグすると列幅を変更できます。</p>
+    </div>
+  </div>
+  </div>
+  <div id="analysis-yaml-view" class="panel" hidden>
+    <div class="panel-head"><h3>マトリクス設定をYAMLで編集</h3><button id="apply-analysis-yaml" class="btn primary" type="button">表に反映</button></div>
+    <textarea id="analysis-yaml" class="yaml-area" spellcheck="false" aria-label="分析設定YAML"></textarea>
+    <div id="analysis-yaml-error" class="error" hidden></div>
+    <p class="yaml-info">rows / columns / values / filters / tooltip / colors を編集できます。フィールド名と値は引用符で指定してください。</p>
+  </div>
+</section>
+</main>
+<div id="analysis-hover-tooltip" class="analysis-hover-tooltip" role="tooltip" hidden></div>
+<div id="status" class="status" role="status" aria-live="polite" hidden></div>
+<script id="definition-core">
+/* Small, intentional subset of YAML for the displayed schema format. */
+function parseSchema(source) {
+  const result={columns:[]};
+  let inColumns=false, item=null, block=null;
+  const scalar=s=>{
+    s=s.trim();
+    if(s.startsWith('"')){try{return JSON.parse(s);}catch{throw Error(`引用符の形式が不正です: ${s}`);}}
+    if(s.startsWith("'")&&s.endsWith("'"))return s.slice(1,-1).replace(/''/g,"'");
+    return s;
+  };
+  const list=s=>{
+    s=s.trim();if(!s.startsWith('[')||!s.endsWith(']'))throw Error(`配列は [...] で指定してください: ${s}`);
+    const inside=s.slice(1,-1).trim();if(!inside)return [];
+    if(inside.startsWith('"')){try{return JSON.parse(s);}catch{throw Error(`配列の引用符が不正です: ${s}`);}}
+    return inside.split(',').map(scalar);
+  };
+  const property=s=>{
+    const match=s.match(/^("(?:[^"\\]|\\.)*"|'[^']*'|[^:]+):\s*(.*)$/);
+    if(!match)throw Error(`項目名: 値 の形式で指定してください: ${s}`);
+    return [scalar(match[1]),match[2]];
+  };
+  for(const [index,line] of source.replace(/\r/g,'').split('\n').entries()){
+    if(!line.trim()||line.trim().startsWith('#'))continue;
+    const indentation=(line.match(/^ */)||[''])[0].length;
+    if(line.includes('\t'))throw Error(`${index+1}行目: タブではなく半角スペースを使ってください。`);
+    const body=line.trim();
+    try{
+      if(indentation===0){if(body!=='columns:')throw Error('先頭は columns: のみ指定できます。');inColumns=true;item=null;block=null;continue;}
+      if(!inColumns)throw Error('先に columns: を指定してください。');
+      if(indentation===2&&body.startsWith('- ')){
+        const [key,value]=property(body.slice(2));if(key!=='name')throw Error('各項目の最初に - name: を指定してください。');
+        item={name:scalar(value),type:'text',options:[],cardinality:'1:1',allowDetail:false};
+        result.columns.push(item);block=null;continue;
+      }
+      if(!item)throw Error('最初に - name: を指定してください。');
+      if(indentation===4){const [key,value]=property(body);
+        if(key==='name')item.name=scalar(value);
+        else if(key==='type')item.type=scalar(value);
+        else if(key==='cardinality')item.cardinality=scalar(value);
+        else if(key==='allowDetail'){
+          if(value!=='true'&&value!=='false')throw Error('allowDetail は true または false で指定してください。');
+          item.allowDetail=value==='true';
+        }
+        else if(key==='options'){item.options=value?list(value):[];block=value?null:'options';}
+        else throw Error(`不明なキー: ${key}`);
+        continue;
+      }
+      if(indentation===6&&block==='options'&&body.startsWith('- ')){item.options.push(scalar(body.slice(2)));continue;}
+      throw Error('インデントまたは構造が正しくありません。');
+    }catch(error){throw Error(`${index+1}行目: ${error.message}`);}
+  }
+  return result;
+}
+function serializeSchema(schema){
+  const quote=value=>JSON.stringify(String(value));
+  const array=values=>`[${(values||[]).map(quote).join(', ')}]`;
+  const out=['columns:'];
+  for(const col of schema.columns){out.push(`  - name: ${quote(col.name)}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);if(['select','multiselect'].includes(col.type))out.push(`    options: ${array(col.options)}`,`    allowDetail: ${col.allowDetail===true}`);}
+  return out.join('\n')+'\n';
+}
+function validateSchema(schema){
+  if(!schema||!Array.isArray(schema.columns))throw Error('columns が必要です。');
+  if(!schema.columns.length)throw Error('少なくとも1項目が必要です。');
+  const types=['text','date','select','multiselect'], names=new Set();
+  for(const col of schema.columns){
+    if(typeof col.name!=='string'||!col.name.trim())throw Error('項目名は必須です。');
+    if(names.has(col.name))throw Error(`項目名が重複しています: ${col.name}`);names.add(col.name);
+    if(!types.includes(col.type))throw Error(`${col.name}: type は text / date / select / multiselect のいずれかです。`);
+    if(col.allowDetail!==undefined&&typeof col.allowDetail!=='boolean')throw Error(`${col.name}: allowDetail は true または false で指定してください。`);
+    if(!['1:1','1:N'].includes(col.cardinality||'1:1'))throw Error(`${col.name}: cardinality は1:1または1:Nで指定してください。`);
+    if(['select','multiselect'].includes(col.type)){
+      if(!Array.isArray(col.options)||!col.options.length)throw Error(`${col.name}: プルダウン候補が必要です。`);
+      if(col.options.some(v=>typeof v!=='string'||!v.trim())||new Set(col.options).size!==col.options.length)throw Error(`${col.name}: 候補が空、または重複しています。`);
+    }
+  }
+  return true;
+}
+function moveColumn(columns,from,to){
+  if(from<0||to<0||from>=columns.length||to>=columns.length)return columns.slice();
+  const next=columns.slice(),[field]=next.splice(from,1);next.splice(to,0,field);return next;
+}
+function isRepeatedColumn(col){return col.cardinality==='1:N';}
+function isManyColumn(col){return isRepeatedColumn(col)||col.type==='multiselect';}
+function blankRepeatedValue(col){return col.type==='multiselect'?[]:'';}
+function coerceFieldValue(value,col){
+  const parts=v=>String(v??'').split(/\r?\n/).map(s=>s.trim());
+  if(isRepeatedColumn(col)){
+    if(col.type==='multiselect'){
+      const rows=Array.isArray(value)?value:parts(value).filter(Boolean);
+      return rows.map(row=>[...new Set((Array.isArray(row)?row:[row]).flatMap(parts).filter(Boolean))]);
+    }
+    if(Array.isArray(value))return value.map(item=>Array.isArray(item)?item.flatMap(parts).filter(Boolean).join('\n'):String(item??'').trim());
+    return parts(value).filter(Boolean);
+  }
+  if(col.type==='text'&&!Array.isArray(value))return String(value??'');
+  const items=(Array.isArray(value)?value.flat(Infinity):[value]).flatMap(parts).filter(Boolean);
+  if(col.type==='multiselect')return [...new Set(items)];
+  return col.type==='text'?items.join('\n'):(items[0]||'');
+}
+// Each level is the child of the immediately preceding column, not of the root.
+function nodeValue(value,col){
+  if(col.type==='multiselect'){
+    return [...new Set((Array.isArray(value)?value.flat(Infinity):[value]).map(v=>String(v??'').trim()).filter(Boolean))];
+  }
+  return Array.isArray(value)?String(value.find(v=>v!==''&&v!=null)??''):String(value??'');
+}
+function makeDefaultTree(columns,depth=0){
+  const col=columns[depth];
+  return {value:col.type==='multiselect'?[]:'',children:depth<columns.length-1?[makeDefaultTree(columns,depth+1)]:[]};
+}
+function appendTreeChild(parent,columns,depth){
+  if(!columns[depth]||columns[depth].cardinality!=='1:N')throw Error('追加できるのは1:N項目だけです。');
+  const child=makeDefaultTree(columns,depth);parent.children.push(child);return child;
+}
+function removeTreeChild(parent,index,columns,depth){
+  if(!columns[depth]||columns[depth].cardinality!=='1:N')throw Error('削除できるのは1:N項目だけです。');
+  if(parent.children.length<=1)parent.children=[makeDefaultTree(columns,depth)];
+  else parent.children.splice(index,1);
+}
+function treeRows(tree){
+  const measure=node=>{
+    const length=node.children?.length?node.children.map(measure).reduce((a,b)=>a+b,0):1;
+    Object.defineProperty(node,'rowSpan',{value:length,configurable:true,writable:true,enumerable:false});
+    return length;
+  };
+  measure(tree);
+  const rows=[];
+  const visit=(node,path)=>{
+    if(!node.children?.length){rows.push([...path,node]);return;}
+    for(const child of node.children)visit(child,[...path,node]);
+  };
+  visit(tree,[]);return rows;
+}
+function treeRecords(projects,columns){return projects.flatMap(project=>treeRows(project.tree).map(path=>Object.fromEntries(
+  columns.map((col,depth)=>[col.name,path[depth]?.value??(col.type==='multiselect'?[]:'')])
+)));}
+function fromFlatData(data,columns){
+  const root=makeDefaultTree(columns);root.value=nodeValue(data?.[columns[0].id],columns[0]);
+  let parents=[root];
+  for(let depth=1;depth<columns.length;depth++){
+    const col=columns[depth];
+    const raw=col.cardinality==='1:N'?coerceFieldValue(data?.[col.id],col):[data?.[col.id]];
+    const values=Array.isArray(raw)?raw:[raw];
+    const allocations=parents.map((_,i)=>[i<values.length?values[i]:undefined]);
+    if(col.cardinality==='1:N')for(let i=parents.length;i<values.length;i++)allocations[0].push(values[i]);
+    const next=[];
+    parents.forEach((parent,i)=>{
+      parent.children=allocations[i].map(value=>{
+        const child=makeDefaultTree(columns,depth);child.value=nodeValue(value,col);next.push(child);return child;
+      });
+    });
+    parents=next;
+  }
+  return root;
+}
+function normalizeTree(tree,columns,depth=0){
+  const col=columns[depth];tree.value=nodeValue(tree.value,col);
+  if(depth===columns.length-1){tree.children=[];return tree;}
+  let children=Array.isArray(tree.children)?tree.children:[];
+  if(columns[depth+1].cardinality!=='1:N'&&children.length>1)
+    throw Error(`${columns[depth+1].name}は1:1です。先に下位の入力件数を1件にしてください。`);
+  if(!children.length)children=[makeDefaultTree(columns,depth+1)];
+  tree.children=children.map(child=>normalizeTree(child,columns,depth+1));return tree;
+}
+function remapTree(tree,oldColumns,newColumns){
+  if(!tree)return makeDefaultTree(newColumns);
+  const prefix=oldColumns.slice(0,Math.min(oldColumns.length,newColumns.length)).every((col,i)=>col.id===newColumns[i].id);
+  if(prefix)return normalizeTree(structuredClone(tree),newColumns);
+  const paths=treeRows(tree).map(path=>Object.fromEntries(oldColumns.map((col,i)=>[col.id,{value:path[i]?.value,detail:path[i]?.detail}])));
+  const root=makeDefaultTree(newColumns),first=paths[0]||{};
+  root.value=nodeValue(first[newColumns[0].id]?.value,newColumns[0]);
+  if(first[newColumns[0].id]?.detail!==undefined)root.detail=first[newColumns[0].id].detail;
+  root.children=[];
+  for(const path of paths){
+    const candidate=nodeValue(path[newColumns[0].id]?.value,newColumns[0]);
+    if(JSON.stringify(candidate)!==JSON.stringify(root.value)&&candidate!=='')
+      throw Error('ルートキーに複数の値があるため、先頭への移動を適用できません。');
+    let parent=root;
+    for(let depth=1;depth<newColumns.length;depth++){
+      const col=newColumns[depth],field=path[col.id],value=nodeValue(field?.value,col);
+      let child;
+      if(col.cardinality==='1:N')child=parent.children.find(item=>JSON.stringify(item.value)===JSON.stringify(value));
+      else child=parent.children[0];
+      if(!child){child={value,children:[]};if(field?.detail!==undefined)child.detail=field.detail;parent.children.push(child);}
+      else if(col.cardinality!=='1:N'&&JSON.stringify(child.value)!==JSON.stringify(value)&&value!=='')
+        throw Error(`${col.name}の値が複数あるため、新しい1:1の関係を適用できません。`);
+      parent=child;
+    }
+  }
+  return normalizeTree(root,newColumns);
+}
+</script>
+<script id="input-yaml-core">
+/* Data YAML: field names are nested in schema order, with value/detail per child. */
+function serializeProjectsYaml(projects,columns){
+  if(!columns?.length)throw Error('先に項目定義を設定してください。');
+  const quote=value=>JSON.stringify(String(value??''));
+  const formatValue=(node,col)=>col.type==='multiselect'?JSON.stringify(Array.isArray(node.value)?node.value:[]):quote(node.value);
+  const lines=['projects:'];
+  const emit=(node,depth,indent,inList)=>{
+    const col=columns[depth],spaces=' '.repeat(indent),prefix=inList?'- ':'',key=depth===0?quote(col.name):'value';
+    lines.push(`${spaces}${prefix}${key}: ${formatValue(node,col)}`);
+    const propertyIndent=indent+(inList?2:0),propertySpaces=' '.repeat(propertyIndent);
+    if(Object.prototype.hasOwnProperty.call(node,'detail'))lines.push(`${propertySpaces}detail: ${quote(node.detail)}`);
+    if(depth+1<columns.length){
+      const nextCol=columns[depth+1],children=node.children||[];
+      if(!children.length)throw Error(`${col.name}: 下位項目がありません。`);
+      lines.push(`${propertySpaces}${quote(nextCol.name)}:`);
+      for(const child of children)emit(child,depth+1,propertyIndent+2,nextCol.cardinality==='1:N');
+    }
+  };
+  for(const project of projects)emit(project.tree,0,2,true);
+  return lines.join('\n')+'\n';
+}
+
+function parseProjectsYaml(source,columns){
+  if(!columns?.length)throw Error('先に項目定義を設定してください。');
+  const tokens=[];
+  for(const [i,line] of String(source).replace(/\r/g,'').split('\n').entries()){
+    if(!line.trim()||line.trimStart().startsWith('#'))continue;
+    if(line.includes('\t'))throw Error(`${i+1}行目: タブではなく半角スペースを使ってください。`);
+    const indent=line.length-line.trimStart().length;
+    tokens.push({line:i+1,indent,body:line.trim()});
+  }
+  if(!tokens.length)throw Error('YAMLが空です。');
+  let cursor=0;
+  const fail=(message,t=tokens[cursor]||tokens[tokens.length-1])=>{throw Error(`${t.line}行目: ${message}`);};
+  const parseScalar=(source,t)=>{
+    const raw=source.trim();
+    if(raw.startsWith('"')){
+      try{const value=JSON.parse(raw);if(typeof value!=='string')fail('文字列を指定してください。',t);return value;}
+      catch(error){fail(`引用符の形式が不正です: ${error.message}`,t);}
+    }
+    if(raw.startsWith("'")){
+      if(!/^'(?:[^']|'')*'$/.test(raw))fail('シングルクォートが閉じていません。',t);
+      return raw.slice(1,-1).replace(/''/g,"'");
+    }
+    if(raw.startsWith('[')){
+      if(!raw.endsWith(']'))fail('配列は [...] の形式で指定してください。',t);
+      try{const value=JSON.parse(raw);if(Array.isArray(value))return value;}catch{}
+      const inside=raw.slice(1,-1).trim();
+      return inside?inside.split(',').map(v=>parseScalar(v.trim(),t)):[];
+    }
+    if(raw.startsWith('{'))fail('オブジェクトはインデントして記述してください。',t);
+    return raw;
+  };
+  const pair=(body,t)=>{
+    const match=body.match(/^("(?:[^"\\]|\\.)*"|'(?:[^']|'')*'|[^:]+):(?:\s+(.*)|$)/);
+    if(!match)fail('「項目名: 値」の形式で記述してください。',t);
+    const key=parseScalar(match[1],t);
+    if(typeof key!=='string'||!key.trim())fail('項目名が空です。',t);
+    return [key,match[2]===undefined?'':match[2]];
+  };
+  const assign=(object,key,value,t)=>{
+    if(Object.prototype.hasOwnProperty.call(object,key))fail(`同じキーが重複しています: ${key}`,t);
+    object[key]=value;
+  };
+  const property=(object,body,indent,t)=>{
+    const [key,raw]=pair(body,t);
+    if(raw===''){
+      if(cursor<tokens.length&&tokens[cursor].indent>indent){
+        if(tokens[cursor].indent!==indent+2)fail('インデントは親より半角2スペース深くしてください。');
+        assign(object,key,block(indent+2),t);
+      }else assign(object,key,'',t);
+    }else assign(object,key,parseScalar(raw,t),t);
+  };
+  const mapping=(indent,object={})=>{
+    while(cursor<tokens.length&&tokens[cursor].indent===indent&&!tokens[cursor].body.startsWith('- ')){
+      const t=tokens[cursor++];property(object,t.body,indent,t);
+    }
+    return object;
+  };
+  const sequence=indent=>{
+    const items=[];
+    while(cursor<tokens.length&&tokens[cursor].indent===indent&&tokens[cursor].body.startsWith('- ')){
+      const t=tokens[cursor++],body=t.body.slice(2),item={};
+      property(item,body,indent+2,t);
+      if(cursor<tokens.length&&tokens[cursor].indent===indent+2&&!tokens[cursor].body.startsWith('- '))mapping(indent+2,item);
+      items.push(item);
+    }
+    return items;
+  };
+  const block=indent=>{
+    if(cursor>=tokens.length||tokens[cursor].indent!==indent)fail('インデントが正しくありません。');
+    return tokens[cursor].body.startsWith('- ')?sequence(indent):mapping(indent);
+  };
+  const document=block(0);
+  if(cursor<tokens.length)fail('インデントまたはリストの構造が正しくありません。');
+  if(!document||Array.isArray(document)||Object.keys(document).some(k=>k!=='projects'))throw Error('先頭には projects: のみ指定してください。');
+  if(!Array.isArray(document.projects)||!document.projects.length)throw Error('projects: に案件のリストが必要です。');
+  const decode=(object,depth)=>{
+    const col=columns[depth],key=depth===0?col.name:'value',next=columns[depth+1];
+    if(!object||Array.isArray(object)||typeof object!=='object')throw Error(`${col.name}: 項目をオブジェクト形式で指定してください。`);
+    const allowed=new Set([key,'detail',...(next?[next.name]:[])]);
+    for(const name of Object.keys(object))if(!allowed.has(name))throw Error(`${col.name}: 不明なキー「${name}」です。`);
+    if(!Object.prototype.hasOwnProperty.call(object,key))throw Error(`${col.name}: ${key} が必要です。`);
+    const raw=object[key],multi=col.type==='multiselect';
+    if(multi?!Array.isArray(raw):typeof raw!=='string')throw Error(`${col.name}: ${multi?'配列':'文字列'}を指定してください。`);
+    if(multi&&raw.some(v=>typeof v!=='string'))throw Error(`${col.name}: 選択値は文字列にしてください。`);
+    const node={value:multi?[...raw]:raw,children:[]};
+    if(Object.prototype.hasOwnProperty.call(object,'detail')){
+      if(typeof object.detail!=='string')throw Error(`${col.name}: detail は文字列にしてください。`);
+      node.detail=object.detail;
+    }
+    if(next){
+      const children=object[next.name],many=next.cardinality==='1:N';
+      if(many){
+        if(!Array.isArray(children)||!children.length)throw Error(`${next.name}: 1:Nのため、1件以上のリストが必要です。`);
+        node.children=children.map(child=>decode(child,depth+1));
+      }else{
+        if(!children||typeof children!=='object'||Array.isArray(children))throw Error(`${next.name}: 1:1のため、1件のオブジェクトが必要です。`);
+        node.children=[decode(children,depth+1)];
+      }
+    }
+    return node;
+  };
+  return document.projects.map((entry,i)=>({id:`yaml_${i+1}`,tree:decode(entry,0)}));
+}
+
+function formattingPromptInputBlock(){return '\n【入力内容】\n＝＝＝＝＝＝＝＝＝＝＝＝＝＝\n\n\n＝＝＝＝＝＝＝＝＝＝＝＝＝＝';}
+
+function buildDefinitionFormattingPrompt(columns){
+  return `以下の入力内容を解析し、項目定義用のYAMLに整形してください。
+
+【変換ルール】
+- 自由文章・箇条書き・Markdownから項目定義を読み取り、誤字・表記揺れを整える。意味を変えず、情報を創作しない。
+- 現在の定義を基準とし、入力で明示された変更だけを反映する。
+- 最上位キーは columns: のみ。項目の順序は親子関係の順序で、最初がルートキー。
+- 各項目は name、type、cardinality を記述し、select/multiselect は options と allowDetail も記述する。
+- type は text / date / select / multiselect、cardinality は 1:1 / 1:N。1:Nは直前の項目が親となる。
+- select/multiselect には選択候補を配列で指定し、detailを入力できる場合は allowDetail: true とする。
+- 未指定の項目・選択候補・1:1／1:N・detail可否は現在の定義を維持する。
+- インデントは半角スペース2個単位。項目名・選択肢はダブルクォートで囲む。
+- 項目入力・項目分析のデータは出力せず、YAMLのみを返す。説明・コードブロックは不要。
+
+【現在の項目定義／出力構造】
+${serializeSchema({columns}).trimEnd()}${formattingPromptInputBlock()}`;
+}
+
+function buildFormattingPrompt(columns){
+  const definitions=columns.map((col,index)=>{
+    const choices=['select','multiselect'].includes(col.type)?`、選択肢: ${(col.options||[]).map(option=>JSON.stringify(option)).join(' / ')}`:'';
+    return `${index+1}. ${col.name}（${col.type}、${col.cardinality||'1:1'}${choices}${col.allowDetail===true?'、detail可':''}）`;
+  }).join('\n');
+  const sample=(depth=0)=>{
+    const col=columns[depth];
+    const value=col.type==='multiselect'?(col.options||[]).slice(0,2):col.type==='select'?(col.options?.[0]||''):`${col.name}の値`;
+    const node={value,children:depth+1<columns.length?[sample(depth+1)]:[]};
+    if(col.allowDetail===true)node.detail=`${col.name}の補足説明`;
+    return node;
+  };
+  return `以下の入力内容を解析し、項目入力用のYAMLに整形してください。
+
+【変換ルール】
+- 自由文章・箇条書き・Markdownから案件と情報を判定し、対応する項目に自動分類する。誤字・表記揺れ・冗長表現を修正し、意味を変えず、情報を創作しない。
+- 案件が複数ある場合は projects: 配下に案件ごとのレコードを追加する。
+- 項目名・順序・型・選択肢は現在の項目定義に一致させる。単一選択は候補から1つ、複数選択は候補から配列で選ぶ。
+- 1:Nは直前の項目を親とし、複数値を同じ親の下の「- value:」として並べる。各子は独立した下位階層を持ち、別の親の情報を混在させない。
+- 1:1は1つのオブジェクトで「value:」を指定する。ルート項目は案件ごとのキーとする。
+- detail は許可された項目だけに、分類理由・背景・具体的な補足を文字列で付ける。補足がなければ detail を省略する。
+- 不明な情報は推測せず、文字列は ""、複数選択は [] とする。必須の下位階層は省略せず、空値で1件作る。
+- インデントは半角スペース2個単位。文字列・キーはダブルクォートで囲み、改行や引用符をエスケープする。
+- 項目定義・項目分析は出力せず、YAMLのみを返す。説明・コードブロックは不要。
+
+【現在の項目定義】
+${definitions}
+
+【出力構造】
+${serializeProjectsYaml([{id:'example',tree:sample()}],columns).trimEnd()}
+※構造例の値はダミー。入力内容から設定し、該当しない情報は空値にする。
+※1:Nの複数値は各階層でノードを追加し、それぞれの下位階層も生成する。${formattingPromptInputBlock()}`;
+}
+</script>
+<script id="pivot-core">
+function reorderAnalysisFields(fields,from,to){
+  if(from<0||to<0||from>=fields.length||to>=fields.length)return fields.slice();
+  const ordered=fields.slice(),[field]=ordered.splice(from,1);ordered.splice(to,0,field);return ordered;
+}
+function analysisDataValues(value){
+  return [...new Set((Array.isArray(value)?value:[value]).map(v=>String(v??'').trim()).filter(Boolean))];
+}
+function analysisFilterValues(records,field){
+  return [...new Set(records.flatMap(record=>{
+    const values=analysisDataValues(record[field]);return values.length?values:['（未設定）'];
+  }))];
+}
+function filterAnalysisRecords(records,filters){
+  return records.filter(record=>Object.entries(filters||{}).every(([field,selected])=>{
+    if(!Array.isArray(selected)||!selected.length)return false;
+    const values=analysisDataValues(record[field]);
+    return (values.length?values:['（未設定）']).some(value=>selected.includes(value));
+  }));
+}
+function makePivot(records,rowFields,colFields,valueFields){
+  const rows=[],columns=[],cells=Object.create(null),recordCells=Object.create(null),rSeen=new Set(),cSeen=new Set();
+  const values=analysisDataValues;
+  const combos=(record,fields)=>fields.reduce((acc,field)=>acc.flatMap(a=>(values(record[field]).length?values(record[field]):['（未設定）']).map(v=>[...a,v])),[[]]);
+  for(const record of records){const rCombos=combos(record,rowFields),cCombos=combos(record,colFields);const items=valueFields.flatMap(field=>values(record[field]).map(v=>valueFields.length>1?`${field}: ${v}`:v));
+    for(const r of rCombos){const rk=JSON.stringify(r);if(!rSeen.has(rk)){rSeen.add(rk);rows.push({key:rk,values:r});}for(const c of cCombos){const ck=JSON.stringify(c);if(!cSeen.has(ck)){cSeen.add(ck);columns.push({key:ck,values:c});}if(!cells[rk])cells[rk]=Object.create(null);if(!cells[rk][ck])cells[rk][ck]=[];for(const item of items)if(!cells[rk][ck].includes(item))cells[rk][ck].push(item);if(!recordCells[rk])recordCells[rk]=Object.create(null);if(!recordCells[rk][ck])recordCells[rk][ck]=[];recordCells[rk][ck].push(record);}}
+  }return {rows:orderPivotAxis(rows),columns:orderPivotAxis(columns),cells,recordCells};
+}
+// Keep each parent prefix together without sorting or renaming user-entered values.
+function orderPivotAxis(axis){
+  const group=(items,depth)=>{
+    if(items.length<=1||depth>=items[0].values.length)return items;
+    const buckets=new Map();
+    for(const item of items){const key=JSON.stringify(item.values[depth]);if(!buckets.has(key))buckets.set(key,[]);buckets.get(key).push(item);}
+    return [...buckets.values()].flatMap(items=>group(items,depth+1));
+  };
+  return group(axis,0);
+}
+function pivotAxisGroups(items,level){
+  const groups=[];let previous=null;
+  for(const [index,item] of items.entries()){
+    const prefix=JSON.stringify(item.values.slice(0,level+1));
+    if(prefix!==previous){groups.push({start:index,span:1,value:item.values[level]??'全件'});previous=prefix;}
+    else groups[groups.length-1].span++;
+  }
+  return groups;
+}
+</script>
+<script id="analysis-yaml-core">
+/* YAML subset for editing pivot settings without external libraries. */
+function serializeAnalysisYaml(analysis){
+  const names=['rows','columns','values','tooltip'],lines=[];
+  for(const name of names)lines.push(name+': '+JSON.stringify(analysis[name]||[]));
+  const filters=analysis.filters||{},filterNames=Object.keys(filters);
+  lines.push(filterNames.length?'filters:':'filters: {}');
+  for(const field of filterNames)lines.push('  '+JSON.stringify(field)+': '+JSON.stringify(filters[field]));
+  const grouped=new Map();
+  for(const [key,color] of Object.entries(analysis.valueColors||{})){
+    let pair;try{pair=JSON.parse(key);}catch{continue;}
+    if(!Array.isArray(pair)||pair.length!==2||pair.some(v=>typeof v!=='string')||!/^#[0-9a-f]{6}$/i.test(color))continue;
+    if(!grouped.has(pair[0]))grouped.set(pair[0],[]);
+    grouped.get(pair[0]).push([pair[1],color]);
+  }
+  lines.push(grouped.size?'colors:':'colors: {}');
+  for(const [field,entries] of grouped){
+    lines.push('  '+JSON.stringify(field)+':');
+    for(const [value,color] of entries)lines.push('    '+JSON.stringify(value)+': '+JSON.stringify(color));
+  }
+  return lines.join('\n')+'\n';
+}
+function parseAnalysisYaml(source,availableFields){
+  const lists=['rows','columns','values','tooltip'],sections=[...lists,'filters','colors'],document={};
+  const tokens=[];
+  for(const [index,line] of String(source).replace(/\r/g,'').split('\n').entries()){
+    if(!line.trim()||line.trimStart().startsWith('#'))continue;
+    if(line.includes('\t'))throw Error((index+1)+'行目: タブは使用できません。');
+    const indent=line.length-line.trimStart().length;
+    tokens.push({indent,body:line.trim(),line:index+1});
+  }
+  const fail=(message,token)=>{throw Error((token?.line||1)+'行目: '+message);};
+  const scalar=(raw,token)=>{
+    const value=raw.trim();
+    if(value.startsWith('"')){
+      try{const parsed=JSON.parse(value);if(typeof parsed!=='string')fail('文字列を指定してください。',token);return parsed;}
+      catch(error){fail('引用符の形式が不正です。',token);}
+    }
+    if(value.startsWith("'")){
+      if(!/^'(?:[^']|'')*'$/.test(value))fail('引用符を閉じてください。',token);
+      return value.slice(1,-1).replace(/''/g,"'");
+    }
+    if(!value||value.startsWith('[')||value.startsWith('{'))fail('文字列を指定してください。',token);
+    return value;
+  };
+  const pair=token=>{
+    const match=token.body.match(/^("(?:[^"\\]|\\.)*"|'(?:[^']|'')*'|[^:]+):(?:\s+(.*)|$)/);
+    if(!match)fail('「項目: 値」の形式で記述してください。',token);
+    return [scalar(match[1],token),match[2]===undefined?'':match[2].trim()];
+  };
+  const array=(raw,token)=>{
+    try{const values=JSON.parse(raw);if(Array.isArray(values)&&values.every(v=>typeof v==='string'))return values;}
+    catch{}
+    fail('文字列の配列は ["値1", "値2"] の形式で指定してください。',token);
+  };
+  const assign=(target,key,value,token)=>{
+    if(Object.prototype.hasOwnProperty.call(target,key))fail('同じキーが重複しています: '+key,token);
+    target[key]=value;
+  };
+  let section='',sub='';
+  for(const token of tokens){
+    if(token.indent===0){
+      const [key,raw]=pair(token);
+      if(!sections.includes(key))fail('不明なキー: '+key,token);
+      if(lists.includes(key))assign(document,key,raw?array(raw,token):[],token);
+      else{
+        if(raw&&raw!=='{}')fail(key+' はインデントした項目か {} で指定してください。',token);
+        assign(document,key,{},token);
+      }
+      section=raw?'':key;sub='';continue;
+    }
+    if(token.indent===2&&lists.includes(section)){
+      if(!token.body.startsWith('- '))fail('リストは - で開始してください。',token);
+      document[section].push(scalar(token.body.slice(2),token));continue;
+    }
+    if(token.indent===2&&(section==='filters'||section==='colors')){
+      const [key,raw]=pair(token);
+      if(section==='filters'){assign(document.filters,key,raw?array(raw,token):[],token);sub=raw?'':key;}
+      else{
+        if(raw&&raw!=='{}')fail('colors の項目は下位に値と色を指定してください。',token);
+        assign(document.colors,key,{},token);sub=raw?'':key;
+      }
+      continue;
+    }
+    if(token.indent===4&&section==='filters'&&sub){
+      if(!token.body.startsWith('- '))fail('リストは - で開始してください。',token);
+      document.filters[sub].push(scalar(token.body.slice(2),token));continue;
+    }
+    if(token.indent===4&&section==='colors'&&sub){
+      const [key,raw]=pair(token);
+      assign(document.colors[sub],key,scalar(raw,token),token);continue;
+    }
+    fail('インデントまたは構造が正しくありません。',token);
+  }
+  for(const key of lists)if(!Object.prototype.hasOwnProperty.call(document,key))throw Error(key+': が必要です。');
+  const known=new Set(availableFields);
+  for(const key of lists){
+    if(new Set(document[key]).size!==document[key].length)throw Error(key+': 同じ項目を重複指定できません。');
+    for(const field of document[key])if(!known.has(field))throw Error(key+': 未定義の項目「'+field+'」です。');
+  }
+  for(const field of Object.keys(document.filters||{}))if(!known.has(field))throw Error('filters: 未定義の項目「'+field+'」です。');
+  const valueColors={};
+  for(const [field,values] of Object.entries(document.colors||{})){
+    if(!known.has(field))throw Error('colors: 未定義の項目「'+field+'」です。');
+    for(const [value,color] of Object.entries(values)){
+      if(!/^#[0-9a-f]{6}$/i.test(color))throw Error('colors: '+field+' / '+value+' の色は #RRGGBB で指定してください。');
+      valueColors[JSON.stringify([field,value])]=color.toLowerCase();
+    }
+  }
+  return {rows:document.rows,columns:document.columns,values:document.values,tooltip:document.tooltip,filters:document.filters||{},valueColors};
+}
+</script>
+<script id="workspace-yaml-core">
+/* Standalone, strict YAML 1.2 subset for complete offline workspace backups. */
+function serializeWorkspaceYaml(workspace){
+  const snapshot={version:1,title:workspace.title,columns:workspace.columns,projects:workspace.projects,
+    analysisTabs:workspace.analysisTabs,activeAnalysisTabId:workspace.activeAnalysisTabId};
+  const scalar=value=>JSON.stringify(value);
+  const isContainer=value=>value!==null&&typeof value==='object';
+  const isNested=value=>isContainer(value)&&(Array.isArray(value)?value.length>0:Object.keys(value).length>0);
+  const keyText=key=>/^[A-Za-z_][A-Za-z_0-9-]*$/.test(key)?key:JSON.stringify(key);
+  const lines=[];
+  const render=(value,depth)=>{
+    const spaces=' '.repeat(depth);
+    if(Array.isArray(value)){
+      for(const item of value){
+        if(isNested(item)){lines.push(spaces+'-');render(item,depth+2);}
+        else lines.push(spaces+'- '+scalar(item));
+      }
+    }else for(const [key,item] of Object.entries(value)){
+      if(item===undefined)continue;
+      const prefix=spaces+keyText(key)+':';
+      if(isNested(item)){lines.push(prefix);render(item,depth+2);}
+      else lines.push(prefix+' '+scalar(item));
+    }
+  };
+  render(snapshot,0);return lines.join('\n')+'\n';
+}
+function parseWorkspaceYaml(source){
+  const tokens=[];
+  for(const [index,line] of String(source).replace(/\r/g,'').split('\n').entries()){
+    if(!line.trim()||line.trimStart().startsWith('#'))continue;
+    if(line.includes('\t'))throw Error(`${index+1}行目: タブは使用できません。`);
+    const indent=line.length-line.trimStart().length;
+    if(indent%2)throw Error(`${index+1}行目: インデントは半角2スペース単位にしてください。`);
+    tokens.push({line:index+1,indent,body:line.trim()});
+  }
+  if(!tokens.length)throw Error('YAMLが空です。');
+  let cursor=0;
+  const fail=(message,token=tokens[cursor]||tokens[tokens.length-1])=>{throw Error(`${token.line}行目: ${message}`);};
+  const parseScalar=(raw,token)=>{
+    if(raw.startsWith('"')||raw.startsWith('[')||raw.startsWith('{')){
+      try{return JSON.parse(raw);}catch{fail('文字列・配列・オブジェクトの形式が不正です。',token);}
+    }
+    if(raw==='true')return true;
+    if(raw==='false')return false;
+    if(raw==='null')return null;
+    if(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(raw))return Number(raw);
+    if(/^[!&*]|^<<:/.test(raw))fail('YAMLタグ・参照は使用できません。',token);
+    return raw;
+  };
+  const parseBlock=indent=>{
+    if(cursor>=tokens.length||tokens[cursor].indent!==indent)fail('項目のインデントが不正です。');
+    if(tokens[cursor].body==='-'||tokens[cursor].body.startsWith('- ')){
+      const items=[];
+      while(cursor<tokens.length&&tokens[cursor].indent===indent){
+        const token=tokens[cursor];
+        if(token.body!=='-'&&!token.body.startsWith('- '))fail('配列の項目には「-」を指定してください。',token);
+        cursor++;
+        const inline=token.body.slice(1).trim();
+        if(inline)items.push(parseScalar(inline,token));
+        else if(cursor<tokens.length&&tokens[cursor].indent===indent+2)items.push(parseBlock(indent+2));
+        else fail('配列に値がありません。',token);
+      }
+      return items;
+    }
+    const result=Object.create(null);
+    while(cursor<tokens.length&&tokens[cursor].indent===indent){
+      const token=tokens[cursor++];
+      const match=token.body.match(/^("(?:[^"\\]|\\.)*"|[A-Za-z_][A-Za-z_0-9-]*):(?:\s+(.*)|$)/);
+      if(!match)fail('項目は「キー: 値」で指定してください。',token);
+      let key=match[1];
+      if(key.startsWith('"'))try{key=JSON.parse(key);}catch{fail('キーの引用符が不正です。',token);}
+      if(['__proto__','constructor','prototype'].includes(key))fail('禁止された項目名です。',token);
+      if(Object.prototype.hasOwnProperty.call(result,key))fail('同じキーが重複しています: '+key,token);
+      const inline=match[2];
+      if(inline!==undefined){result[key]=parseScalar(inline,token);}
+      else if(cursor<tokens.length&&tokens[cursor].indent===indent+2){result[key]=parseBlock(indent+2);}
+      else fail('項目に値がありません: '+key,token);
+    }
+    return result;
+  };
+  if(tokens[0].indent!==0)fail('先頭のインデントは0にしてください。');
+  const document=parseBlock(0);
+  if(cursor!==tokens.length)fail('項目のインデントが不正です。');
+  if(!document||Array.isArray(document)||typeof document!=='object')throw Error('全体YAMLは項目名を持つ形式にしてください。');
+  const allowed=['version','title','columns','projects','analysisTabs','activeAnalysisTabId'];
+  for(const key of Object.keys(document))if(!allowed.includes(key))throw Error('不明な項目です: '+key);
+  for(const key of allowed)if(!Object.prototype.hasOwnProperty.call(document,key))throw Error('必須項目がありません: '+key);
+  if(document.version!==1)throw Error('対応していないYAMLバージョンです。');
+  if(typeof document.title!=='string'||!document.title.trim())throw Error('title は文字列で指定してください。');
+  if(!Array.isArray(document.columns)||!document.columns.length)throw Error('columns は項目配列で指定してください。');
+  if(!Array.isArray(document.projects)||!document.projects.length)throw Error('projects は案件配列で指定してください。');
+  if(!Array.isArray(document.analysisTabs)||!document.analysisTabs.length)throw Error('analysisTabs は分析タブの配列で指定してください。');
+  if(document.analysisTabs.some(tab=>!tab||typeof tab.id!=='string'||typeof tab.name!=='string'||!tab.analysis||typeof tab.analysis!=='object'))throw Error('分析タブの形式が不正です。');
+  if(typeof document.activeAnalysisTabId!=='string'||!document.analysisTabs.some(tab=>tab.id===document.activeAnalysisTabId))throw Error('選択中の分析タブが見つかりません。');
+  const {version,...rest}=document;return rest;
+}
+function mergeWorkspaceYamlSnapshots(workspaces){
+  if(!Array.isArray(workspaces)||!workspaces.length)throw Error('読み込むYAMLファイルがありません。');
+  const definitionKey=columns=>JSON.stringify(columns.map(col=>[
+    col.name,col.type,col.options||[],col.cardinality||'1:1',col.allowDetail===true
+  ]));
+  const reference=definitionKey(workspaces[0].columns);
+  for(const [index,workspace] of workspaces.entries()){
+    if(definitionKey(workspace.columns)!==reference)
+      throw Error(`${index+1}番目のYAMLの項目定義が一致しません。`);
+  }
+  const ids=new Set(),projects=[];let serial=1;
+  for(const workspace of workspaces)for(const project of workspace.projects){
+    let id=typeof project.id==='string'?project.id:'';
+    while(!id||ids.has(id))id=`merged-${serial++}`;
+    ids.add(id);projects.push({...project,id});
+  }
+  return {...workspaces[0],projects};
+}
+</script>
+<script>
+(() => {
+  'use strict';
+  const STORE='dx_three_screens_v2',OLD_STORE='dx_three_screens_v1';
+  const $=id=>document.getElementById(id);
+  const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;};
+  const button=(text,callback,cls='btn small')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',callback);return b;};
+  const uid=()=>`id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,9)}`;
+  const column=(id,name,type='text',options=[],cardinality='1:1',allowDetail=false)=>({id,name,type,options,cardinality,allowDetail});
+  const initialColumns=[
+    column('name','案件名'),
+    column('businessStage','業務の上位工程','select',['1 実行・処理','2 要件整理','3 設計','4 解釈・評価','5 意思決定支援'],'1:1',true),
+    column('businessQuality','業務の高度化','multiselect',['正確性','解像度','妥当性','不確実性への対応','適用範囲','再現性・安定性'],'1:1',true),
+    column('technicalLevel','技術の高度化','multiselect',['エンジニアリング','統計','機械学習','推論・生成AI'],'1:1',true),
+    column('operationSavings','運用工数の削減','select',['1 手作業','2 標準化','3 人間と機械の分離','4 半自動化','5 自動化'],'1:1',true),
+    column('creationSavings','作成工数の削減','select',['1 手作業','2 ナレッジ化','3 工程の自動化','4 共通部品化','5 循環的な開発（仮）'],'1:1',true)
+  ];
+  const sampleProject=(id,values,details)=>{
+    const tree=makeDefaultTree(initialColumns);let current=tree;
+    for(const col of initialColumns){
+      const value=values[col.id];current.value=Array.isArray(value)?[...value]:String(value??'');
+      if(details[col.id])current.detail=details[col.id];
+      current=current.children[0];
+    }
+    return {id,tree};
+  };
+  const initialProjects=[
+    sampleProject('p1',{name:'顧客データ統合基盤整備',businessStage:'3 設計',businessQuality:['正確性','適用範囲'],technicalLevel:['エンジニアリング'],operationSavings:'5 自動化',creationSavings:'4 共通部品化'},
+      {businessStage:'データ取得・名寄せ・顧客マスターの設計まで支援。',businessQuality:'照合精度と部門横断の利用範囲を改善。',technicalLevel:'データモデリング、API連携、分散処理、性能最適化を適用。',operationSavings:'定期連携と監視を自動化し、例外時に通知する想定。',creationSavings:'連携処理とデータ変換を共通モジュール化して再利用。'}),
+    sampleProject('p2',{name:'売上KPIの要因分析',businessStage:'4 解釈・評価',businessQuality:['解像度','妥当性','不確実性への対応'],technicalLevel:['統計'],operationSavings:'3 人間と機械の分離',creationSavings:'2 ナレッジ化'},
+      {businessStage:'要因分析、示唆抽出、施策選択肢の比較まで支援。',businessQuality:'地域・商品別に要因を分解し、誤差や前提条件を検証。',technicalLevel:'仮説検定、多変量解析、実験計画を利用。',operationSavings:'定型集計を機械処理し、仮説の評価と判断は人間が担当。',creationSavings:'KPI定義書と分析テンプレートを整備。'}),
+    sampleProject('p3',{name:'需要予測モデルの業務導入',businessStage:'5 意思決定支援',businessQuality:['正確性','不確実性への対応','再現性・安定性'],technicalLevel:['統計','機械学習'],operationSavings:'4 半自動化',creationSavings:'3 工程の自動化'},
+      {businessStage:'需要予測に基づく発注量の推奨と優先順位付けを支援。',businessQuality:'予測誤差、需要変動、モデルの安定性を評価。',technicalLevel:'特徴量設計、回帰・分類、時系列予測、モデル選択、統計的な誤差評価。',operationSavings:'予測結果を自動作成し、発注前の確認は担当者が実施。',creationSavings:'自動テストとモデル学習・評価の処理をパイプライン化。'}),
+    sampleProject('p4',{name:'生成AIによる問い合わせ対応支援',businessStage:'5 意思決定支援',businessQuality:['妥当性','適用範囲'],technicalLevel:['エンジニアリング','推論・生成AI'],operationSavings:'4 半自動化',creationSavings:'5 循環的な開発（仮）'},
+      {businessStage:'問い合わせ内容に対して回答候補と対応方針を提示。',businessQuality:'部署・問い合わせ種別に対応し、回答の根拠と適切性を確認。',technicalLevel:'RAG、プロンプト設計、構造化出力、ツール利用、生成品質評価、API連携。',operationSavings:'回答案は自動生成し、対外回答は人間が承認。',creationSavings:'仕様→生成→検証→改善の循環でプロンプトと評価ケースを更新。'})
+  ];
+  const defaultAnalysis=(schema=initialColumns)=>{
+    const names=schema.map(col=>col.name);
+    const row=names.includes('業務の上位工程')?'業務の上位工程':names.includes('成熟度')?'成熟度':names[0];
+    const col=names.includes('技術の高度化')?'技術の高度化':names.includes('工程')?'工程':names[1];
+    const value=names.includes('支援内容')?'支援内容':names.includes('案件名')?'案件名':names[0];
+    return {rows:row?[row]:[],columns:col?[col]:[],values:value?[value]:[],filters:{},tooltip:[],columnWidths:{},valueColors:{},matrixOpen:true};
+  };
+  const initial=()=>({title:'DX案件ワークスペース',columns:structuredClone(initialColumns),projects:structuredClone(initialProjects),analysis:defaultAnalysis()});
+  let state,view='',formatMode='table',definitionMode='gui',inputMode='table',analysisMode='table',statusTimeout,inputYamlBaseline=null,analysisYamlBaseline=null,activeColorKey='';
+  const openFieldOptions=new Set();
+  function toast(message){const n=$('status');n.textContent=message;n.hidden=false;clearTimeout(statusTimeout);statusTimeout=setTimeout(()=>n.hidden=true,4000);}
+  function persist(){
+    const active=state.analysisTabs?.find(tab=>tab.id===state.activeAnalysisTabId);
+    if(active)active.analysis=structuredClone(state.analysis);
+    try{localStorage.setItem(STORE,JSON.stringify(state));}catch{toast('ブラウザ内保存できませんでした。');}
+  }
+  function asSchema(){return {columns:state.columns.map(({name,type,options,cardinality,allowDetail})=>({name,type,options,cardinality,allowDetail:allowDetail===true}))};}
+  const byName=name=>state.columns.find(c=>c.name===name);
+  const blankValue=col=>isManyColumn(col)?[]:'';
+  function normalizeAnalysisConfig(analysis){
+    const filters=analysis.filters&&typeof analysis.filters==='object'&&!Array.isArray(analysis.filters)?analysis.filters:{};
+    const columnWidths=analysis.columnWidths&&typeof analysis.columnWidths==='object'&&!Array.isArray(analysis.columnWidths)?analysis.columnWidths:{};
+    const valueColors=analysis.valueColors&&typeof analysis.valueColors==='object'&&!Array.isArray(analysis.valueColors)?analysis.valueColors:{};
+    return {...analysis,rows:Array.isArray(analysis.rows)?analysis.rows:[],columns:Array.isArray(analysis.columns)?analysis.columns:[],values:Array.isArray(analysis.values)?analysis.values:[],
+      filters:Object.fromEntries(Object.entries(filters).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,v.filter(x=>typeof x==='string')])),
+      tooltip:Array.isArray(analysis.tooltip)?analysis.tooltip:[],columnWidths:Object.fromEntries(Object.entries(columnWidths).filter(([,v])=>Number.isFinite(v)&&v>=90&&v<=700)),
+      valueColors:Object.fromEntries(Object.entries(valueColors).filter(([k,v])=>typeof k==='string'&&/^#[0-9a-f]{6}$/i.test(v))),matrixOpen:analysis.matrixOpen!==false};
+  }
+  function normalizeState(loaded,upgradeLocalState=false){
+    if(loaded&&Array.isArray(loaded.columns)&&Array.isArray(loaded.projects)){
+      validateSchema({columns:loaded.columns});
+      const {hierarchies,ontology,...clean}=loaded;
+      clean.title=typeof loaded.title==='string'&&loaded.title.trim()?loaded.title.slice(0,80):'DX案件ワークスペース';
+      const enableLegacyDetails=upgradeLocalState&&loaded.detailUiVersion!==1;
+      clean.columns=clean.columns.map(col=>({...col,cardinality:col.cardinality||'1:1',
+        allowDetail:enableLegacyDetails&&['select','multiselect'].includes(col.type)?true:col.allowDetail===true}));
+      clean.detailUiVersion=1;
+      if(clean.columns.length)clean.columns[0].cardinality='1:1';
+      clean.projects=clean.projects.map(project=>({id:project.id,tree:project.tree?
+        normalizeTree(structuredClone(project.tree),clean.columns):fromFlatData(project.data||{},clean.columns)}));
+      const analysis=normalizeAnalysisConfig(clean.analysis||defaultAnalysis(clean.columns));
+      const tabs=Array.isArray(loaded.analysisTabs)?loaded.analysisTabs.filter(tab=>tab&&typeof tab.id==='string'&&tab.analysis&&typeof tab.analysis==='object'):[];
+      clean.analysisTabs=tabs.length?tabs.map((tab,i)=>({id:tab.id,name:i===0?'項目分析':typeof tab.name==='string'&&tab.name.trim()?tab.name:`分析${i+1}`,analysis:normalizeAnalysisConfig(tab.analysis)})):
+        [{id:'analysis-1',name:'項目分析',analysis:structuredClone(analysis)}];
+      clean.activeAnalysisTabId=clean.analysisTabs.some(tab=>tab.id===loaded.activeAnalysisTabId)?loaded.activeAnalysisTabId:clean.analysisTabs[0].id;
+      clean.analysis=structuredClone(clean.analysisTabs.find(tab=>tab.id===clean.activeAnalysisTabId).analysis);
+      return clean;
+    }return null;
+  }
+  function migrateV1(old){
+    if(!old||!Array.isArray(old.fields)||!Array.isArray(old.projects))return null;
+    const result=initial();
+    result.columns=old.fields.map(f=>column(f.id,f.label,'text'));
+    result.projects=old.projects.map(p=>{
+      const data={};for(const f of old.fields){const value=p.data?.[f.id];data[f.id]=Array.isArray(value)?value.map(x=>`- ${x.text??''}`).join('\n'):String(value??'');}
+      return {id:p.id,data};
+    });
+    result.analysis={rows:['案件名'],columns:[],values:['支援内容']};return result;
+  }
+  try{state=normalizeState(JSON.parse(localStorage.getItem(STORE)),true);}catch{}
+  if(!state){try{const legacy=migrateV1(JSON.parse(localStorage.getItem(OLD_STORE)));if(legacy)state=normalizeState(legacy);}catch{}}
+  if(!state)state=normalizeState(initial());
+  persist();
+  function updateWorkspaceTitle(){$('workspace-title').value=state.title;document.title=state.title+'｜項目定義・入力・分析';}
+  updateWorkspaceTitle();
+
+  function parseProjectMarkdown(source){
+    const data=Object.fromEntries(state.columns.map(c=>[c.id,blankValue(c)]));
+    const chunks=Object.fromEntries(state.columns.map(c=>[c.id,[]]));let active=null;
+    for(const line of source.replace(/\r/g,'').split('\n')){
+      const heading=line.match(/^#\s+(.+?)\s*$/);
+      if(heading){active=byName(heading[1])?.id||null;continue;}
+      if(active)chunks[active].push(line);
+    }
+    for(const col of state.columns){const content=chunks[col.id].join('\n').trim();
+      if(col.type==='multiselect')data[col.id]=[...new Set(content.split(/\n/).map(line=>line.trim().replace(/^[-*•]\s*/,'')).filter(Boolean))];
+      else if(col.type==='text')data[col.id]=content;
+      else data[col.id]=content.split(/\n/).map(s=>s.trim()).find(Boolean)||'';
+    }return data;
+  }
+  function projectMarkdown(project){return state.columns.map(col=>{
+    const value=project.data[col.id]??blankValue(col);
+    const text=col.type==='multiselect'?(Array.isArray(value)?value:[]).map(x=>`- ${x}`).join('\n'):String(value);
+    return `# ${col.name}\n\n${text}`;
+  }).join('\n\n');}
+  function projectData(project){return project.draft===undefined?project.data:parseProjectMarkdown(project.draft);}
+  function commitDrafts(){for(const project of state.projects){if(project.draft!==undefined){project.data=parseProjectMarkdown(project.draft);delete project.draft;}}}
+  function setData(project,data){project.data=data;delete project.draft;persist();}
+  function renderAnalysisTabs(){
+    const first=state.analysisTabs[0];
+    document.querySelector('[data-view-tab="analysis"]').classList.toggle('active',view==='analysis'&&state.activeAnalysisTabId===first.id);
+    const extra=$('analysis-extra-tabs');extra.replaceChildren();
+    for(const tab of state.analysisTabs.slice(1)){
+      const item=el('button','',tab.name);item.type='button';
+      item.classList.toggle('active',view==='analysis'&&state.activeAnalysisTabId===tab.id);
+      item.setAttribute('aria-label',tab.name);
+      item.addEventListener('click',()=>activateAnalysisTab(tab.id));extra.append(item);
+    }
+  }
+  function activateAnalysisTab(id){
+    const target=state.analysisTabs.find(tab=>tab.id===id);if(!target)return;
+    if(view!=='analysis'){switchView('analysis');if(view!=='analysis')return;}
+    if(id===state.activeAnalysisTabId){renderAnalysisTabs();return;}
+    if(analysisMode==='yaml'&&!applyAnalysisYaml())return;
+    const current=state.analysisTabs.find(tab=>tab.id===state.activeAnalysisTabId);
+    if(current)current.analysis=structuredClone(state.analysis);
+    state.activeAnalysisTabId=id;state.analysis=structuredClone(target.analysis);
+    analysisYamlBaseline=null;activeColorKey='';persist();renderAnalysis();renderAnalysisTabs();
+  }
+  function addAnalysisTab(){
+    if(view!=='analysis'){switchView('analysis');if(view!=='analysis')return;}
+    if(analysisMode==='yaml'&&!applyAnalysisYaml())return;
+    let n=2;while(state.analysisTabs.some(tab=>tab.name===`分析${n}`))n++;
+    const tab={id:uid(),name:`分析${n}`,analysis:defaultAnalysis(state.columns)};state.analysisTabs.push(tab);
+    activateAnalysisTab(tab.id);
+  }
+  function switchView(next){
+    if(next===view)return;
+    if(view==='definition'&&definitionMode==='yaml'&&next!=='definition'&&$('definition-yaml').value!==serializeSchema(asSchema())){
+      if(!confirm('適用していないYAML編集があります。破棄して移動しますか？'))return;
+    }
+    if(view==='input'&&next!=='input'&&inputMode==='yaml'&&!applyInputYaml())return;
+    if(view==='analysis'&&next!=='analysis'&&analysisMode==='yaml'&&!applyAnalysisYaml())return;
+    if(next!=='analysis')$('analysis-hover-tooltip').hidden=true;
+    view=next;for(const key of ['definition','input','analysis']){
+      $(`${key}-view`).hidden=key!==next;document.querySelector(`[data-view-tab="${key}"]`).classList.toggle('active',key===next);
+    }
+    if(next==='definition')setDefinitionMode(formatMode==='yaml'?'yaml':'gui');
+    if(next==='input'){inputMode=formatMode;renderInput();}
+    if(next==='analysis'){analysisMode=formatMode;renderAnalysis();}
+    renderAnalysisTabs();
+  }
+  function renderFormatControls(){
+    for(const mode of ['table','yaml'])document.querySelector(`[data-format-tab="${mode}"]`).classList.toggle('active',formatMode===mode);
+  }
+  function switchFormat(next,alreadyApplied=false){
+    if(!['table','yaml'].includes(next)||next===formatMode)return;
+    if(formatMode==='yaml'&&!alreadyApplied){
+      if(view==='definition'&&$('definition-yaml').value!==serializeSchema(asSchema())&&!confirm('適用していないYAML編集を破棄して表形式に戻りますか？'))return;
+      if(view==='input'&&!applyInputYaml())return;
+      if(view==='analysis'&&!applyAnalysisYaml())return;
+    }
+    formatMode=next;
+    if(view==='definition')setDefinitionMode(next==='yaml'?'yaml':'gui');
+    if(view==='input'){inputYamlBaseline=null;inputMode=next;renderInput();}
+    if(view==='analysis'){analysisYamlBaseline=null;analysisMode=next;renderAnalysis();}
+    renderFormatControls();
+  }
+  function safeMutation(change){
+    const backup=structuredClone(state),oldColumns=structuredClone(state.columns);
+    try{change();if(state.columns[0])state.columns[0].cardinality='1:1';validateSchema(asSchema());
+      for(const project of state.projects)project.tree=remapTree(project.tree,oldColumns,state.columns);
+      persist();renderDefinition();return true;}
+    catch(error){state=backup;toast(error.message);renderDefinition();return false;}
+  }
+  function mutateSchemaFromYAML(parsed){
+    const prior=state.columns;
+    const usedIds=new Set();
+    const columns=parsed.columns.map((c,i)=>{
+      const old=prior.find(x=>x.name===c.name&&!usedIds.has(x.id))||(!usedIds.has(prior[i]?.id)?prior[i]:null);
+      const id=old?.id||uid();usedIds.add(id);return {...c,id};
+    });
+    if(columns[0])columns[0].cardinality='1:1';
+    const projects=state.projects.map(p=>({id:p.id,tree:remapTree(p.tree,prior,columns)}));
+    const previousNames=new Map(prior.map((c,i)=>[c.name,columns[i]?.name||c.name]));
+    const remap=names=>names.map(n=>parsed.columns.some(c=>c.name===n)?n:(previousNames.get(n)||n)).filter(n=>parsed.columns.some(c=>c.name===n));
+    const remapAnalysis=analysis=>{
+      const updatedFilters={};for(const [name,values] of Object.entries(analysis.filters||{})){
+        const mapped=remap([name])[0];if(mapped)updatedFilters[mapped]=values;
+      }
+      const updatedColors={};for(const [key,color] of Object.entries(analysis.valueColors||{})){
+        try{const pair=JSON.parse(key),name=Array.isArray(pair)?remap([pair[0]])[0]:null;
+          if(name)updatedColors[JSON.stringify([name,pair[1]])]=color;
+        }catch{}
+      }
+      return {...analysis,rows:remap(analysis.rows||[]),columns:remap(analysis.columns||[]),values:remap(analysis.values||[]),tooltip:remap(analysis.tooltip||[]),filters:updatedFilters,valueColors:updatedColors};
+    };
+    state={...state,columns,projects,analysis:remapAnalysis(state.analysis),analysisTabs:state.analysisTabs.map(tab=>({...tab,analysis:remapAnalysis(tab.analysis)}))};
+    persist();
+  }
+  function setDefinitionMode(mode){
+    definitionMode=mode;
+    $('definition-gui').hidden=mode!=='gui';$('definition-yaml-view').hidden=mode!=='yaml';
+    if(mode==='yaml'){$('definition-yaml').value=serializeSchema(asSchema());$('yaml-error').hidden=true;}
+    else renderDefinition();
+  }
+  function renderDefinition(){
+    if(definitionMode!=='gui')return;
+    const editor=$('field-editor');editor.replaceChildren();
+    for(const [index,col] of state.columns.entries()){
+      const box=el('div','field-card');
+      const order=el('div','field-order');
+      const up=button('↑',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index-1);}), 'btn small');up.disabled=index===0;up.setAttribute('aria-label',`${col.name}を上に移動`);
+      const down=button('↓',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index+1);}), 'btn small');down.disabled=index===state.columns.length-1;down.setAttribute('aria-label',`${col.name}を下に移動`);
+      order.append(up,down);
+      const input=el('input','control');input.value=col.name;input.setAttribute('aria-label','項目名');
+      input.addEventListener('change',()=>safeMutation(()=>{
+        const next=input.value.trim();const previous=col.name;
+        col.name=next;
+        for(const key of ['rows','columns','values','tooltip'])state.analysis[key]=(state.analysis[key]||[]).map(x=>x===previous?next:x);
+        if(Object.prototype.hasOwnProperty.call(state.analysis.filters||{},previous)){
+          state.analysis.filters[next]=state.analysis.filters[previous];delete state.analysis.filters[previous];
+        }
+      }));
+      const type=el('select','control');for(const [value,label] of [['text','自由入力'],['date','日付'],['select','単一プルダウン'],['multiselect','複数プルダウン']]){const o=el('option','',label);o.value=value;type.append(o);}type.value=col.type;
+      type.addEventListener('change',()=>safeMutation(()=>{
+        col.type=type.value;if(['select','multiselect'].includes(type.value)&&!col.options.length)col.options=['選択肢1'];
+        if(['select','multiselect'].includes(type.value))col.allowDetail=true;
+        if(['select','multiselect'].includes(type.value))openFieldOptions.add(col.id);
+      }));
+      const remove=button('削除',()=>{
+        if(state.columns.length===1){toast('少なくとも1項目は必要です。');return;}
+        if(!confirm(`項目「${col.name}」と入力済みデータを削除しますか？`))return;
+        safeMutation(()=>{state.columns=state.columns.filter(x=>x.id!==col.id);});
+      },'btn small danger');
+      let marker;
+      if(index===0)marker=el('span','root-mark','ルートキー');
+      else{
+        const relation=el('select','control cardinality-select');relation.setAttribute('aria-label',`${col.name}と直前の親項目との関係`);
+        for(const cardinality of ['1:1','1:N']){const choice=el('option','',cardinality);choice.value=cardinality;relation.append(choice);}
+        relation.value=col.cardinality||'1:1';
+        relation.addEventListener('change',()=>safeMutation(()=>{col.cardinality=relation.value;}));marker=relation;
+      }
+      box.append(order,marker,input,type,remove);
+      if(['select','multiselect'].includes(col.type)){
+        const settings=el('div','field-settings');
+        const details=el('details','definition-accordion');details.open=openFieldOptions.has(col.id);
+        details.addEventListener('toggle',()=>{if(details.open)openFieldOptions.add(col.id);else openFieldOptions.delete(col.id);});
+        details.append(el('summary','',`候補 ${col.options.length}件：${col.options.slice(0,3).join('・')}${col.options.length>3?'…':''}（編集）`));
+        const extra=el('div','field-extra'),label=el('label','', '候補値（1行に1つ）'),area=el('textarea','option-area');area.value=col.options.join('\n');area.setAttribute('aria-label',`${col.name} の候補`);
+        area.addEventListener('change',()=>safeMutation(()=>{col.options=area.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);}));
+        const allowLabel=el('label','field-detail-toggle'),allow=el('input');allow.type='checkbox';allow.checked=col.allowDetail===true;
+        allow.setAttribute('aria-label',`${col.name}の詳細メッセージ入力`);
+        allow.addEventListener('change',()=>safeMutation(()=>{col.allowDetail=allow.checked;}));
+        allowLabel.append(allow,el('span','','詳細メッセージ入力'));
+        extra.append(label,area);details.append(extra);
+        settings.append(details,allowLabel);box.append(settings);
+      }
+      editor.append(box);
+    }
+  }
+  function renderInput(){
+    for(const key of ['markdown','table','yaml']){
+      $(key==='markdown'?'markdown-input':key==='yaml'?'yaml-input':'table-input').hidden=key!==inputMode;
+    }
+    if(inputMode==='markdown')renderMarkdownInput();
+    else if(inputMode==='yaml'){
+      if(inputYamlBaseline===null){inputYamlBaseline=serializeProjectsYaml(state.projects,state.columns);$('input-yaml').value=inputYamlBaseline;}
+      $('input-yaml-error').hidden=true;
+    }else renderTableInput();
+  }
+  function applyInputYaml(){
+    if(inputMode!=='yaml')return true;
+    const source=$('input-yaml').value;
+    try{
+      if(source!==inputYamlBaseline){
+        const parsed=parseProjectsYaml(source,state.columns);
+        state.projects=parsed.map((project,i)=>({...project,id:state.projects[i]?.id||uid()}));
+        persist();
+      }
+      inputYamlBaseline=source;$('input-yaml-error').hidden=true;
+      return true;
+    }catch(error){$('input-yaml-error').textContent=error.message;$('input-yaml-error').hidden=false;toast(`YAMLエラー: ${error.message}`);return false;}
+  }
+  function renderMarkdownInput(){const host=$('markdown-projects');host.replaceChildren();state.projects.forEach((project,index)=>{
+    const card=el('article','panel project'),head=el('div','project-header');head.append(el('strong','',`案件 ${index+1}`));
+    const remove=button('削除',()=>{if(!confirm('この案件を削除しますか？'))return;state.projects=state.projects.filter(p=>p!==project);persist();renderInput();},'btn small danger');remove.disabled=state.projects.length===1;head.append(remove);
+    const area=el('textarea','markdown');area.value=project.draft??projectMarkdown(project);area.setAttribute('aria-label',`案件 ${index+1} のMarkdown`);area.addEventListener('input',()=>{project.draft=area.value;persist();});card.append(head,area);host.append(card);
+  });}
+  function tableNodeEditor(node,col){
+    const value=node.value,save=next=>{node.value=next;persist();};
+    const detailEditor=()=>{
+      const outer=el('div','detail-message-wrap'),label=el('label','', '詳細メッセージ');
+      const area=el('textarea','control');area.value=String(node.detail??'');
+      area.setAttribute('aria-label',`${col.name}の詳細メッセージ`);
+      area.setAttribute('placeholder','選択した内容の補足を入力');
+      area.addEventListener('input',()=>{node.detail=area.value;persist();});
+      outer.append(label,area);return outer;
+    };
+    if(col.type==='text'){
+      const area=el('textarea','control');area.value=String(value??'');area.setAttribute('aria-label',col.name);
+      area.addEventListener('input',()=>save(area.value));return area;
+    }
+    if(col.type==='date'){
+      const input=el('input','control');input.type='date';input.value=/^\d{4}-\d{2}-\d{2}$/.test(String(value))?String(value):'';
+      input.setAttribute('aria-label',col.name);
+      input.addEventListener('change',()=>save(input.value));return input;
+    }
+    if(col.type==='select'){
+      const select=el('select','control');const empty=el('option','','未選択');empty.value='';select.append(empty);
+      for(const option of col.options){const choice=el('option','',option);choice.value=option;select.append(choice);}
+      select.value=String(value||'');select.setAttribute('aria-label',col.name);
+      if(!col.allowDetail){select.addEventListener('change',()=>save(select.value));return select;}
+      const wrapper=el('div'),detail=detailEditor();detail.hidden=!select.value;
+      select.addEventListener('change',()=>{save(select.value);detail.hidden=!select.value;});
+      wrapper.append(select,detail);return wrapper;
+    }
+    const wrapper=el('div'),selected=Array.isArray(value)?value:[];
+    const picker=el('details','multi-picker'),summary=el('summary','',selected.length?`選択中：${selected.join(' / ')}`:'未選択（開いて選択）'),checks=el('div','checklist');
+    const detail=col.allowDetail?detailEditor():null;
+    if(detail)detail.hidden=selected.length===0;
+    for(const option of col.options){const label=el('label'),check=el('input');check.type='checkbox';check.checked=selected.includes(option);
+      check.setAttribute('aria-label',`${col.name} ${option}`);
+      check.addEventListener('change',()=>{
+        const current=Array.isArray(node.value)?node.value:[];
+        const next=check.checked?[...new Set([...current,option])]:current.filter(v=>v!==option);
+        save(next);summary.textContent=next.length?`選択中：${next.join(' / ')}`:'未選択（開いて選択）';
+        if(detail)detail.hidden=next.length===0;
+      });
+      label.append(check,el('span','',option));checks.append(label);
+    }
+    picker.append(summary,checks);wrapper.append(picker);if(detail)wrapper.append(detail);return wrapper;
+  }
+  function renderTableInput(){
+    const head=$('entry-head'),body=$('entry-body'),scroll=$('table-input').querySelector('.table-wrap'),left=scroll.scrollLeft,top=scroll.scrollTop;
+    head.replaceChildren();body.replaceChildren();const header=el('tr');
+    for(const col of state.columns)header.append(el('th','',`${col.name}${isRepeatedColumn(col)?' (1:N)':''}`));
+    head.append(header);
+    for(const project of state.projects){
+      const paths=treeRows(project.tree),seen=new Set();
+      for(const [index,path] of paths.entries()){
+        const row=el('tr',index===0?'project-first':'detail-follow');
+        for(const [depth,node] of path.entries()){
+          if(seen.has(node))continue;
+          seen.add(node);
+          const col=state.columns[depth];
+          const className=[depth===0?'root-cell':'',col.type==='text'?'text-cell':['select','multiselect'].includes(col.type)?'choice-cell':''].filter(Boolean).join(' ');
+          const cell=el('td',className);
+          cell.rowSpan=node.rowSpan;
+          const editor=el('div',col.type==='text'?'entry-editor entry-editor-text':['select','multiselect'].includes(col.type)?'entry-editor entry-editor-choice':'entry-editor');
+          editor.append(tableNodeEditor(node,col));cell.append(editor);
+          if(depth>0&&col.cardinality==='1:N'){
+            const parent=path[depth-1],childIndex=parent.children.indexOf(node),controls=el('div','cell-entry-actions');
+            if(parent.children.length>1)controls.append(button('－',()=>{
+              removeTreeChild(parent,childIndex,state.columns,depth);persist();renderTableInput();
+            },'btn small danger'));
+            if(childIndex===parent.children.length-1)controls.append(button('＋',()=>{
+              appendTreeChild(parent,state.columns,depth);persist();renderTableInput();
+            },'btn small soft'));
+            editor.append(controls);
+          }
+          if(depth===0){
+            const controls=el('div','cell-entry-actions');
+            if(state.projects.length>1){
+              const remove=button('－',()=>{
+                state.projects=state.projects.filter(p=>p!==project);persist();renderInput();
+              },'btn small danger');remove.setAttribute('aria-label','案件を削除');controls.append(remove);
+            }
+            const add=button('＋',()=>{
+              const at=state.projects.indexOf(project);
+              state.projects.splice(at+1,0,{id:uid(),tree:makeDefaultTree(state.columns)});
+              persist();renderInput();
+            },'btn small soft');add.setAttribute('aria-label','案件を追加');controls.append(add);
+            editor.append(controls);
+          }
+          row.append(cell);
+        }
+        body.append(row);
+      }
+    }
+    scroll.scrollLeft=left;scroll.scrollTop=top;
+  }
+  function downloadFile(contents,mime,filename){
+    const blob=new Blob([contents],{type:mime}),url=URL.createObjectURL(blob),a=el('a');
+    a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  function downloadJSON(){if(!applyInputYaml())return;persist();downloadFile(JSON.stringify(state,null,2),'application/json;charset=utf-8','dx_workspace.json');toast('JSONを保存しました。');}
+  function downloadYAML(){if(!applyInputYaml())return;downloadFile(serializeProjectsYaml(state.projects,state.columns),'text/yaml;charset=utf-8','dx_workspace.yaml');toast('YAMLを保存しました。');}
+  async function importYAML(file){try{
+    const parsed=parseProjectsYaml(await file.text(),state.columns);
+    state.projects=parsed.map((project,i)=>({...project,id:state.projects[i]?.id||uid()}));
+    inputYamlBaseline=null;inputMode='table';persist();switchView('input');toast('YAMLを読み込みました。');
+  }catch(error){toast(`YAML読込エラー: ${error.message}`);}}
+  async function importJSON(file){try{
+    const input=JSON.parse(await file.text()),loaded=normalizeState(input)||migrateV1(input);if(!loaded)throw Error('対応するJSON形式ではありません。');state=loaded;inputYamlBaseline=null;inputMode='table';updateWorkspaceTitle();persist();switchView('input');toast('JSONを読み込みました。');
+  }catch(error){toast(`読込エラー: ${error.message}`);}}
+  function downloadWorkspaceYaml(){
+    if(view==='definition'&&definitionMode==='yaml'&&$('definition-yaml').value!==serializeSchema(asSchema())){
+      toast('未適用の項目定義があります。先に「定義を適用」を押してください。');return;
+    }
+    if(view==='input'&&!applyInputYaml())return;
+    if(view==='analysis'&&!applyAnalysisYaml())return;
+    persist();
+    downloadFile(serializeWorkspaceYaml(state),'text/yaml;charset=utf-8','dx_workspace.yaml');
+    toast('全体YAMLを保存しました。');
+  }
+  async function importWorkspaceYaml(files){
+    try{
+      const snapshots=[];
+      for(const [index,file] of Array.from(files).entries()){
+        try{
+          const parsed=parseWorkspaceYaml(await file.text()),loaded=normalizeState(parsed);
+          if(!loaded)throw Error('全体YAMLの形式が不正です。');
+          snapshots.push(loaded);
+        }catch(error){throw Error(`${file.name||`${index+1}番目のファイル`}: ${error.message}`);}
+      }
+      const loaded=mergeWorkspaceYamlSnapshots(snapshots);
+      if(!confirm(`${snapshots.length}個のYAML（合計${loaded.projects.length}案件）を統合します。現在のワークスペースはすべて置き換わります。よろしいですか？`))return;
+      state=loaded;inputYamlBaseline=null;analysisYamlBaseline=null;activeColorKey='';openFieldOptions.clear();
+      formatMode='table';definitionMode='gui';inputMode='table';analysisMode='table';
+      updateWorkspaceTitle();persist();view='';switchView('definition');renderFormatControls();
+      toast(`${snapshots.length}個のYAMLから${loaded.projects.length}案件を読み込みました。`);
+    }catch(error){toast('全体YAML読込エラー: '+error.message);}
+    finally{$('workspace-yaml-file').value='';}
+  }
+  function availableFields(){return state.columns.map(c=>c.name);}
+  function analysisRecords(){return treeRecords(state.projects,state.columns);}
+  function analysisColorChoices(records){
+    const choices=new Map(),fields=state.analysis.values;
+    for(const record of records)for(const field of fields)for(const value of analysisDataValues(record[field])){
+      const key=JSON.stringify([field,value]),label=fields.length>1?`${field}: ${value}`:value;
+      if(!choices.has(key))choices.set(key,{key,label});
+    }
+    return [...choices.values()];
+  }
+  function renderColorControls(){
+    const target=$('analysis-color-target'),input=$('analysis-color-input'),clear=$('analysis-color-clear');
+    const choices=analysisColorChoices(analysisRecords());target.replaceChildren();
+    if(!choices.some(choice=>choice.key===activeColorKey))activeColorKey=choices[0]?.key||'';
+    for(const choice of choices){const option=el('option','',choice.label);option.value=choice.key;target.append(option);}
+    if(!choices.length){const option=el('option','','色を設定できる値がありません');option.value='';target.append(option);}
+    target.value=activeColorKey;target.disabled=!choices.length;input.disabled=!choices.length;
+    input.value=state.analysis.valueColors[activeColorKey]||'#eefaf6';
+    clear.disabled=!state.analysis.valueColors[activeColorKey];
+  }
+  function renderPickers(){const fields=availableFields();for(const key of ['rows','columns','values','tooltip']){
+    state.analysis[key]=(state.analysis[key]||[]).filter(f=>fields.includes(f));
+    const details=document.querySelector(`[data-picker="${key}"]`),host=details.querySelector('.picker-options');host.replaceChildren();details.querySelector('summary').textContent=state.analysis[key].length?state.analysis[key].join(' ＋ '):'選択なし（全件）';
+    if(key==='tooltip'&&!state.analysis[key].length)details.querySelector('summary').textContent='表示項目を選択';
+    for(const name of fields){const label=el('label'),check=el('input');check.type='checkbox';check.checked=state.analysis[key].includes(name);check.setAttribute('aria-label',`${key==='tooltip'?'マウスオーバー':key} ${name}`);check.addEventListener('change',()=>{
+      state.analysis[key]=check.checked?[...new Set([...state.analysis[key],name])]:state.analysis[key].filter(x=>x!==name);persist();renderPickers();renderAxisOrder();renderColorControls();renderPivot();
+    });label.append(check,el('span','',name));host.append(label);}
+  }}
+  function renderAxisOrder(){
+    for(const [axis,hostId] of [['rows','analysis-row-order'],['columns','analysis-column-order']]){
+      const host=$(hostId);host.replaceChildren();
+      if(!state.analysis[axis].length){host.append(el('span','axis-empty','項目を選択すると並び替えできます'));continue;}
+      state.analysis[axis].forEach((name,index)=>{
+        const chip=el('div','axis-chip');chip.draggable=true;chip.setAttribute('aria-label',`${name}をドラッグして順番変更`);
+        chip.append(el('span','',name),el('span','grip','⋮⋮'));
+        chip.addEventListener('dragstart',e=>{e.dataTransfer?.setData('text/plain',`${axis}:${index}`);});
+        chip.addEventListener('dragover',e=>e.preventDefault());
+        chip.addEventListener('drop',e=>{
+          e.preventDefault();const source=e.dataTransfer?.getData('text/plain')||'',match=source.match(/^(rows|columns):(\d+)$/);
+          if(!match||match[1]!==axis)return;
+          state.analysis[axis]=reorderAnalysisFields(state.analysis[axis],Number(match[2]),index);
+          persist();renderPickers();renderAxisOrder();renderPivot();
+        });
+        host.append(chip);
+      });
+    }
+  }
+  function renderFilterControls(){
+    const fieldNames=availableFields(),records=analysisRecords(),filters=state.analysis.filters;
+    for(const name of Object.keys(filters))if(!fieldNames.includes(name))delete filters[name];
+    const details=document.querySelector('[data-picker="filters"]'),options=details.querySelector('.picker-options');options.replaceChildren();
+    const active=Object.keys(filters);
+    details.querySelector('summary').textContent=active.length?active.join(' ＋ '):'絞り込む項目を選択';
+    for(const name of fieldNames){
+      const label=el('label'),check=el('input');check.type='checkbox';check.checked=Object.prototype.hasOwnProperty.call(filters,name);
+      check.setAttribute('aria-label',`フィルター項目 ${name}`);
+      check.addEventListener('change',()=>{
+        if(check.checked)filters[name]=analysisFilterValues(records,name);else delete filters[name];
+        persist();renderFilterControls();renderPivot();
+      });
+      label.append(check,el('span','',name));options.append(label);
+    }
+    const host=$('analysis-filter-values');host.replaceChildren();
+    for(const name of active){
+      const candidates=analysisFilterValues(records,name),selected=filters[name];
+      const group=el('details','filter-value-group');group.open=true;
+      group.append(el('summary','',`${name}（${selected.length}/${candidates.length}件）`));
+      const list=el('div','filter-value-list');
+      for(const value of candidates){
+        const label=el('label'),check=el('input');check.type='checkbox';check.checked=selected.includes(value);
+        check.setAttribute('aria-label',`フィルター ${name} ${value}`);
+        check.addEventListener('change',()=>{
+          filters[name]=check.checked?[...new Set([...filters[name],value])]:filters[name].filter(item=>item!==value);
+          persist();renderFilterControls();renderPivot();
+        });
+        label.append(check,el('span','',value));list.append(label);
+      }
+      group.append(list);host.append(group);
+    }
+  }
+  function showAnalysisTooltip(records,event){
+    const popup=$('analysis-hover-tooltip');popup.replaceChildren();
+    for(const field of state.analysis.tooltip){
+      const block=el('div','tooltip-field');block.append(el('strong','',field));
+      for(const value of analysisFilterValues(records,field))block.append(el('span','tooltip-value',value));
+      popup.append(block);
+    }
+    if(!popup.children.length)return;
+    popup.hidden=false;positionAnalysisTooltip(event);
+  }
+  function positionAnalysisTooltip(event){
+    const popup=$('analysis-hover-tooltip'),x=Number.isFinite(event?.clientX)?event.clientX+14:28,y=Number.isFinite(event?.clientY)?event.clientY+14:28;
+    const width=typeof window!=='undefined'?window.innerWidth:1280,height=typeof window!=='undefined'?window.innerHeight:800;
+    popup.style.left=`${Math.max(8,Math.min(x,width-368))}px`;
+    popup.style.top=`${Math.max(8,Math.min(y,height-260))}px`;
+  }
+  function renderPivot(){
+    $('analysis-hover-tooltip').hidden=true;
+    const records=filterAnalysisRecords(analysisRecords(),state.analysis.filters),{rows,columns,cells,recordCells}=makePivot(records,state.analysis.rows,state.analysis.columns,state.analysis.values);
+    const colorKeysByLabel=new Map();
+    for(const choice of analysisColorChoices(records))colorKeysByLabel.set(choice.label,choice.key);
+    const host=$('pivot-host');host.replaceChildren();if(!records.length){host.append(el('div','hint',Object.keys(state.analysis.filters).length?'条件に一致する明細がありません。':'案件データがありません。'));return;}
+    const table=el('table','pivot'),thead=el('thead'),rowDepth=Math.max(1,state.analysis.rows.length),columnDepth=Math.max(1,state.analysis.columns.length);
+    const widthKeys=[...Array.from({length:rowDepth},(_,level)=>`row:${state.analysis.rows[level]||'__all__'}`),
+      ...columns.map(c=>`data:${JSON.stringify(state.analysis.columns)}:${c.key}`)];
+    const widths=widthKeys.map((key,index)=>state.analysis.columnWidths[key]||(index<rowDepth?160:180));
+    const colgroup=el('colgroup'),colElements=widths.map(width=>{const col=el('col');col.style.width=`${width}px`;colgroup.append(col);return col;});
+    table.style.width=`${widths.reduce((total,width)=>total+width,0)}px`;
+    table.append(colgroup);
+    const rowHeaderCellsByLevel=Array.from({length:rowDepth},()=>[]);
+    function updateColumnWidth(index,newWidth){
+      widths[index]=Math.max(90,Math.min(700,newWidth));
+      colElements[index].style.width=`${widths[index]}px`;
+      table.style.width=`${widths.reduce((total,width)=>total+width,0)}px`;
+      for(let level=0,offset=0;level<rowDepth;offset+=widths[level],level++){
+        for(const header of rowHeaderCellsByLevel[level])header.style.left=`${offset}px`;
+      }
+    }
+    function addResizeHandle(header,index){
+      const handle=el('span','pivot-resize-handle');handle.setAttribute('role','separator');
+      handle.setAttribute('aria-label',`列幅を変更: ${header.textContent||'行見出し'}`);
+      handle.setAttribute('tabindex','0');
+      handle.addEventListener('pointerdown',event=>{
+        if(event.button!==undefined&&event.button!==0)return;
+        event.preventDefault();event.stopPropagation?.();
+        const startingX=event.clientX,startingWidth=widths[index];let changed=false;
+        const move=pointer=>{
+          const nextWidth=Math.max(90,Math.min(700,startingWidth+pointer.clientX-startingX));
+          if(nextWidth!==widths[index]){updateColumnWidth(index,nextWidth);changed=true;}
+        };
+        const finish=()=>{
+          document.removeEventListener('pointermove',move);
+          document.removeEventListener('pointerup',finish);
+          document.removeEventListener('pointercancel',finish);
+          if(changed){state.analysis.columnWidths[widthKeys[index]]=widths[index];persist();}
+        };
+        document.addEventListener('pointermove',move);
+        document.addEventListener('pointerup',finish);
+        document.addEventListener('pointercancel',finish);
+      });
+      header.append(handle);
+    }
+    for(let level=0;level<columnDepth;level++){
+      const header=el('tr');
+      if(level===0){const corner=el('th','corner','');corner.rowSpan=columnDepth;corner.colSpan=rowDepth;corner.setAttribute('aria-label','行・列の見出し');header.append(corner);}
+      for(const group of pivotAxisGroups(columns,level)){
+        const th=el('th','pivot-column-header',String(group.value));th.colSpan=group.span;
+        if(level===columnDepth-1)addResizeHandle(th,rowDepth+group.start);
+        header.append(th);
+      }
+      thead.append(header);
+    }
+    table.append(thead);
+    const rowHeaderGroups=Array.from({length:rowDepth},(_,level)=>new Map(pivotAxisGroups(rows,level).map(group=>[group.start,group])));
+    const tbody=el('tbody');for(const [index,r] of rows.entries()){const tr=el('tr');
+      for(let level=0;level<rowDepth;level++){
+        const group=rowHeaderGroups[level].get(index);
+        if(!group)continue;
+        const th=el('th','pivot-row-header',String(group.value));th.rowSpan=group.span;
+        th.style.left=`${widths.slice(0,level).reduce((total,width)=>total+width,0)}px`;
+        rowHeaderCellsByLevel[level].push(th);addResizeHandle(th,level);tr.append(th);
+      }
+      for(const c of columns){const td=el('td'),list=el('div','cell-list'),values=cells[r.key]?.[c.key]||[];
+        if(values.length){for(const v of values){
+          const item=el('span','cell-item',v),background=state.analysis.valueColors[colorKeysByLabel.get(v)];
+          if(background){
+            const red=parseInt(background.slice(1,3),16),green=parseInt(background.slice(3,5),16),blue=parseInt(background.slice(5,7),16);
+            const border='#'+[red,green,blue].map(channel=>Math.round(channel*0.85).toString(16).padStart(2,'0')).join('');
+            item.style.backgroundColor=background;item.style.borderColor=border;
+            item.style.color=(red*299+green*587+blue*114)/1000<150?'#ffffff':'#'+[red,green,blue].map(channel=>Math.round(channel*0.35).toString(16).padStart(2,'0')).join('');
+          }
+          list.append(item);
+        }}else list.append(el('span','empty','—'));
+        td.append(list);
+        const cellRecords=recordCells[r.key]?.[c.key]||[];
+        if(state.analysis.tooltip.length&&cellRecords.length){
+          td.className='hover-enabled';td.setAttribute('tabindex','0');
+          td.addEventListener('mouseenter',event=>showAnalysisTooltip(cellRecords,event));
+          td.addEventListener('mousemove',positionAnalysisTooltip);
+          td.addEventListener('mouseleave',()=>$('analysis-hover-tooltip').hidden=true);
+          td.addEventListener('focus',event=>showAnalysisTooltip(cellRecords,event));
+          td.addEventListener('blur',()=>$('analysis-hover-tooltip').hidden=true);
+        }
+        tr.append(td);}
+      tbody.append(tr);
+    }table.append(tbody);host.append(table);
+  }
+  function applyAnalysisYaml(){
+    if(analysisMode!=='yaml')return true;
+    const source=$('analysis-yaml').value;
+    try{
+      if(source!==analysisYamlBaseline){
+        const parsed=parseAnalysisYaml(source,availableFields());
+        state.analysis={...state.analysis,...parsed};
+        persist();
+      }
+      analysisYamlBaseline=source;$('analysis-yaml-error').hidden=true;
+      return true;
+    }catch(error){
+      $('analysis-yaml-error').textContent=error.message;$('analysis-yaml-error').hidden=false;
+      toast('分析設定YAMLエラー: '+error.message);return false;
+    }
+  }
+  function renderAnalysis(){
+    $('analysis-table-view').hidden=analysisMode!=='table';
+    $('analysis-yaml-view').hidden=analysisMode!=='yaml';
+    if(analysisMode==='yaml'){
+      if(analysisYamlBaseline===null){analysisYamlBaseline=serializeAnalysisYaml(state.analysis);$('analysis-yaml').value=analysisYamlBaseline;}
+      $('analysis-yaml-error').hidden=true;
+      return;
+    }
+    const matrix=$('matrix-settings');matrix.open=state.analysis.matrixOpen;
+    $('analysis-layout').classList.toggle('matrix-collapsed',!matrix.open);
+    renderPickers();renderAxisOrder();renderFilterControls();renderColorControls();renderPivot();
+  }
+
+  async function copyFormattingPrompt(kind){
+    const prompt=kind==='definition'?buildDefinitionFormattingPrompt(state.columns):buildFormattingPrompt(state.columns);
+    try{
+      if(typeof navigator!=='undefined'&&navigator.clipboard?.writeText){
+        await navigator.clipboard.writeText(prompt);
+      }else{
+        const area=document.createElement('textarea');area.value=prompt;
+        area.setAttribute('readonly','');area.style.position='fixed';area.style.opacity='0';
+        document.body.append(area);area.select();
+        let copied=false;
+        try{copied=document.execCommand('copy');}finally{area.remove();}
+        if(!copied)throw Error('クリップボードを利用できません。');
+      }
+      toast('整形プロンプトをコピーしました。');
+    }catch(error){toast('コピーに失敗しました。ブラウザのクリップボード権限を確認してください。');}
+  }
+
+  function loadFiveAxisSample(){
+    if(!confirm('現在の項目定義・入力案件・分析設定を5軸サンプルで置き換えます。既存データは失われます。続行しますか？'))return;
+    state=normalizeState(initial());
+    view='';formatMode='table';definitionMode='gui';inputMode='table';analysisMode='table';
+    inputYamlBaseline=null;analysisYamlBaseline=null;activeColorKey='';openFieldOptions.clear();
+    updateWorkspaceTitle();persist();renderFormatControls();switchView('definition');
+    toast('5軸の評価体系とサンプル案件を読み込みました。');
+  }
+
+  document.querySelectorAll('[data-view-tab]').forEach(b=>b.addEventListener('click',()=>b.dataset.viewTab==='analysis'?activateAnalysisTab(state.analysisTabs[0].id):switchView(b.dataset.viewTab)));
+  $('load-five-axis-sample').addEventListener('click',loadFiveAxisSample);
+  $('copy-definition-prompt').addEventListener('click',()=>copyFormattingPrompt('definition'));
+  $('copy-input-prompt').addEventListener('click',()=>copyFormattingPrompt('input'));
+  $('add-analysis-tab').addEventListener('click',addAnalysisTab);
+  $('workspace-yaml-save').addEventListener('click',downloadWorkspaceYaml);
+  $('workspace-yaml-load').addEventListener('click',()=>$('workspace-yaml-file').click());
+  $('workspace-yaml-file').addEventListener('change',event=>{
+    const files=event.target.files;if(files?.length)return importWorkspaceYaml(files);
+    $('workspace-yaml-file').value='';
+  });
+  document.querySelectorAll('[data-format-tab]').forEach(b=>b.addEventListener('click',()=>switchFormat(b.dataset.formatTab)));
+  $('apply-analysis-yaml').addEventListener('click',()=>{
+    if(!applyAnalysisYaml())return;
+    switchFormat('table',true);toast('分析設定を反映しました。');
+  });
+  $('workspace-title').addEventListener('input',()=>{
+    state.title=$('workspace-title').value.slice(0,80);
+    document.title=(state.title||'DX案件ワークスペース')+'｜項目定義・入力・分析';persist();
+  });
+  $('workspace-title').addEventListener('blur',()=>{
+    if(!state.title.trim())state.title='DX案件ワークスペース';
+    updateWorkspaceTitle();persist();
+  });
+  $('add-field').addEventListener('click',()=>safeMutation(()=>{
+    let n=1;while(state.columns.some(c=>c.name===`新しい項目${n}`))n++;
+    const col=column(uid(),`新しい項目${n}`);state.columns.push(col);
+  }));
+  $('apply-yaml').addEventListener('click',()=>{
+    try{const parsed=parseSchema($('definition-yaml').value);validateSchema(parsed);mutateSchemaFromYAML(parsed);$('yaml-error').hidden=true;switchFormat('table',true);toast('YAML定義を反映しました。');}
+    catch(error){$('yaml-error').hidden=false;$('yaml-error').textContent=error.message;}
+  });
+  $('apply-input-yaml').addEventListener('click',()=>{
+    if(!applyInputYaml())return;
+    switchFormat('table',true);toast('YAMLの変更を表に反映しました。');
+  });
+  $('matrix-settings').addEventListener('toggle',()=>{
+    const opened=$('matrix-settings').open;
+    $('analysis-layout').classList.toggle('matrix-collapsed',!opened);
+    if(opened!==state.analysis.matrixOpen){state.analysis.matrixOpen=opened;persist();}
+  });
+  $('analysis-color-target').addEventListener('change',()=>{
+    activeColorKey=$('analysis-color-target').value;renderColorControls();
+  });
+  const saveColor=()=>{
+    if(!activeColorKey)return;
+    const color=$('analysis-color-input').value;
+    if(!/^#[0-9a-f]{6}$/i.test(color))return;
+    state.analysis.valueColors[activeColorKey]=color.toLowerCase();persist();renderColorControls();renderPivot();
+  };
+  $('analysis-color-input').addEventListener('input',saveColor);
+  $('analysis-color-input').addEventListener('change',saveColor);
+  $('analysis-color-clear').addEventListener('click',()=>{
+    if(!activeColorKey)return;
+    delete state.analysis.valueColors[activeColorKey];persist();renderColorControls();renderPivot();
+  });
+  $('reset-pivot').addEventListener('click',()=>{
+    state.analysis={...defaultAnalysis(state.columns),matrixOpen:state.analysis.matrixOpen};persist();renderAnalysis();
+  });
+  renderFormatControls();switchView('definition');
+})();
+</script>
+</body>
+</html>

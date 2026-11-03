@@ -18,11 +18,17 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 #definition-gui{display:flex;flex-direction:column;gap:14px;max-width:1040px}
 #definition-gui .panel{padding:12px 16px;box-shadow:none;border-radius:10px}
 #field-editor{overflow-x:auto}
-#field-editor .field-card{margin:0;padding:6px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px minmax(0,1fr) 164px 62px;column-gap:6px;row-gap:4px;min-width:710px;align-items:center}
+#field-editor .field-card{margin:0;padding:6px 0;border:0;border-bottom:1px solid #e8edf2;border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px 44px minmax(0,1fr) 164px 62px;column-gap:6px;row-gap:4px;min-width:760px;align-items:center}
 #field-editor .field-card:last-child{border-bottom:0}
-#field-editor .field-card>input.control{width:100%;min-width:0;height:32px;padding:5px 8px;border:1px solid transparent;background:transparent;box-shadow:none}
+#field-editor .field-name-label{font-size:11px;font-weight:750;color:#62768b;white-space:nowrap;text-align:right}
+#field-editor .field-card>input.control{width:100%;min-width:0;height:32px;padding:5px 8px;border:1px solid transparent;background:transparent;box-shadow:none;font-size:16px;font-weight:650}
 #field-editor .field-card>input.control:hover{border-color:#c8d5e4;background:#f7f8fa}
 #field-editor .field-card>input.control:focus{border-color:#5286df;background:#f7f8fa;box-shadow:0 0 0 2px #ddeaff}
+#field-editor .field-description-row{grid-column:3 / 6;display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:6px;align-items:start;min-width:0}
+#field-editor .field-description-row label{font-size:11px;font-weight:700;color:#62768b;text-align:right;padding-top:6px;white-space:nowrap}
+#field-editor .field-description-row textarea{width:100%;min-width:0;min-height:32px;height:32px;padding:6px 8px;border:1px solid transparent;border-radius:4px;background:transparent;box-shadow:none;outline:0;font-size:11px;line-height:1.5;resize:none;overflow-y:hidden}
+#field-editor .field-description-row textarea:hover{border-color:#c8d5e4;background:#f7f8fa}
+#field-editor .field-description-row textarea:focus{border-color:#5286df;background:#f7f8fa;box-shadow:0 0 0 2px #ddeaff}
 #field-editor .field-card>select.control{height:32px;padding:4px 8px;border:0;background:#f7f8fa;border-radius:4px;box-shadow:none}
 #field-editor .field-card>select.control:hover{background:#f1f3f5}
 #field-editor .field-card>select.control:focus{outline:2px solid #5286df;outline-offset:1px;box-shadow:none}
@@ -30,7 +36,7 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 #field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{width:102px!important;height:32px;display:flex;align-items:center;justify-content:center}
 #field-editor .field-card>.btn{width:62px;padding:4px 3px;height:30px}
 #field-editor .field-order .btn{min-width:25px;height:28px;padding:3px 4px}
-#field-editor .field-settings{grid-column:3 / 5;display:flex;align-items:center;gap:8px;min-width:0}
+#field-editor .field-settings{grid-column:4 / 6;display:flex;align-items:center;gap:8px;min-width:0}
 #field-editor .field-settings>.definition-accordion{flex:1;min-width:0;align-self:stretch}
 .definition-accordion{margin:2px 0 0;border:0;border-radius:0;background:transparent}
 .definition-accordion>summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;border:0;background:transparent;padding:4px 2px;font-size:11px;color:#4e6480;font-weight:700}
@@ -93,7 +99,7 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
   <div id="definition-gui" class="two-col">
     <article class="panel"><div id="field-editor"></div><div class="add-field-footer"><button id="add-field" class="btn small soft" type="button">＋ 項目追加</button></div></article>
   </div>
-  <div id="definition-yaml-view" class="panel" hidden><div class="panel-head"><div><h3>YAMLで入力項目を編集</h3><p class="desc">項目の順序でルートキーが決まります。編集後に「定義を適用」を押してください。</p></div><button id="apply-yaml" type="button" class="btn primary">定義を適用</button></div><textarea id="definition-yaml" class="yaml-area" spellcheck="false" aria-label="定義YAML"></textarea><div id="yaml-error" class="error" hidden></div><p class="yaml-info">対応形式：`columns`、`name`、`type`、`options`、`cardinality`、`allowDetail`。</p></div>
+  <div id="definition-yaml-view" class="panel" hidden><div class="panel-head"><div><h3>YAMLで入力項目を編集</h3><p class="desc">項目の順序でルートキーが決まります。編集後に「定義を適用」を押してください。</p></div><button id="apply-yaml" type="button" class="btn primary">定義を適用</button></div><textarea id="definition-yaml" class="yaml-area" spellcheck="false" aria-label="定義YAML"></textarea><div id="yaml-error" class="error" hidden></div><p class="yaml-info">対応形式：`columns`、`name`、`description`、`type`、`options`、`cardinality`、`allowDetail`。</p></div>
 </section>
 <section id="input-view" hidden>
   <div id="input-prompt-action-bar" class="prompt-action-bar" hidden><button id="copy-input-prompt" class="btn small soft" type="button" hidden>整形プロンプトをコピー</button></div>
@@ -171,12 +177,13 @@ function parseSchema(source) {
       if(!inColumns)throw Error('先に columns: を指定してください。');
       if(indentation===2&&body.startsWith('- ')){
         const [key,value]=property(body.slice(2));if(key!=='name')throw Error('各項目の最初に - name: を指定してください。');
-        item={name:scalar(value),type:'text',options:[],cardinality:'1:1',allowDetail:false};
+        item={name:scalar(value),description:'',type:'text',options:[],cardinality:'1:1',allowDetail:false};
         result.columns.push(item);block=null;continue;
       }
       if(!item)throw Error('最初に - name: を指定してください。');
       if(indentation===4){const [key,value]=property(body);block=null;
         if(key==='name')item.name=scalar(value);
+        else if(key==='description')item.description=scalar(value);
         else if(key==='type')item.type=scalar(value);
         else if(key==='cardinality')item.cardinality=scalar(value);
         else if(key==='allowDetail'){
@@ -208,6 +215,7 @@ function serializeSchema(schema){
   const out=['columns:'];
   for(const col of schema.columns){
     out.push(`  - name: ${quote(col.name)}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);
+    if(col.description)out.push(`    description: ${quote(col.description)}`);
     if(['select','multiselect'].includes(col.type)){
       out.push(`    options: ${array(col.options)}`,`    allowDetail: ${col.allowDetail===true}`);
       const colors=col.optionColors||{};
@@ -225,6 +233,7 @@ function validateSchema(schema){
   const types=['text','date','select','multiselect'], names=new Set();
   for(const col of schema.columns){
     if(typeof col.name!=='string'||!col.name.trim())throw Error('項目名は必須です。');
+    if(col.description!==undefined&&typeof col.description!=='string')throw Error(`${col.name}: 項目説明（description）は文字列で指定してください。`);
     if(names.has(col.name))throw Error(`項目名が重複しています: ${col.name}`);names.add(col.name);
     if(!types.includes(col.type))throw Error(`${col.name}: type は text / date / select / multiselect のいずれかです。`);
     if(col.allowDetail!==undefined&&typeof col.allowDetail!=='boolean')throw Error(`${col.name}: allowDetail は true または false で指定してください。`);
@@ -495,10 +504,10 @@ function buildDefinitionFormattingPrompt(columns){
 - 自由文章・箇条書き・Markdownから項目定義を読み取り、誤字・表記揺れを整える。意味を変えず、情報を創作しない。
 - 現在の定義を基準とし、入力で明示された変更だけを反映する。
 - 最上位キーは columns: のみ。項目の順序は親子関係の順序で、最初がルートキー。
-- 各項目は name、type、cardinality を記述し、select/multiselect は options と allowDetail も記述する。ラベル色は任意の optionColors に「候補名: #RRGGBB」で指定する。
+- 各項目は name、type、cardinality を記述し、項目説明は任意の description に文字列で記述する。select/multiselect は options と allowDetail も記述する。ラベル色は任意の optionColors に「候補名: #RRGGBB」で指定する。
 - type は text / date / select / multiselect、cardinality は 1:1 / 1:N。1:Nは直前の項目が親となる。
 - select/multiselect には選択候補を配列で指定し、detailを入力できる場合は allowDetail: true とする。
-- 未指定の項目・選択候補・1:1／1:N・detail可否・ラベル色は現在の定義を維持する。
+- 未指定の項目・項目説明・選択候補・1:1／1:N・detail可否・ラベル色は現在の定義を維持する。
 - インデントは半角スペース2個単位。項目名・選択肢はダブルクォートで囲む。
 - 項目入力・項目分析のデータは出力せず、YAMLのみを返す。説明・コードブロックは不要。
 
@@ -509,7 +518,7 @@ ${serializeSchema({columns}).trimEnd()}${formattingPromptInputBlock()}`;
 function buildFormattingPrompt(columns){
   const definitions=columns.map((col,index)=>{
     const choices=['select','multiselect'].includes(col.type)?`、選択肢: ${(col.options||[]).map(option=>JSON.stringify(option)).join(' / ')}`:'';
-    return `${index+1}. ${col.name}（${col.type}、${col.cardinality||'1:1'}${choices}${col.allowDetail===true?'、detail可':''}）`;
+    return `${index+1}. ${col.name}（${col.type}、${col.cardinality||'1:1'}${choices}${col.allowDetail===true?'、detail可':''}）${col.description?`\n   項目説明: ${col.description}`:''}`;
   }).join('\n');
   const sample=(depth=0)=>{
     const col=columns[depth];
@@ -799,7 +808,7 @@ function parseWorkspaceYaml(source){
 function mergeWorkspaceYamlSnapshots(workspaces){
   if(!Array.isArray(workspaces)||!workspaces.length)throw Error('読み込むYAMLファイルがありません。');
   const definitionKey=columns=>JSON.stringify(columns.map(col=>[
-    col.name,col.type,col.options||[],col.cardinality||'1:1',col.allowDetail===true,
+    col.name,col.description||'',col.type,col.options||[],col.cardinality||'1:1',col.allowDetail===true,
     (col.options||[]).map(option=>col.optionColors?.[option]||null)
   ]));
   const reference=definitionKey(workspaces[0].columns);
@@ -824,7 +833,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;};
   const button=(text,callback,cls='btn small')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',callback);return b;};
   const uid=()=>`id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,9)}`;
-  const column=(id,name,type='text',options=[],cardinality='1:1',allowDetail=false)=>({id,name,type,options,cardinality,allowDetail});
+  const column=(id,name,type='text',options=[],cardinality='1:1',allowDetail=false)=>({id,name,description:'',type,options,cardinality,allowDetail});
   const initialColumns=[
     column('name','案件名'),
     column('businessStage','業務の上位工程','select',['1 実行・処理','2 要件整理','3 設計','4 解釈・評価','5 意思決定支援'],'1:1',true),
@@ -872,7 +881,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     if(active)active.analysis=structuredClone(state.analysis);
     try{localStorage.setItem(STORE,JSON.stringify(state));}catch{toast('ブラウザ内保存できませんでした。');}
   }
-  function asSchema(){return {columns:state.columns.map(({name,type,options,cardinality,allowDetail,optionColors})=>({name,type,options,cardinality,allowDetail:allowDetail===true,optionColors}))};}
+  function asSchema(){return {columns:state.columns.map(({name,description,type,options,cardinality,allowDetail,optionColors})=>({name,description:description||'',type,options,cardinality,allowDetail:allowDetail===true,optionColors}))};}
   const byName=name=>state.columns.find(c=>c.name===name);
   const blankValue=col=>isManyColumn(col)?[]:'';
   function normalizeAnalysisConfig(analysis){
@@ -890,7 +899,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const {hierarchies,ontology,...clean}=loaded;
       clean.title=typeof loaded.title==='string'&&loaded.title.trim()?loaded.title.slice(0,80):'DX案件ワークスペース';
       const enableLegacyDetails=upgradeLocalState&&loaded.detailUiVersion!==1;
-      clean.columns=clean.columns.map(col=>({...col,cardinality:col.cardinality||'1:1',
+      clean.columns=clean.columns.map(col=>({...col,description:col.description||'',cardinality:col.cardinality||'1:1',
         allowDetail:enableLegacyDetails&&['select','multiselect'].includes(col.type)?true:col.allowDetail===true}));
       clean.detailUiVersion=1;
       if(clean.columns.length)clean.columns[0].cardinality='1:1';
@@ -1066,7 +1075,9 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const up=button('↑',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index-1);}), 'btn small');up.disabled=index===0;up.setAttribute('aria-label',`${col.name}を上に移動`);
       const down=button('↓',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index+1);}), 'btn small');down.disabled=index===state.columns.length-1;down.setAttribute('aria-label',`${col.name}を下に移動`);
       order.append(up,down);
-      const input=el('input','control');input.value=col.name;input.setAttribute('aria-label','項目名');
+      const nameId=`definition-name-${col.id}`;
+      const nameLabel=el('label','field-name-label','項目名');nameLabel.setAttribute('for',nameId);
+      const input=el('input','control');input.value=col.name;input.setAttribute('id',nameId);input.setAttribute('aria-label','項目名');
       input.addEventListener('change',()=>safeMutation(()=>{
         const next=input.value.trim();const previous=col.name;
         col.name=next;
@@ -1094,7 +1105,17 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         relation.value=col.cardinality||'1:1';
         relation.addEventListener('change',()=>safeMutation(()=>{col.cardinality=relation.value;}));marker=relation;
       }
-      box.append(order,marker,input,type,remove);
+      box.append(order,marker,nameLabel,input,type,remove);
+      const descriptionRow=el('div','field-description-row'),descriptionLabel=el('label','','項目説明'),description=el('textarea');
+      const descriptionId=`definition-description-${col.id}`;
+      descriptionLabel.setAttribute('for',descriptionId);
+      description.setAttribute('id',descriptionId);description.setAttribute('aria-label',`${col.name}の項目説明`);
+      description.setAttribute('rows','1');description.value=col.description||'';
+      description.placeholder='項目の意味や適用範囲を入力';
+      const resizeDescription=()=>{description.style.height='auto';description.style.height=`${Math.max(32,description.scrollHeight||32)}px`;};
+      description.addEventListener('input',resizeDescription);
+      description.addEventListener('change',()=>safeMutation(()=>{col.description=description.value;}));
+      descriptionRow.append(descriptionLabel,description);box.append(descriptionRow);
       if(['select','multiselect'].includes(col.type)){
         const settings=el('div','field-settings');
         const details=el('details','definition-accordion');details.open=openFieldOptions.has(col.id);
@@ -1132,6 +1153,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         settings.append(details,allowLabel);box.append(settings);
       }
       editor.append(box);
+      resizeDescription();
     }
   }
   function renderInput(){

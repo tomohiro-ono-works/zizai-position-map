@@ -111,7 +111,11 @@ function setup(useInitialSample = false, customSnapshot = null) {
   const context = {
     document,
     localStorage: {getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value)},
-    structuredClone, Date, Math, JSON, Set, Map, console, window: {innerHeight: 680, innerWidth: 1200},
+    structuredClone, Date, Math, JSON, Set, Map, console, window: {
+      innerHeight: 680, innerWidth: 1200, handlers: {},
+      addEventListener(name,fn){this.handlers[name]=fn;},
+      dispatch(name){this.handlers[name]?.();}
+    },
     setTimeout: () => 0, clearTimeout: () => {}, confirm: () => true
   };
   vm.runInNewContext(scripts.join('\n'), context);
@@ -1041,7 +1045,7 @@ test('input table freezes header and project root while scrolling within the tab
   const scrollRules = [...html.matchAll(/\.table-wrap\{([^}]+)\}/g)].map(match=>match[1]);
   assert.match(scrollRules[0] || '',/overflow:auto/);
   const scrollRule = scrollRules.at(-1) || '';
-  assert.match(scrollRule,/max-height:72vh/,'vertical scrolling stays within the table');
+  assert.doesNotMatch(scrollRule,/max-height:72vh/,'table height is no longer capped at 72vh');
   const headerRule = html.match(/\.entry-table thead th\{([^}]+)\}/)?.[1] || '';
   assert.match(headerRule,/position:sticky/);
   assert.match(headerRule,/top:0/);
@@ -1049,6 +1053,21 @@ test('input table freezes header and project root while scrolling within the tab
   assert.match(rootRule,/position:sticky/);
   assert.match(rootRule,/left:0/);
   assert.match(html,/\.entry-table thead th:first-child\{[^}]*left:0/);
+});
+
+test('input table uses the remaining viewport height and updates after resize or view switch', () => {
+  const {getElement,context,navigation} = setup();
+  const scroll = getElement('table-input').scrollArea;
+  assert.equal(scroll.style.height,'568px','680px viewport minus 100px table top and 12px lower margin');
+  assert.equal(scroll.style.maxHeight,'568px');
+  context.window.innerHeight=900;
+  context.window.dispatch('resize');
+  assert.equal(scroll.style.height,'788px','resize uses the new available viewport height');
+  scroll.rect={top:180,bottom:200,left:0,right:100,width:100,height:20};
+  navigation.definition.dispatch('click');
+  navigation.input.dispatch('click');
+  assert.equal(scroll.style.height,'708px','switching back recalculates the table top');
+  assert.equal(scroll.style.maxHeight,'708px');
 });
 
 test('each project shows a narrow root-colored number on the left that tracks project order', () => {

@@ -163,6 +163,39 @@ test('definition selects are borderless light gray while field names highlight o
   assert.match(hover, /background:#f7f8fa/);
 });
 
+test('definition candidate summary shows a flat, wrapping label for every option with saved colors', () => {
+  const {navigation, getElement, find} = setup();
+  navigation.definition.dispatch('click');
+  const row = getElement('field-editor').children[1];
+  const accordion = find(row, node => node.tagName === 'details' && node.className === 'definition-accordion');
+  const labels = find(accordion, node => node.className === 'definition-option-chips');
+  assert.ok(labels, 'summary shows chips, not a joined candidate string');
+  assert.deepEqual(labels.children.map(item => item.textContent), ['設計', '評価']);
+  assert.equal(labels.children[0].style.backgroundColor, '#112233', 'defined option color is reflected');
+  assert.equal(labels.children[1].style.backgroundColor, undefined, 'uncolored options retain the neutral style');
+  const layout = html.match(/\.definition-option-chips\{([^}]+)\}/)?.[1] || '';
+  assert.match(layout, /display:flex/);
+  assert.match(layout, /flex-wrap:wrap/);
+  const chipStyle = html.match(/\.definition-option-chip\{([^}]+)\}/)?.[1] || '';
+  assert.match(chipStyle, /border-radius:3px/);
+  assert.match(chipStyle, /box-shadow:none/);
+  assert.ok(find(accordion, node => node.tagName === 'textarea' && node.className === 'option-area'), 'original option editor is preserved');
+});
+
+test('updating a defined label color also updates its candidate preview chip', () => {
+  const {navigation, getElement, find, storage} = setup();
+  navigation.definition.dispatch('click');
+  const row = getElement('field-editor').children[1];
+  const colorInput = find(row, node => node.tagName === 'input' && node.type === 'color' && node.getAttribute('aria-label') === '業務の上位工程 設計のラベル色');
+  assert.ok(colorInput);
+  colorInput.value = '#abcdef';
+  colorInput.dispatch('change');
+  const updatedRow = getElement('field-editor').children[1];
+  const labels = find(updatedRow, node => node.className === 'definition-option-chips');
+  assert.equal(labels.children[0].style.backgroundColor, '#abcdef');
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).columns[1].optionColors['設計'], '#abcdef');
+});
+
 test('projects are initially collapsed and expand independently without changing their data', () => {
   const {body, find, storage} = setup();
   assert.equal(body.children.length, 2);

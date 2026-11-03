@@ -20,15 +20,23 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 #field-editor{overflow-x:auto}
 #field-editor .field-card{margin:0;padding:10px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px minmax(0,1fr) 164px 62px;column-gap:8px;row-gap:5px;min-width:710px;align-items:center}
 #field-editor .field-card:last-child{border-bottom:0}
-#field-editor .field-card>input.control{width:100%;min-width:0}
+#field-editor .field-card>input.control{width:100%;min-width:0;border:1px solid transparent;background:transparent;box-shadow:none}
+#field-editor .field-card>input.control:hover{border-color:#c8d5e4;background:#f1f3f5}
+#field-editor .field-card>input.control:focus{border-color:#5286df;background:#f1f3f5;box-shadow:0 0 0 2px #ddeaff}
+#field-editor .field-card>select.control{border:0;background:#f1f3f5;border-radius:4px;box-shadow:none}
+#field-editor .field-card>select.control:hover{background:#e4e9ee}
+#field-editor .field-card>select.control:focus{outline:2px solid #5286df;outline-offset:1px;box-shadow:none}
 #field-editor .field-card>select.control:not(.cardinality-select){width:164px}
 #field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{width:102px!important;height:38px;display:flex;align-items:center;justify-content:center}
 #field-editor .field-card>.btn{width:62px;padding:6px 3px;height:34px}
 #field-editor .field-settings{grid-column:3 / 5;display:flex;align-items:center;gap:12px;min-width:0}
 #field-editor .field-settings>.definition-accordion{flex:1;min-width:0;align-self:stretch}
-.definition-accordion{margin:7px 0 0;border-radius:8px;background:#f6f9fc}
-.definition-accordion>summary{cursor:pointer;list-style-position:inside;padding:8px 11px;font-size:11px;color:#4e6480;font-weight:700}
-.definition-accordion[open]>summary{border-bottom:1px solid var(--line)}
+.definition-accordion{margin:7px 0 0;border:0;border-radius:0;background:transparent}
+.definition-accordion>summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;border:0;background:transparent;padding:4px 2px;font-size:11px;color:#4e6480;font-weight:700}
+.definition-accordion>summary::-webkit-details-marker{display:none}
+.definition-accordion>summary:focus-visible{outline:2px solid #5286df;outline-offset:1px}
+.definition-accordion[open]>summary{border:0}
+.definition-chevron{display:inline-flex;align-items:center;justify-content:center;flex:none;width:12px;color:#375979;font-size:12px;line-height:1}
 .definition-accordion .field-extra{padding:10px 12px 12px}
 .definition-accordion .option-area{min-height:70px}
 .field-color-list{display:grid;gap:5px;margin-top:5px}.field-color-row{display:flex;align-items:center;gap:9px;padding:4px 7px;background:#fff;border:1px solid #e1e8f0;border-radius:5px}.field-color-name{flex:1;min-width:0;overflow-wrap:anywhere;font-size:11px}.field-color-row input[type=color]{width:34px;height:27px;padding:2px;border:1px solid #c8d5e4;border-radius:5px;background:#fff;cursor:pointer}.field-color-row .btn{padding:3px 7px;font-size:10px}.field-color-heading{margin-top:13px!important}
@@ -1072,8 +1080,10 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       if(['select','multiselect'].includes(col.type)){
         const settings=el('div','field-settings');
         const details=el('details','definition-accordion');details.open=openFieldOptions.has(col.id);
-        details.addEventListener('toggle',()=>{if(details.open)openFieldOptions.add(col.id);else openFieldOptions.delete(col.id);});
-        details.append(el('summary','',`候補 ${col.options.length}件：${col.options.slice(0,3).join('・')}${col.options.length>3?'…':''}（編集）`));
+        const summary=el('summary'),chevron=el('span','definition-chevron',details.open?'⋁':'＞');
+        summary.append(chevron,el('span','',`候補 ${col.options.length}件：${col.options.slice(0,3).join('・')}${col.options.length>3?'…':''}（編集）`));
+        details.addEventListener('toggle',()=>{chevron.textContent=details.open?'⋁':'＞';if(details.open)openFieldOptions.add(col.id);else openFieldOptions.delete(col.id);});
+        details.append(summary);
         const extra=el('div','field-extra'),label=el('label','', '候補値（1行に1つ）'),area=el('textarea','option-area');area.value=col.options.join('\n');area.setAttribute('aria-label',`${col.name} の候補`);
         area.addEventListener('change',()=>safeMutation(()=>{
           col.options=area.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);

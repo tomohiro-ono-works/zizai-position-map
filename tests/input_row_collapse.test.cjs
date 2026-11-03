@@ -293,7 +293,7 @@ test('pivot cell displays only values even when multiple fields supply different
   const trigger = findAll(getElement('pivot-host'),node=>node.className==='root-menu-trigger')[0];
   trigger.dispatch('click');
   assert.deepEqual(findAll(getElement('analysis-click-menu'),node=>node.className==='tooltip-value').map(node=>node.textContent),[
-    '工程: 区分：要件整理を実施','技術：回帰分析を実施'
+    '要件整理を実施','回帰分析を実施'
   ]);
   assert.equal(context.pivotCellDisplayValue('工程: 区分: 設計',['工程: 区分','技術']),'設計');
   assert.equal(context.pivotCellDisplayValue('技術: 統計',['工程: 区分','技術']),'統計');
@@ -327,7 +327,7 @@ test('analysis root buttons open only their project, switch selection, and posit
   assert.equal(Number.parseInt(menu.style.top,10),282,'menu opens above the cell when space is available');
   assert.equal(buttons[0].attributes['aria-expanded'],'true');
   assert.deepEqual(menu.children.filter(node=>node.className==='tooltip-project').map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件A']);
-  assert.equal(find(menu,node=>node.className==='tooltip-value').textContent,'技術の高度化：回帰分析を実施');
+  assert.equal(find(menu,node=>node.className==='tooltip-value').textContent,'回帰分析を実施');
   assert.equal(find(menu,node=>node.className==='tooltip-choice').style.backgroundColor,'#e3a4c5');
   buttons[1].dispatch('click');
   assert.deepEqual(menu.children.filter(node=>node.className==='tooltip-project').map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件B']);
@@ -349,6 +349,44 @@ test('analysis root buttons open only their project, switch selection, and posit
   find(menu,node=>node.className==='menu-close').dispatch('click');
   assert.equal(menu.hidden,true,'the close control dismisses the menu');
   assert.match(html, /<label>クリックメニュー<\/label>/,'picker name matches the click interaction');
+});
+
+test('click menu pairs definition-colored labels with their details without field headings or a project chip', () => {
+  const columns = [
+    {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
+    {id:'stage',name:'業務の上位工程',type:'select',options:['評価'],cardinality:'1:1',allowDetail:true,optionColors:{'評価':'#bed3e8'}},
+    {id:'tech',name:'技術の高度化',type:'multiselect',options:['統計'],cardinality:'1:1',allowDetail:true,optionColors:{'統計':'#e3a4c5'}},
+    {id:'time',name:'運用工数の削減',type:'select',options:['半自動化'],cardinality:'1:1',optionColors:{'半自動化':'#b9e5ce'}}
+  ];
+  const projects = [{id:'p1',tree:{value:'案件A',children:[
+    {value:'評価',detail:'施策を比較',children:[
+      {value:['統計'],detail:'モデルを検証',children:[
+        {value:'半自動化',children:[]}
+      ]}
+    ]}
+  ]}}];
+  const snapshot = {detailUiVersion:1,columns,projects,analysis:{
+    rows:['業務の上位工程'],columns:[],values:['業務の上位工程'],
+    tooltip:['案件名','業務の上位工程','運用工数の削減','詳細メッセージ'],filters:{}
+  }};
+  const {navigation,getElement,find} = setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const findAll = (node,predicate) => [...(predicate(node)?[node]:[]),...(node.children??[]).flatMap(child=>findAll(child,predicate))];
+  find(getElement('pivot-host'),node=>node.className==='root-menu-trigger').dispatch('click');
+  const menu = getElement('analysis-click-menu');
+  assert.equal(find(menu,node=>node.className==='tooltip-root').textContent,'案件A');
+  assert.deepEqual(findAll(menu,node=>node.className==='tooltip-field').map(node=>node.textContent),[],'field-name headings are absent');
+  assert.equal(findAll(menu,node=>node.className==='tooltip-choice'&&node.textContent==='案件A').length,0,'project name is not a chip');
+  const lines = findAll(menu,node=>node.className==='tooltip-entry');
+  assert.deepEqual(lines.map(line=>[
+    find(line,node=>node.className==='tooltip-choice')?.textContent,
+    find(line,node=>node.className==='tooltip-value')?.textContent??null
+  ]),[
+    ['評価','施策を比較'],
+    ['統計','モデルを検証'],
+    ['半自動化',null]
+  ],'detail-only selection still shows source label and labels without details stay visible');
+  assert.deepEqual(lines.map(line=>find(line,node=>node.className==='tooltip-choice')?.style.backgroundColor),['#bed3e8','#e3a4c5','#b9e5ce']);
 });
 
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {

@@ -106,19 +106,25 @@ function setup(useInitialSample = false) {
 test('formatting prompt copy is visible only in YAML mode on definition and input views', () => {
   const {formatting, navigation, getElement} = setup();
   const definitionButton = getElement('copy-definition-prompt');
+  const definitionBar = getElement('definition-prompt-action-bar');
   const inputButton = getElement('copy-input-prompt');
   const inputBar = getElement('input-prompt-action-bar');
+  assert.doesNotMatch(html, /id="load-five-axis-sample"/, 'sample-switch button is removed from the definition view');
+  assert.doesNotMatch(html, /function loadFiveAxisSample\(/, 'unused sample-switch logic is removed');
   assert.equal(definitionButton.hidden, true, 'definition prompt is hidden in table mode');
+  assert.equal(definitionBar.hidden, true, 'definition prompt bar leaves no empty space in table mode');
   assert.equal(inputButton.hidden, true, 'input prompt is hidden in table mode');
   assert.equal(inputBar.hidden, true, 'input prompt bar does not leave empty vertical space');
   formatting.yaml.dispatch('click');
   assert.equal(definitionButton.hidden, false);
+  assert.equal(definitionBar.hidden, false);
   assert.equal(inputButton.hidden, false);
   assert.equal(inputBar.hidden, false);
   navigation.input.dispatch('click');
   assert.equal(inputButton.hidden, false, 'stays visible in input YAML view');
   formatting.table.dispatch('click');
   assert.equal(definitionButton.hidden, true);
+  assert.equal(definitionBar.hidden, true);
   assert.equal(inputButton.hidden, true);
   assert.equal(inputBar.hidden, true);
 });

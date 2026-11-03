@@ -31,6 +31,7 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 .definition-accordion[open]>summary{border-bottom:1px solid var(--line)}
 .definition-accordion .field-extra{padding:10px 12px 12px}
 .definition-accordion .option-area{min-height:70px}
+.field-color-list{display:grid;gap:5px;margin-top:5px}.field-color-row{display:flex;align-items:center;gap:9px;padding:4px 7px;background:#fff;border:1px solid #e1e8f0;border-radius:5px}.field-color-name{flex:1;min-width:0;overflow-wrap:anywhere;font-size:11px}.field-color-row input[type=color]{width:34px;height:27px;padding:2px;border:1px solid #c8d5e4;border-radius:5px;background:#fff;cursor:pointer}.field-color-row .btn{padding:3px 7px;font-size:10px}.field-color-heading{margin-top:13px!important}
 .field-order{display:flex;gap:3px;flex-shrink:0}.field-order .btn{min-width:27px;padding:5px}.root-mark{border-radius:7px;background:#e8f6f1;color:#127567;padding:6px 9px;white-space:nowrap;font-size:11px;font-weight:800}.cardinality-select{width:94px!important;flex:none!important}.root-help{font-size:11px;color:var(--muted);margin:0 0 8px}
 .entry-table .root-cell{background:#f7fbff;min-width:170px}.entry-table tr.project-first>td{border-top:2px solid #b7c9df}.entry-table tr.detail-follow>td{border-top:1px dashed #d7e3ee}.entry-table textarea.control{min-height:68px}.entry-editor-text{position:absolute;inset:0}.entry-editor-text>textarea.control{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:7px 6px 31px;resize:none}.cell-entry-actions{display:flex;gap:3px;justify-content:flex-end;margin-top:5px}.entry-editor-text>.cell-entry-actions{position:absolute;right:6px;bottom:6px;margin:0}.cell-entry-actions .btn{font-size:9px;padding:1px 5px;min-width:20px;min-height:20px;line-height:1.2}.entry-table .detail-empty{background:#fbfcfe}
 .entry-editor-choice{position:absolute;inset:0;display:flex;flex-direction:column;padding:5px;min-height:0}.entry-editor-choice>div{display:flex;flex-direction:column;flex:1;min-height:0}.entry-editor-choice .detail-message-wrap{flex:1;display:flex;flex-direction:column;min-height:0;margin-top:5px}.entry-editor-choice .detail-message-wrap textarea.control{flex:1;height:100%;min-height:0;resize:none;padding:5px 4px 29px}.entry-editor-choice>.cell-entry-actions{position:absolute;right:6px;bottom:6px;margin:0}.entry-editor-choice:has(.multi-picker[open]){z-index:2}
@@ -146,7 +147,7 @@ function parseSchema(source) {
         result.columns.push(item);block=null;continue;
       }
       if(!item)throw Error('最初に - name: を指定してください。');
-      if(indentation===4){const [key,value]=property(body);
+      if(indentation===4){const [key,value]=property(body);block=null;
         if(key==='name')item.name=scalar(value);
         else if(key==='type')item.type=scalar(value);
         else if(key==='cardinality')item.cardinality=scalar(value);
@@ -155,10 +156,19 @@ function parseSchema(source) {
           item.allowDetail=value==='true';
         }
         else if(key==='options'){item.options=value?list(value):[];block=value?null:'options';}
+        else if(key==='optionColors'){
+          if(value)throw Error('optionColors は候補ごとの「候補名: 色」を改行して記述してください。');
+          item.optionColors=Object.create(null);block='optionColors';
+        }
         else throw Error(`不明なキー: ${key}`);
         continue;
       }
       if(indentation===6&&block==='options'&&body.startsWith('- ')){item.options.push(scalar(body.slice(2)));continue;}
+      if(indentation===6&&block==='optionColors'){
+        const [option,color]=property(body);
+        if(Object.prototype.hasOwnProperty.call(item.optionColors,option))throw Error(`ラベル色の候補が重複しています: ${option}`);
+        item.optionColors[option]=scalar(color);continue;
+      }
       throw Error('インデントまたは構造が正しくありません。');
     }catch(error){throw Error(`${index+1}行目: ${error.message}`);}
   }
@@ -168,7 +178,17 @@ function serializeSchema(schema){
   const quote=value=>JSON.stringify(String(value));
   const array=values=>`[${(values||[]).map(quote).join(', ')}]`;
   const out=['columns:'];
-  for(const col of schema.columns){out.push(`  - name: ${quote(col.name)}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);if(['select','multiselect'].includes(col.type))out.push(`    options: ${array(col.options)}`,`    allowDetail: ${col.allowDetail===true}`);}
+  for(const col of schema.columns){
+    out.push(`  - name: ${quote(col.name)}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);
+    if(['select','multiselect'].includes(col.type)){
+      out.push(`    options: ${array(col.options)}`,`    allowDetail: ${col.allowDetail===true}`);
+      const colors=col.optionColors||{};
+      if(Object.keys(colors).length){
+        out.push('    optionColors:');
+        for(const option of col.options)if(Object.prototype.hasOwnProperty.call(colors,option))out.push(`      ${quote(option)}: ${quote(colors[option])}`);
+      }
+    }
+  }
   return out.join('\n')+'\n';
 }
 function validateSchema(schema){
@@ -184,6 +204,14 @@ function validateSchema(schema){
     if(['select','multiselect'].includes(col.type)){
       if(!Array.isArray(col.options)||!col.options.length)throw Error(`${col.name}: プルダウン候補が必要です。`);
       if(col.options.some(v=>typeof v!=='string'||!v.trim())||new Set(col.options).size!==col.options.length)throw Error(`${col.name}: 候補が空、または重複しています。`);
+    }
+    if(col.optionColors!==undefined){
+      if(!col.optionColors||typeof col.optionColors!=='object'||Array.isArray(col.optionColors))throw Error(`${col.name}: optionColors は候補名と色の対応表で指定してください。`);
+      if(!['select','multiselect'].includes(col.type)&&Object.keys(col.optionColors).length)throw Error(`${col.name}: 色を設定できるのはプルダウン項目のみです。`);
+      for(const [option,color] of Object.entries(col.optionColors)){
+        if(!col.options.includes(option))throw Error(`${col.name}: 未定義の候補「${option}」には色を設定できません。`);
+        if(typeof color!=='string'||!/^#[0-9a-f]{6}$/i.test(color))throw Error(`${col.name}: 「${option}」の色は #RRGGBB で指定してください。`);
+      }
     }
   }
   return true;
@@ -439,10 +467,10 @@ function buildDefinitionFormattingPrompt(columns){
 - 自由文章・箇条書き・Markdownから項目定義を読み取り、誤字・表記揺れを整える。意味を変えず、情報を創作しない。
 - 現在の定義を基準とし、入力で明示された変更だけを反映する。
 - 最上位キーは columns: のみ。項目の順序は親子関係の順序で、最初がルートキー。
-- 各項目は name、type、cardinality を記述し、select/multiselect は options と allowDetail も記述する。
+- 各項目は name、type、cardinality を記述し、select/multiselect は options と allowDetail も記述する。ラベル色は任意の optionColors に「候補名: #RRGGBB」で指定する。
 - type は text / date / select / multiselect、cardinality は 1:1 / 1:N。1:Nは直前の項目が親となる。
 - select/multiselect には選択候補を配列で指定し、detailを入力できる場合は allowDetail: true とする。
-- 未指定の項目・選択候補・1:1／1:N・detail可否は現在の定義を維持する。
+- 未指定の項目・選択候補・1:1／1:N・detail可否・ラベル色は現在の定義を維持する。
 - インデントは半角スペース2個単位。項目名・選択肢はダブルクォートで囲む。
 - 項目入力・項目分析のデータは出力せず、YAMLのみを返す。説明・コードブロックは不要。
 
@@ -743,7 +771,8 @@ function parseWorkspaceYaml(source){
 function mergeWorkspaceYamlSnapshots(workspaces){
   if(!Array.isArray(workspaces)||!workspaces.length)throw Error('読み込むYAMLファイルがありません。');
   const definitionKey=columns=>JSON.stringify(columns.map(col=>[
-    col.name,col.type,col.options||[],col.cardinality||'1:1',col.allowDetail===true
+    col.name,col.type,col.options||[],col.cardinality||'1:1',col.allowDetail===true,
+    (col.options||[]).map(option=>col.optionColors?.[option]||null)
   ]));
   const reference=definitionKey(workspaces[0].columns);
   for(const [index,workspace] of workspaces.entries()){
@@ -776,6 +805,10 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     column('operationSavings','運用工数の削減','select',['1 手作業','2 標準化','3 人間と機械の分離','4 半自動化','5 自動化'],'1:1',true),
     column('creationSavings','作成工数の削減','select',['1 手作業','2 ナレッジ化','3 工程の自動化','4 共通部品化','5 循環的な開発（仮）'],'1:1',true)
   ];
+  // Sample colors are editable in the definition view; other values remain neutral.
+  initialColumns[3].optionColors={
+    'エンジニアリング':'#dceafe','統計':'#ebe2f9','機械学習':'#d7f1e5','推論・生成AI':'#fbe5d5'
+  };
   const sampleProject=(id,values,details)=>{
     const tree=makeDefaultTree(initialColumns);let current=tree;
     for(const col of initialColumns){
@@ -811,7 +844,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     if(active)active.analysis=structuredClone(state.analysis);
     try{localStorage.setItem(STORE,JSON.stringify(state));}catch{toast('ブラウザ内保存できませんでした。');}
   }
-  function asSchema(){return {columns:state.columns.map(({name,type,options,cardinality,allowDetail})=>({name,type,options,cardinality,allowDetail:allowDetail===true}))};}
+  function asSchema(){return {columns:state.columns.map(({name,type,options,cardinality,allowDetail,optionColors})=>({name,type,options,cardinality,allowDetail:allowDetail===true,optionColors}))};}
   const byName=name=>state.columns.find(c=>c.name===name);
   const blankValue=col=>isManyColumn(col)?[]:'';
   function normalizeAnalysisConfig(analysis){
@@ -1025,12 +1058,29 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         details.addEventListener('toggle',()=>{if(details.open)openFieldOptions.add(col.id);else openFieldOptions.delete(col.id);});
         details.append(el('summary','',`候補 ${col.options.length}件：${col.options.slice(0,3).join('・')}${col.options.length>3?'…':''}（編集）`));
         const extra=el('div','field-extra'),label=el('label','', '候補値（1行に1つ）'),area=el('textarea','option-area');area.value=col.options.join('\n');area.setAttribute('aria-label',`${col.name} の候補`);
-        area.addEventListener('change',()=>safeMutation(()=>{col.options=area.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);}));
+        area.addEventListener('change',()=>safeMutation(()=>{
+          col.options=area.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+          if(col.optionColors)col.optionColors=Object.fromEntries(Object.entries(col.optionColors).filter(([option])=>col.options.includes(option)));
+        }));
+        const colorsHeading=el('label','field-color-heading','ラベル色（任意）'),colorList=el('div','field-color-list');
+        for(const option of col.options){
+          const row=el('div','field-color-row'),optionName=el('span','field-color-name',option),color=el('input'),reset=button('解除',()=>safeMutation(()=>{
+            if(col.optionColors)delete col.optionColors[option];
+          }),'btn small');
+          color.type='color';color.value=col.optionColors?.[option]||'#edf4fa';
+          color.setAttribute('aria-label',`${col.name} ${option}のラベル色`);
+          color.addEventListener('change',()=>safeMutation(()=>{
+            col.optionColors={...(col.optionColors||{}),[option]:color.value.toLowerCase()};
+          }));
+          reset.disabled=!Object.prototype.hasOwnProperty.call(col.optionColors||{},option);
+          reset.setAttribute('aria-label',`${col.name} ${option}のラベル色を解除`);
+          row.append(optionName,color,reset);colorList.append(row);
+        }
         const allowLabel=el('label','field-detail-toggle'),allow=el('input');allow.type='checkbox';allow.checked=col.allowDetail===true;
         allow.setAttribute('aria-label',`${col.name}の詳細メッセージ入力`);
         allow.addEventListener('change',()=>safeMutation(()=>{col.allowDetail=allow.checked;}));
         allowLabel.append(allow,el('span','','詳細メッセージ入力'));
-        extra.append(label,area);details.append(extra);
+        extra.append(label,area,colorsHeading,colorList);details.append(extra);
         settings.append(details,allowLabel);box.append(settings);
       }
       editor.append(box);
@@ -1068,9 +1118,19 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     const value=node.value,save=next=>{node.value=next;persist();};
     const makeChipList=values=>{
       const list=el('div','choice-chip-list');
+      const chip=item=>{
+        const label=el('span','choice-chip',item),background=col.optionColors?.[item];
+        if(typeof background==='string'&&/^#[0-9a-f]{6}$/i.test(background)){
+          const red=parseInt(background.slice(1,3),16),green=parseInt(background.slice(3,5),16),blue=parseInt(background.slice(5,7),16);
+          label.style.backgroundColor=background;
+          label.style.borderColor=background;
+          label.style.color=(red*299+green*587+blue*114)/1000<150?'#ffffff':'#'+[red,green,blue].map(channel=>Math.round(channel*0.35).toString(16).padStart(2,'0')).join('');
+        }
+        return label;
+      };
       const update=next=>{
         const selected=next.filter(Boolean);
-        list.replaceChildren(...(selected.length?selected.map(item=>el('span','choice-chip',item)):[el('span','choice-placeholder','未選択')]));
+        list.replaceChildren(...(selected.length?selected.map(chip):[el('span','choice-placeholder','未選択')]));
       };
       update(values);
       return {list,update};

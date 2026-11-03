@@ -234,6 +234,79 @@ test('definition rows use compact controls and spacing while allowing wrapped op
   assert.match(wrapping, /flex-wrap:wrap/, 'compact rows still grow when labels wrap');
 });
 
+test('each definition name editor has a visible label on its left and larger editable text', () => {
+  const {navigation, getElement, find, storage} = setup();
+  navigation.definition.dispatch('click');
+  const rows = getElement('field-editor').children;
+  for (const row of rows) {
+    const label = row.children.find(node => node.tagName === 'label' && node.className === 'field-name-label');
+    const input = row.children.find(node => node.tagName === 'input' && node.className === 'control');
+    assert.equal(label?.textContent, '項目名');
+    assert.equal(label.getAttribute('for'), input.getAttribute('id'), 'label points at the adjacent editor');
+    assert.equal(row.children.indexOf(label) + 1, row.children.indexOf(input), 'label is immediately before the editor');
+  }
+  const inputRule = html.match(/#field-editor \.field-card>input\.control\{([^}]+)\}/)?.[1] || '';
+  assert.match(inputRule, /font-size:16px/);
+  const field = find(rows[0], node => node.tagName === 'input' && node.className === 'control');
+  field.value = '改修後の項目名';
+  field.dispatch('change');
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).columns[0].name, '改修後の項目名');
+});
+
+test('definition row boundaries are thin pale gray without individual card outlines', () => {
+  const rowRule = html.match(/#field-editor \.field-card\{([^}]+)\}/)?.[1] || '';
+  assert.match(rowRule, /border:0/);
+  assert.match(rowRule, /border-bottom:1px solid #e8edf2/);
+  assert.match(rowRule, /border-radius:0/);
+  assert.match(rowRule, /background:transparent/);
+  assert.match(html, /#field-editor \.field-card:last-child\{border-bottom:0\}/);
+});
+
+test('definition description editor is placed between name and candidate labels and saves its text', () => {
+  const {navigation, getElement, find, storage} = setup();
+  navigation.definition.dispatch('click');
+  const row = getElement('field-editor').children[1];
+  const descriptionRow = find(row, node => node.className === 'field-description-row');
+  assert.ok(descriptionRow, 'each row has an explanation editor');
+  const descriptionLabel = find(descriptionRow, node => node.tagName === 'label');
+  const descriptionInput = find(descriptionRow, node => node.tagName === 'textarea');
+  const nameInput = row.children.find(node => node.tagName === 'input' && node.className === 'control');
+  const optionChips = find(row, node => node.className === 'definition-option-chips');
+  assert.equal(descriptionLabel?.textContent, '項目説明');
+  assert.equal(descriptionLabel.getAttribute('for'), descriptionInput.getAttribute('id'));
+  assert.ok(row.children.indexOf(nameInput) < row.children.indexOf(descriptionRow), 'description follows the name');
+  assert.ok(row.children.indexOf(descriptionRow) < row.children.findIndex(node => find(node, item => item === optionChips)), 'description precedes candidate chips');
+  const textareaRule = html.match(/#field-editor \.field-description-row textarea\{([^}]+)\}/)?.[1] || '';
+  assert.match(textareaRule, /font-size:11px/, 'same size as option labels');
+  descriptionInput.value = '分類の意味と適用範囲を説明します。\n自由記述です。';
+  descriptionInput.dispatch('change');
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).columns[1].description, descriptionInput.value);
+});
+
+test('definition descriptions survive schema YAML round-trips and workspace backups', () => {
+  const {context, storage} = setup();
+  const schema = {columns: [
+    {name:'案件名',type:'text',cardinality:'1:1',description:'改行\nおよび「引用符」'},
+    {name:'工程',type:'select',cardinality:'1:1',options:['設計'],description:'目的・役割'}
+  ]};
+  const yaml = context.serializeSchema(schema);
+  assert.match(yaml, /description:/);
+  const restored = context.parseSchema(yaml);
+  assert.equal(restored.columns[0].description, '改行\nおよび「引用符」');
+  assert.equal(restored.columns[1].description, '目的・役割');
+  assert.equal(context.validateSchema(restored), true);
+  restored.columns[1].description = 123;
+  assert.throws(() => context.validateSchema(restored), /description|項目説明/);
+
+  const snapshot = JSON.parse(storage.get('dx_three_screens_v2'));
+  snapshot.columns[1].description = '工程の補足';
+  const backup = context.parseWorkspaceYaml(context.serializeWorkspaceYaml(snapshot));
+  assert.equal(backup.columns[1].description, '工程の補足');
+  const different = structuredClone(backup);
+  different.columns[1].description = '別の説明';
+  assert.throws(() => context.mergeWorkspaceYamlSnapshots([backup,different]), /項目定義が一致しません/);
+});
+
 test('projects are initially collapsed and expand independently without changing their data', () => {
   const {body, find, storage} = setup();
   assert.equal(body.children.length, 2);

@@ -557,6 +557,8 @@ test('definition detail and color editors use flat surfaces without raised cards
 test('definition nodes keep compact controls but have generous outer padding and room for wrapped labels', () => {
   const panel = html.match(/#definition-gui \.panel\{([^}]+)\}/)?.[1] || '';
   assert.match(panel, /padding:22px 24px/);
+  assert.match(panel, /background:transparent/,'the outer white panel is removed');
+  assert.match(panel, /border:0/,'the outer panel has no surrounding outline');
   const row = html.match(/#field-editor \.field-card\{([^}]+)\}/)?.[1] || '';
   assert.match(row, /padding:14px 16px/);
   assert.match(row, /column-gap:6px/);
@@ -603,7 +605,7 @@ test('definition items are independent flat bordered nodes with separation betwe
   assert.match(rowRule, /box-shadow:none/,'nodes remain flat without a raised shadow');
   const hostRule = html.match(/#field-editor\{([^}]+)\}/)?.[1] || '';
   assert.match(hostRule,/display:grid/);
-  assert.match(hostRule,/gap:12px/,'independent nodes have visible space between them');
+  assert.match(hostRule,/gap:10px/,'independent nodes are separated by a slightly smaller gap');
 });
 
 test('definition description editor is placed between name and candidate labels and saves its text', () => {

@@ -307,6 +307,50 @@ test('definition descriptions survive schema YAML round-trips and workspace back
   assert.throws(() => context.mergeWorkspaceYamlSnapshots([backup,different]), /項目定義が一致しません/);
 });
 
+test('definition type and cardinality dropdowns use small text and align vertically on the right', () => {
+  const {navigation, getElement} = setup();
+  navigation.definition.dispatch('click');
+  const row = getElement('field-editor').children[1];
+  const selects = row.children.filter(node => node.tagName === 'select');
+  assert.equal(selects.length, 2, 'type and relation are both available');
+  assert.equal(selects[0].value, 'select');
+  assert.equal(selects[1].value, '1:1');
+  const dropdown = html.match(/#field-editor \.field-card>select\.control\{([^}]+)\}/)?.[1] || '';
+  assert.match(dropdown, /font-size:11px/);
+  const relation = html.match(/#field-editor \.field-card>\.root-mark,#field-editor \.field-card>\.cardinality-select\{([^}]+)\}/)?.[1] || '';
+  assert.match(relation, /grid-column:4/);
+  assert.match(relation, /grid-row:2/);
+  assert.match(relation, /width:164px/);
+  const description = html.match(/#field-editor \.field-description-row\{([^}]+)\}/)?.[1] || '';
+  assert.match(description, /grid-row:2/);
+  assert.match(description, /grid-column:2 \/ 4/);
+});
+
+test('definition rows can be reordered by dragging a grip, with keyboard arrows as an alternative', () => {
+  const {navigation, getElement, find, storage} = setup();
+  navigation.definition.dispatch('click');
+  const rows = getElement('field-editor').children;
+  const handle = find(rows[2], node => node.className === 'field-drag-handle');
+  assert.ok(handle, 'row has a visible drag grip');
+  assert.equal(handle.draggable, true);
+  assert.equal(find(rows[2], node => node.textContent === '↑' || node.textContent === '↓'), null, 'arrow buttons are replaced');
+  let transferred = '';
+  handle.dispatch('dragstart', {dataTransfer:{setData:(type,value)=>{transferred=value;},effectAllowed:''}});
+  assert.equal(transferred, 'tech');
+  const target = rows[1];
+  let prevented = false;
+  target.dispatch('dragover', {preventDefault:()=>{prevented=true;},dataTransfer:{dropEffect:''}});
+  assert.equal(prevented, true);
+  target.dispatch('drop', {preventDefault:()=>{prevented=true;}});
+  assert.deepEqual(JSON.parse(storage.get('dx_three_screens_v2')).columns.map(col=>col.name),
+    ['案件名','技術の高度化','業務の上位工程']);
+
+  const nextHandle = find(getElement('field-editor').children[1], node => node.className === 'field-drag-handle');
+  nextHandle.dispatch('keydown', {key:'ArrowDown',preventDefault:()=>{}});
+  assert.deepEqual(JSON.parse(storage.get('dx_three_screens_v2')).columns.map(col=>col.name),
+    ['案件名','業務の上位工程','技術の高度化']);
+});
+
 test('projects are initially collapsed and expand independently without changing their data', () => {
   const {body, find, storage} = setup();
   assert.equal(body.children.length, 2);

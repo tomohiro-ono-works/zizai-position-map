@@ -129,6 +129,22 @@ test('formatting prompt copy is visible only in YAML mode on definition and inpu
   assert.equal(inputBar.hidden, true);
 });
 
+test('definition formatting prompt prioritizes cleanup while adding justified missing fields and options', () => {
+  const {context, storage} = setup(true);
+  const columns = JSON.parse(storage.get('dx_three_screens_v2')).columns;
+  const prompt = context.buildDefinitionFormattingPrompt(columns);
+  assert.match(prompt, /整形を優先/);
+  assert.match(prompt, /既存の項目.*維持/);
+  assert.match(prompt, /不足する項目.*追加/);
+  assert.match(prompt, /不足する選択候補.*追加/);
+  assert.match(prompt, /重複.*追加しない/);
+  assert.match(prompt, /根拠のない項目.*追加しない/);
+  assert.doesNotMatch(prompt, /入力で明示された変更だけを反映する/, 'new fields are permitted when the input shows a need');
+  assert.match(prompt, /description/);
+  assert.match(prompt, /【現在の項目定義／出力構造】/);
+  assert.match(prompt, /【入力内容】/);
+});
+
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {
   const {navigation, getElement, find} = setup();
   navigation.definition.dispatch('click');

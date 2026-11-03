@@ -129,6 +129,38 @@ test('formatting prompt copy is visible only in YAML mode on definition and inpu
   assert.equal(inputBar.hidden, true);
 });
 
+test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {
+  const {navigation, getElement, find} = setup();
+  navigation.definition.dispatch('click');
+  const editor = getElement('field-editor');
+  const row = editor.children[1];
+  const details = find(row, node => node.tagName === 'details' && node.className === 'definition-accordion');
+  const chevron = find(details, node => node.className === 'definition-chevron');
+  assert.ok(chevron, 'a separate, simple chevron is visible next to candidate summary');
+  assert.equal(chevron.textContent, '＞');
+  details.open = true;
+  details.dispatch('toggle');
+  assert.equal(chevron.textContent, '⋁');
+  const accordion = html.match(/\n\.definition-accordion\{([^}]+)\}/)?.[1] || '';
+  assert.match(accordion, /background:transparent/);
+  const summary = html.match(/\.definition-accordion>summary\{([^}]+)\}/)?.[1] || '';
+  assert.match(summary, /border:0/);
+  const arrowRule = html.match(/\.definition-chevron\{([^}]+)\}/)?.[1] || '';
+  assert.match(arrowRule, /font-size:12px/);
+});
+
+test('definition selects are borderless light gray while field names highlight on hover', () => {
+  const dropdown = html.match(/#field-editor \.field-card>select\.control\{([^}]+)\}/)?.[1] || '';
+  assert.match(dropdown, /border:0/);
+  assert.match(dropdown, /background:#f1f3f5/);
+  const input = html.match(/#field-editor \.field-card>input\.control\{([^}]+)\}/)?.[1] || '';
+  assert.match(input, /border:1px solid transparent/);
+  assert.match(input, /background:transparent/);
+  const hover = html.match(/#field-editor \.field-card>input\.control:hover\{([^}]+)\}/)?.[1] || '';
+  assert.match(hover, /border-color:#c8d5e4/);
+  assert.match(hover, /background:#f1f3f5/);
+});
+
 test('projects are initially collapsed and expand independently without changing their data', () => {
   const {body, find, storage} = setup();
   assert.equal(body.children.length, 2);

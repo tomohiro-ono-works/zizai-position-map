@@ -16,22 +16,23 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 .analysis-layout{display:flex;flex-direction:column;gap:12px}.analysis-layout>.panel,.analysis-results{width:100%;min-width:0}.filter-group{padding:14px 0;border-top:1px solid var(--line)}.filter-group:first-of-type{border:0}.filter-group>label{display:block;font-weight:800;font-size:12px;margin-bottom:8px}.picker{border:1px solid #c8d5e4;border-radius:9px;background:#fff}.picker summary{padding:10px;font-size:11px;cursor:pointer;overflow-wrap:anywhere}.picker-options{padding:7px;max-height:240px;overflow:auto;border-top:1px solid var(--line)}.picker-options label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;padding:5px}.picker-options label:hover{background:#eef5fc}.picker-options input{accent-color:var(--blue)}.summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.summary span{border:1px solid var(--line);background:#fff;padding:7px 11px;border-radius:8px;font-size:11px;color:var(--muted)}.summary b{color:var(--ink);font-size:16px;margin-right:4px}.pivot-box{overflow:auto;border:1px solid var(--line);border-radius:11px;background:#fff;min-height:180px}.pivot{width:100%;border-collapse:separate;border-spacing:0}.pivot th,.pivot td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px;min-width:160px;vertical-align:top}.pivot tr>*:last-child{border-right:0}.pivot tr:last-child>*{border-bottom:0}.pivot th{background:#eff5ff;color:#395f92;text-align:left;font-size:11px;white-space:pre-line}.pivot th.corner{background:#163958;color:#fff;position:sticky;left:0;z-index:2;min-width:180px}.pivot tbody th{position:sticky;left:0;background:#f7faff;z-index:1}.cell-list{display:flex;flex-wrap:wrap;gap:5px}.cell-item{display:inline-block;border:1px solid #c8e8df;background:#eefaf6;color:#296e64;border-radius:6px;padding:4px 7px;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}.empty{color:#b5bfcd}.status{position:fixed;right:18px;bottom:18px;max-width:90vw;background:#163e57;color:#fff;padding:11px 14px;border-radius:9px;box-shadow:0 7px 24px #17395050;font-size:12px;z-index:10}
 /* Definition view: short rows and on-demand editors. */
 #definition-gui{display:flex;flex-direction:column;gap:14px;max-width:1040px}
-#definition-gui .panel{padding:16px 20px;box-shadow:none;border-radius:10px}
+#definition-gui .panel{padding:12px 16px;box-shadow:none;border-radius:10px}
 #field-editor{overflow-x:auto}
-#field-editor .field-card{margin:0;padding:10px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px minmax(0,1fr) 164px 62px;column-gap:8px;row-gap:5px;min-width:710px;align-items:center}
+#field-editor .field-card{margin:0;padding:6px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px minmax(0,1fr) 164px 62px;column-gap:6px;row-gap:4px;min-width:710px;align-items:center}
 #field-editor .field-card:last-child{border-bottom:0}
-#field-editor .field-card>input.control{width:100%;min-width:0;border:1px solid transparent;background:transparent;box-shadow:none}
+#field-editor .field-card>input.control{width:100%;min-width:0;height:32px;padding:5px 8px;border:1px solid transparent;background:transparent;box-shadow:none}
 #field-editor .field-card>input.control:hover{border-color:#c8d5e4;background:#f7f8fa}
 #field-editor .field-card>input.control:focus{border-color:#5286df;background:#f7f8fa;box-shadow:0 0 0 2px #ddeaff}
-#field-editor .field-card>select.control{border:0;background:#f7f8fa;border-radius:4px;box-shadow:none}
+#field-editor .field-card>select.control{height:32px;padding:4px 8px;border:0;background:#f7f8fa;border-radius:4px;box-shadow:none}
 #field-editor .field-card>select.control:hover{background:#f1f3f5}
 #field-editor .field-card>select.control:focus{outline:2px solid #5286df;outline-offset:1px;box-shadow:none}
 #field-editor .field-card>select.control:not(.cardinality-select){width:164px}
-#field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{width:102px!important;height:38px;display:flex;align-items:center;justify-content:center}
-#field-editor .field-card>.btn{width:62px;padding:6px 3px;height:34px}
-#field-editor .field-settings{grid-column:3 / 5;display:flex;align-items:center;gap:12px;min-width:0}
+#field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{width:102px!important;height:32px;display:flex;align-items:center;justify-content:center}
+#field-editor .field-card>.btn{width:62px;padding:4px 3px;height:30px}
+#field-editor .field-order .btn{min-width:25px;height:28px;padding:3px 4px}
+#field-editor .field-settings{grid-column:3 / 5;display:flex;align-items:center;gap:8px;min-width:0}
 #field-editor .field-settings>.definition-accordion{flex:1;min-width:0;align-self:stretch}
-.definition-accordion{margin:7px 0 0;border:0;border-radius:0;background:transparent}
+.definition-accordion{margin:2px 0 0;border:0;border-radius:0;background:transparent}
 .definition-accordion>summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;border:0;background:transparent;padding:4px 2px;font-size:11px;color:#4e6480;font-weight:700}
 .definition-accordion>summary::-webkit-details-marker{display:none}
 .definition-accordion>summary:focus-visible{outline:2px solid #5286df;outline-offset:1px}
@@ -40,7 +41,7 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 .definition-option-chips{display:flex;flex-wrap:wrap;align-items:center;gap:3px;flex:1;min-width:0}
 .definition-option-chip{display:inline-block;max-width:100%;border:1px solid #cbd9e6;background:#edf4fa;background-image:none;box-shadow:none;border-radius:3px;padding:1px 5px;color:#365575;font-size:11px;line-height:1.35;overflow-wrap:anywhere}
 .definition-option-empty{font-size:11px;color:#8a9bae}
-.definition-accordion .field-extra{padding:10px 12px 12px}
+.definition-accordion .field-extra{padding:8px 8px 10px}
 .definition-accordion .option-area{min-height:70px}
 .field-color-list{display:grid;gap:5px;margin-top:5px}.field-color-row{display:flex;align-items:center;gap:9px;padding:4px 7px;background:#fff;border:1px solid #e1e8f0;border-radius:5px}.field-color-name{flex:1;min-width:0;overflow-wrap:anywhere;font-size:11px}.field-color-row input[type=color]{width:34px;height:27px;padding:2px;border:1px solid #c8d5e4;border-radius:5px;background:#fff;cursor:pointer}.field-color-row .btn{padding:3px 7px;font-size:10px}.field-color-heading{margin-top:13px!important}
 #field-editor .field-detail-toggle{border:0;border-radius:0;background:transparent;padding:4px 0}

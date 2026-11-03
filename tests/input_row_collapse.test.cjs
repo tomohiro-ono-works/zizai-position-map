@@ -101,17 +101,17 @@ test('projects are initially collapsed and expand independently without changing
     assert.match(row.className, /project-collapsed/);
     assert.equal(find(row, node => node.className === 'detail-message-wrap')?.hidden, true);
   }
-  const openFirst = find(body.children[0], node => node.tagName === 'button' && node.textContent === '▶');
+  const openFirst = find(body.children[0], node => node.tagName === 'button' && node.textContent === '＞');
   assert.ok(openFirst, 'project title includes an expand button');
   assert.equal(openFirst.getAttribute('aria-expanded'), 'false');
   openFirst.dispatch('click');
   assert.match(body.children[0].className, /project-expanded/);
   assert.equal(find(body.children[0], node => node.className === 'detail-message-wrap')?.hidden, false);
   assert.match(body.children[1].className, /project-collapsed/);
-  find(body.children[1], node => node.tagName === 'button' && node.textContent === '▶').dispatch('click');
+  find(body.children[1], node => node.tagName === 'button' && node.textContent === '＞').dispatch('click');
   assert.match(body.children[0].className, /project-expanded/);
   assert.match(body.children[1].className, /project-expanded/);
-  find(body.children[0], node => node.tagName === 'button' && node.textContent === '▼').dispatch('click');
+  find(body.children[0], node => node.tagName === 'button' && node.textContent === '⋁').dispatch('click');
   assert.match(body.children[0].className, /project-collapsed/);
   assert.match(body.children[1].className, /project-expanded/);
   const state = JSON.parse(storage.get('dx_three_screens_v2'));
@@ -136,8 +136,10 @@ test('single selection is shown as a label and edited only through the arrow', (
   assert.equal(label?.textContent, '設計');
   const select = find(stageCell, node => node.tagName === 'select');
   assert.equal(select?.hidden, true);
-  const edit = find(stageCell, node => node.tagName === 'button' && node.textContent === '▼');
-  assert.ok(edit, 'the editor has a dedicated arrow');
+  const edit = find(stageCell, node => node.tagName === 'button' && node.className === 'choice-edit-button');
+  assert.ok(edit, 'the editor has a dedicated filter button');
+  assert.equal(edit.textContent, '');
+  assert.ok(find(edit, node => node.className === 'filter-alt-icon'));
   edit.dispatch('click');
   assert.equal(select.hidden, false);
   select.value = '評価';
@@ -162,7 +164,8 @@ test('multiple selections show one label per value and keep the 1:N controls', (
   const techCell = body.children[0].children[2];
   assert.deepEqual(labels(techCell), ['統計']);
   const edit = find(techCell, node => node.tagName === 'summary');
-  assert.equal(edit?.textContent, '▼');
+  assert.equal(edit?.textContent, '');
+  assert.ok(find(edit, node => node.className === 'filter-alt-icon'));
   const second = find(techCell, node => node.tagName === 'input' && node.attributes['aria-label'] === '技術の高度化 機械学習');
   second.checked = true;
   second.dispatch('change');
@@ -265,7 +268,7 @@ test('expanded detail messages grow with content instead of scrolling inside a c
   const firstRow = body.children[0];
   const detailWrap = find(firstRow.children[1], node => node.className === 'detail-message-wrap');
   assert.equal(detailWrap.hidden, true);
-  find(firstRow, node => node.tagName === 'button' && node.textContent === '▶').dispatch('click');
+  find(firstRow, node => node.tagName === 'button' && node.textContent === '＞').dispatch('click');
   const detail = find(body.children[0].children[1], node => node.tagName === 'textarea' && node.attributes['aria-label'] === '業務の上位工程の詳細メッセージ');
   assert.ok(detail, 'details stay under their existing column');
   assert.equal(detail.getAttribute('data-autosize-detail'), 'true');
@@ -293,7 +296,7 @@ test('expanded project has a slim left accent without a new row background', () 
   assert.match(accent, /background:#3d8b98/);
   const {body, find} = setup();
   assert.match(body.children[0].className, /project-collapsed/);
-  find(body.children[0], node => node.tagName === 'button' && node.textContent === '▶').dispatch('click');
+  find(body.children[0], node => node.tagName === 'button' && node.textContent === '＞').dispatch('click');
   assert.match(body.children[0].className, /project-expanded/);
   assert.match(body.children[1].className, /project-collapsed/);
   assert.doesNotMatch(accent, /background-color:/);
@@ -307,4 +310,36 @@ test('input project separators and editor spacing are subtle and consistent', ()
   assert.match(followRows.at(-1)?.[1] || '', /border-top-color:#e8eef5/);
   const editorRules = [...html.matchAll(/\.entry-table \.entry-editor-choice\{([^}]+)\}/g)];
   assert.match(editorRules.at(-1)?.[1] || '', /padding:6px 7px 29px/);
+});
+
+test('filter editors use the Google filter_alt symbol in borderless compact controls', () => {
+  const {body, find} = setup();
+  const single = find(body.children[0].children[1], node => node.className === 'choice-edit-button');
+  const multiple = find(body.children[0].children[2], node => node.tagName === 'summary');
+  for (const control of [single, multiple]) {
+    assert.ok(control);
+    const glyph = find(control, node => node.className === 'filter-alt-icon');
+    assert.ok(glyph, 'the editing affordance is a filter icon');
+    assert.equal(glyph.getAttribute('aria-hidden'), 'true');
+  }
+  const buttonRule = [...html.matchAll(/\.entry-table \.choice-edit-button,\.entry-table \.multi-picker>summary\{([^}]+)\}/g)].at(-1)?.[1] || '';
+  assert.match(buttonRule, /width:20px/);
+  assert.match(buttonRule, /height:20px/);
+  assert.match(buttonRule, /border:0/);
+  assert.match(buttonRule, /background:transparent/);
+  assert.match(html, /filter_alt_20px\.svg/);
+  assert.match(html, /mask:var\(--filter-alt-glyph\)/);
+});
+
+test('project expand and collapse controls show only a simple glyph with no frame', () => {
+  const {body, find} = setup();
+  const collapsed = find(body.children[0], node => node.className === 'project-row-toggle');
+  assert.equal(collapsed?.textContent, '＞');
+  collapsed.dispatch('click');
+  const expanded = find(body.children[0], node => node.className === 'project-row-toggle');
+  assert.equal(expanded?.textContent, '⋁');
+  const rule = [...html.matchAll(/\.project-row-toggle\{([^}]+)\}/g)].at(-1)?.[1] || '';
+  assert.match(rule, /border:0/);
+  assert.match(rule, /background:transparent/);
+  assert.match(html, /\.project-row-toggle:hover\{background:transparent/);
 });

@@ -384,9 +384,51 @@ test('click menu pairs definition-colored labels with their details without fiel
   ]),[
     ['評価','施策を比較'],
     ['統計','モデルを検証'],
-    ['半自動化',null]
+    ['半自動化','']
   ],'detail-only selection still shows source label and labels without details stay visible');
   assert.deepEqual(lines.map(line=>find(line,node=>node.className==='tooltip-choice')?.style.backgroundColor),['#bed3e8','#e3a4c5','#b9e5ce']);
+});
+
+test('click menu groups text and selectable fields separately with aligned detail separators', () => {
+  const columns = [
+    {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
+    {id:'notes',name:'支援内容',type:'text',options:[],cardinality:'1:1'},
+    {id:'stage',name:'業務の上位工程',type:'select',options:['評価'],cardinality:'1:1',allowDetail:true,optionColors:{'評価':'#bed3e8'}},
+    {id:'tech',name:'技術の高度化',type:'multiselect',options:['統計','機械学習'],cardinality:'1:1',allowDetail:true,optionColors:{'統計':'#e3a4c5','機械学習':'#b9e5ce'}}
+  ];
+  const projects = [{id:'p1',tree:{value:'案件A',children:[{value:'需要予測モデルを導入',children:[
+    {value:'評価',detail:'施策を比較',children:[{value:['統計','機械学習'],detail:'精度を比較',children:[]}]}
+  ]}]}}];
+  const snapshot={detailUiVersion:1,columns,projects,analysis:{
+    rows:['業務の上位工程'],columns:[],values:['業務の上位工程'],
+    tooltip:['案件名','支援内容','業務の上位工程','技術の高度化','詳細メッセージ'],filters:{}
+  }};
+  const {navigation,getElement,find}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  find(getElement('pivot-host'),node=>node.className==='root-menu-trigger').dispatch('click');
+  const menu=getElement('analysis-click-menu');
+  const groups=menu.children.flatMap(node=>node.className==='tooltip-project'?node.children.filter(child=>child.className==='tooltip-group'):[]);
+  assert.equal(find(menu,node=>node.className==='tooltip-root').textContent,'案件A');
+  assert.deepEqual(groups.map(group=>group.attributes['data-field']),['支援内容','業務の上位工程','技術の高度化']);
+  assert.deepEqual(groups.map(group=>{
+    const header=find(group,node=>node.className==='tooltip-group-name');
+    return header?[find(header,node=>node.className==='tooltip-field-label')?.textContent,find(header,node=>node.className==='tooltip-separator')?.textContent]:null;
+  }),[null,['業務の上位工程','：'],['技術の高度化','：']]);
+  const textLine=find(groups[0],node=>node.className==='tooltip-entry');
+  assert.equal(find(textLine,node=>node.className==='tooltip-label').textContent,'支援内容');
+  assert.equal(find(textLine,node=>node.className==='tooltip-value').textContent,'需要予測モデルを導入');
+  assert.equal(find(textLine,node=>node.className==='tooltip-choice'),null,'text values are not chips');
+  for(const group of groups.slice(1)){
+    const lines=group.children.filter(child=>child.className==='tooltip-entry');
+    assert.ok(lines.length);
+    for(const line of lines){
+      assert.equal(find(line,node=>node.className==='tooltip-bullet')?.textContent,'・');
+      assert.equal(find(line,node=>node.className==='tooltip-separator')?.textContent,'：');
+    }
+  }
+  assert.deepEqual(groups[2].children.filter(node=>node.className==='tooltip-entry').map(line=>find(line,node=>node.className==='tooltip-choice').textContent),['統計','機械学習']);
+  assert.match(html,/\.analysis-click-menu \.tooltip-entry\{[^}]*display:grid;grid-template-columns:/,'shared grid columns align separator positions');
+  assert.match(html,/\.analysis-click-menu \.tooltip-group-name\{[^}]*display:grid;grid-template-columns:/,'field header separator shares the same grid');
 });
 
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {

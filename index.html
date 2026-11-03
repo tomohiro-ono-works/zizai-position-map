@@ -73,14 +73,14 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 <header><div class="header-top"><div class="brand"><div class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h1><input id="workspace-title" class="workspace-title" type="text" aria-label="ワークスペースのタイトル" placeholder="DX案件ワークスペース" maxlength="80"></h1></div><div class="header-file-tools"><button id="workspace-yaml-save" class="btn small" type="button">YAML保存</button><button id="workspace-yaml-load" class="btn small" type="button">YAML読込</button><input id="workspace-yaml-file" type="file" accept=".yaml,.yml,text/yaml,text/x-yaml" aria-label="全体YAMLファイルを選択" multiple hidden></div><div class="switch header-format-switch" role="group" aria-label="共通表示形式"><button class="active" data-format-tab="table" type="button">表形式</button><button data-format-tab="yaml" type="button">YAML形式</button></div></div><nav class="nav" aria-label="画面切り替え"><button class="active" data-view-tab="definition"><small>01</small>項目定義</button><button data-view-tab="input"><small>02</small>項目入力</button><button data-view-tab="analysis"><small>03</small>項目分析</button><span id="analysis-extra-tabs" class="analysis-extra-tabs"></span><button id="add-analysis-tab" type="button" class="add-analysis-tab" aria-label="分析タブを追加" title="分析タブを追加">＋</button></nav></header>
 <main>
 <section id="definition-view">
-  <div class="prompt-action-bar"><button id="load-five-axis-sample" class="btn small" type="button">5軸サンプルに切替</button><button id="copy-definition-prompt" class="btn small soft" type="button">整形プロンプトをコピー</button></div>
+  <div class="prompt-action-bar"><button id="load-five-axis-sample" class="btn small" type="button">5軸サンプルに切替</button><button id="copy-definition-prompt" class="btn small soft" type="button" hidden>整形プロンプトをコピー</button></div>
   <div id="definition-gui" class="two-col">
     <article class="panel"><div id="field-editor"></div><div class="add-field-footer"><button id="add-field" class="btn small soft" type="button">＋ 項目追加</button></div></article>
   </div>
   <div id="definition-yaml-view" class="panel" hidden><div class="panel-head"><div><h3>YAMLで入力項目を編集</h3><p class="desc">項目の順序でルートキーが決まります。編集後に「定義を適用」を押してください。</p></div><button id="apply-yaml" type="button" class="btn primary">定義を適用</button></div><textarea id="definition-yaml" class="yaml-area" spellcheck="false" aria-label="定義YAML"></textarea><div id="yaml-error" class="error" hidden></div><p class="yaml-info">対応形式：`columns`、`name`、`type`、`options`、`cardinality`、`allowDetail`。</p></div>
 </section>
 <section id="input-view" hidden>
-  <div class="prompt-action-bar"><button id="copy-input-prompt" class="btn small soft" type="button">整形プロンプトをコピー</button></div>
+  <div id="input-prompt-action-bar" class="prompt-action-bar" hidden><button id="copy-input-prompt" class="btn small soft" type="button" hidden>整形プロンプトをコピー</button></div>
   <div id="markdown-input"><div id="markdown-projects"></div></div>
   <div id="table-input" hidden><div class="table-wrap"><table class="entry-table"><thead id="entry-head"></thead><tbody id="entry-body"></tbody></table></div><p class="input-note">1:Nは直前の項目に対する関係です。「＋」で同じ親の子項目とその下位フォームを追加します。</p></div>
   <div id="yaml-input" class="panel" hidden><div class="panel-head"><div><h3>案件データをYAMLで編集</h3><p class="desc">項目名ごとに親子関係を記述します。変更後は表に反映できます。</p></div><button id="apply-input-yaml" type="button" class="btn primary">表に反映</button></div><textarea id="input-yaml" class="yaml-area" spellcheck="false" aria-label="案件データYAML"></textarea><div id="input-yaml-error" class="error" hidden></div><p class="yaml-info">1:Nはリスト（- value）、1:1は value で表現します。詳細メッセージは detail に入力します。</p></div>
@@ -974,6 +974,10 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   }
   function renderFormatControls(){
     for(const mode of ['table','yaml'])document.querySelector(`[data-format-tab="${mode}"]`).classList.toggle('active',formatMode===mode);
+    const showYamlPrompt=formatMode==='yaml';
+    $('copy-definition-prompt').hidden=!showYamlPrompt;
+    $('copy-input-prompt').hidden=!showYamlPrompt;
+    $('input-prompt-action-bar').hidden=!showYamlPrompt;
   }
   function switchFormat(next,alreadyApplied=false){
     if(!['table','yaml'].includes(next)||next===formatMode)return;

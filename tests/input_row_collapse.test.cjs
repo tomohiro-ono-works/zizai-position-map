@@ -46,7 +46,7 @@ class Element {
   get scrollHeight() { return this.tagName === 'textarea' ? 18 + Math.ceil(String(this.value).length / 20) * 18 : 0; }
 }
 
-function setup(useInitialSample = false) {
+function setup(useInitialSample = false, customSnapshot = null) {
   const elements = new Map();
   const navigation = {};
   const formatting = {};
@@ -72,7 +72,7 @@ function setup(useInitialSample = false) {
     {id: 'p1', data: {name: '案件A', stage: '設計', tech: ['統計']}},
     {id: 'p2', data: {name: '案件B', stage: '評価', tech: ['機械学習']}}
   ];
-  const storage = useInitialSample ? new Map() : new Map([['dx_three_screens_v2', JSON.stringify({detailUiVersion: 1, columns, projects})]]);
+  const storage = useInitialSample ? new Map() : new Map([['dx_three_screens_v2', JSON.stringify(customSnapshot ?? {detailUiVersion: 1, columns, projects})]]);
   const document = {
     createElement: tag => new Element(tag),
     createTextNode: text => ({textContent: text}),
@@ -305,6 +305,43 @@ test('definition descriptions survive schema YAML round-trips and workspace back
   const different = structuredClone(backup);
   different.columns[1].description = '別の説明';
   assert.throws(() => context.mergeWorkspaceYamlSnapshots([backup,different]), /項目定義が一致しません/);
+});
+
+test('initial six axes provide explanatory defaults and YAML shows a description field for every item', () => {
+  const {navigation, formatting, getElement, find, storage, context} = setup(true);
+  const columns = JSON.parse(storage.get('dx_three_screens_v2')).columns;
+  assert.equal(columns.length, 6);
+  for (const column of columns) {
+    assert.ok(column.description.length >= 20, `${column.name} is explained in a useful sentence`);
+  }
+  assert.match(columns.find(col=>col.name==='業務の高度化').description, /品質|判断/);
+  assert.match(columns.find(col=>col.name==='技術の高度化').description, /統計|機械学習/);
+  navigation.definition.dispatch('click');
+  const description = find(getElement('field-editor').children[1], node => node.tagName === 'textarea' && node.getAttribute('aria-label') === '業務の上位工程の項目説明');
+  assert.equal(description.value, columns[1].description);
+  formatting.yaml.dispatch('click');
+  const definitionsYaml = getElement('definition-yaml').value;
+  assert.equal(definitionsYaml.split('\n').filter(line=>line.startsWith('    description: ')).length, 6);
+  const blank = context.serializeSchema({columns:[{name:'追加項目',type:'text',cardinality:'1:1',description:''}]});
+  assert.match(blank, /description: ""/, 'new fields also get an editable YAML slot');
+});
+
+test('previously saved preset columns receive descriptions once while custom text remains untouched', () => {
+  const old = {detailUiVersion:1,columns:[
+    {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
+    {id:'businessStage',name:'業務の上位工程',type:'select',options:['設計'],cardinality:'1:1',description:'利用者が作成した独自の説明'},
+    {id:'custom',name:'独自項目',type:'text',options:[],cardinality:'1:1'}
+  ],projects:[{id:'p1',data:{name:'案件1',businessStage:'設計',custom:'任意'}}]};
+  const first = setup(false,old);
+  const migrated = JSON.parse(first.storage.get('dx_three_screens_v2'));
+  assert.ok(migrated.columns[0].description.length >= 20, 'preset name was filled');
+  assert.equal(migrated.columns[1].description, '利用者が作成した独自の説明');
+  assert.equal(migrated.columns[2].description, '', 'custom fields keep empty descriptions');
+  assert.equal(migrated.descriptionPresetVersion, 1);
+  migrated.columns[0].description = '';
+  const second = setup(false,migrated);
+  const reloaded = JSON.parse(second.storage.get('dx_three_screens_v2'));
+  assert.equal(reloaded.columns[0].description, '', 'a consciously cleared description stays empty after reload');
 });
 
 test('definition type and cardinality dropdowns use small text and align vertically on the right', () => {

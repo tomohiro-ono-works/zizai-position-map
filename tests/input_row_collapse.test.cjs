@@ -196,6 +196,22 @@ test('updating a defined label color also updates its candidate preview chip', (
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).columns[1].optionColors['設計'], '#abcdef');
 });
 
+test('definition detail and color editors use flat surfaces without raised cards', () => {
+  const panel = html.match(/#definition-gui \.panel\{([^}]+)\}/)?.[1] || '';
+  assert.match(panel, /box-shadow:none/, 'definition editing panel has no raised shadow');
+  const detailToggle = html.match(/#field-editor \.field-detail-toggle\{([^}]+)\}/)?.[1] || '';
+  assert.match(detailToggle, /border:0/);
+  assert.match(detailToggle, /background:transparent/);
+  const colorRow = html.match(/#field-editor \.field-color-row\{([^}]+)\}/)?.[1] || '';
+  assert.match(colorRow, /border:0/);
+  assert.match(colorRow, /border-bottom:1px solid #e5edf3/, 'thin separator retains row boundaries');
+  assert.match(colorRow, /background:transparent/);
+  assert.match(colorRow, /border-radius:0/);
+  const colorControl = html.match(/#field-editor \.field-color-row input\[type=color\]\{([^}]+)\}/)?.[1] || '';
+  assert.match(colorControl, /border:0/);
+  assert.match(colorControl, /background:transparent/);
+});
+
 test('projects are initially collapsed and expand independently without changing their data', () => {
   const {body, find, storage} = setup();
   assert.equal(body.children.length, 2);

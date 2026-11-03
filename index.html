@@ -1349,7 +1349,11 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     if(!row.style)return;
     const minimum=row.className.includes('project-collapsed')?collapsedMinimum:104;
     row.style.height=`${minimum}px`;
-    row.style.height=`${Math.max(minimum,Math.ceil(Number(area.scrollHeight)||0))}px`;
+    const visibleHeight=area.style.height||'';
+    area.style.height='0px';
+    const contentHeight=Math.ceil(Number(area.scrollHeight)||0);
+    area.style.height=visibleHeight;
+    row.style.height=`${Math.max(minimum,contentHeight)}px`;
   }
   function updateInputTableHeight(){
     if(view!=='input'||inputMode!=='table')return;

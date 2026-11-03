@@ -28,8 +28,11 @@ class Element {
   setAttribute(name, value) { this.attributes[name] = String(value); }
   getAttribute(name) { return this.attributes[name]; }
   addEventListener(name, fn) { this.handlers[name] = fn; }
-  dispatch(name) { this.handlers[name]?.({target: this}); }
+  dispatch(name, details = {}) { this.handlers[name]?.({target: this, ...details}); }
   querySelector(name) { return name === '.table-wrap' ? this.scrollArea : null; }
+  getBoundingClientRect() { return this.rect ?? {top: 100, bottom: 120, left: 100, right: 120, width: 20, height: 20}; }
+  showPopover() { this.popoverOpen = true; }
+  hidePopover() { this.popoverOpen = false; }
   querySelectorAll(selector) {
     if (selector !== 'textarea[data-autosize-detail="true"]') return [];
     const found = [];
@@ -78,7 +81,7 @@ function setup(useInitialSample = false) {
   const context = {
     document,
     localStorage: {getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value)},
-    structuredClone, Date, Math, JSON, Set, Map, console,
+    structuredClone, Date, Math, JSON, Set, Map, console, window: {innerHeight: 680, innerWidth: 1200},
     setTimeout: () => 0, clearTimeout: () => {}, confirm: () => true
   };
   vm.runInNewContext(scripts.join('\n'), context);
@@ -129,24 +132,32 @@ test('existing 1:N controls remain available when project details are collapsed'
   assert.equal(body.children[0].children[0].rowSpan, 2);
 });
 
-test('single selection is shown as a label and edited only through the arrow', () => {
+test('single selection uses the same filter menu with exclusive radio options', () => {
   const {body, find, storage} = setup();
   const stageCell = body.children[0].children[1];
   const label = find(stageCell, node => node.className === 'choice-chip');
   assert.equal(label?.textContent, '設計');
-  const select = find(stageCell, node => node.tagName === 'select');
-  assert.equal(select?.hidden, true);
-  const edit = find(stageCell, node => node.tagName === 'button' && node.className === 'choice-edit-button');
-  assert.ok(edit, 'the editor has a dedicated filter button');
-  assert.equal(edit.textContent, '');
-  assert.ok(find(edit, node => node.className === 'filter-alt-icon'));
-  edit.dispatch('click');
-  assert.equal(select.hidden, false);
-  select.value = '評価';
-  select.dispatch('change');
+  const picker = find(stageCell, node => node.tagName === 'details' && node.className === 'multi-picker');
+  assert.ok(picker, 'single choice uses the same filter dropdown component');
+  const glyph = find(picker, node => node.className === 'filter-alt-icon');
+  assert.ok(glyph);
+  const inputs = [];
+  const collect = node => {
+    if (node.tagName === 'input') inputs.push(node);
+    for (const child of node.children ?? []) collect(child);
+  };
+  collect(picker);
+  assert.deepEqual(inputs.map(input => input.type), ['radio', 'radio', 'radio']);
+  assert.equal(inputs[1].checked, true);
+  assert.equal(new Set(inputs.map(input => input.name)).size, 1);
+  picker.open = true;
+  picker.dispatch('toggle');
+  assert.equal(find(picker, node => node.className?.includes?.('choice-popover')).popoverOpen, true);
+  inputs[2].checked = true;
+  inputs[2].dispatch('change');
   const changed = find(body.children[0].children[1], node => node.className === 'choice-chip');
   assert.equal(changed?.textContent, '評価');
-  assert.equal(find(body.children[0].children[1], node => node.tagName === 'select')?.hidden, true);
+  assert.equal(picker.open, false, 'single picker closes after one choice');
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].value, '評価');
 });
 
@@ -314,7 +325,7 @@ test('input project separators and editor spacing are subtle and consistent', ()
 
 test('filter editors use the Google filter_alt symbol in borderless compact controls', () => {
   const {body, find} = setup();
-  const single = find(body.children[0].children[1], node => node.className === 'choice-edit-button');
+  const single = find(body.children[0].children[1], node => node.tagName === 'summary');
   const multiple = find(body.children[0].children[2], node => node.tagName === 'summary');
   for (const control of [single, multiple]) {
     assert.ok(control);
@@ -322,11 +333,11 @@ test('filter editors use the Google filter_alt symbol in borderless compact cont
     assert.ok(glyph, 'the editing affordance is a filter icon');
     assert.equal(glyph.getAttribute('aria-hidden'), 'true');
   }
-  const buttonRule = [...html.matchAll(/\.entry-table \.choice-edit-button,\.entry-table \.multi-picker>summary\{([^}]+)\}/g)].at(-1)?.[1] || '';
+  const buttonRule = [...html.matchAll(/\.entry-table \.multi-picker>summary\{([^}]+)\}/g)].map(match => match[1]).find(rule => rule.includes('width:20px')) || '';
   assert.match(buttonRule, /width:20px/);
   assert.match(buttonRule, /height:20px/);
   assert.match(buttonRule, /border:0/);
-  assert.match(buttonRule, /background:transparent/);
+  assert.match(buttonRule, /background:#f1f3f5/);
   assert.match(html, /filter_alt_20px\.svg/);
   assert.match(html, /mask:var\(--filter-alt-glyph\)/);
 });
@@ -341,5 +352,25 @@ test('project expand and collapse controls show only a simple glyph with no fram
   const rule = [...html.matchAll(/\.project-row-toggle\{([^}]+)\}/g)].at(-1)?.[1] || '';
   assert.match(rule, /border:0/);
   assert.match(rule, /background:transparent/);
+  assert.match(rule, /font-size:14px/);
+  assert.match(rule, /width:19px/);
   assert.match(html, /\.project-row-toggle:hover\{background:transparent/);
+});
+
+test('dropdown options escape the scrolling table and open upward near the viewport bottom', () => {
+  const {body, find} = setup();
+  const picker = find(body.children[1].children[2], node => node.tagName === 'details' && node.className === 'multi-picker');
+  const trigger = find(picker, node => node.tagName === 'summary');
+  const popup = find(picker, node => node.className?.includes?.('choice-popover'));
+  assert.ok(popup, 'options use a dedicated top-layer popover');
+  assert.equal(popup.getAttribute('popover'), 'auto');
+  trigger.rect = {top: 635, bottom: 655, left: 350, right: 370, width: 20, height: 20};
+  popup.rect = {top: 0, bottom: 220, left: 0, right: 200, width: 200, height: 220};
+  picker.open = true;
+  picker.dispatch('toggle');
+  assert.equal(popup.popoverOpen, true, 'popover enters the top layer');
+  assert.ok(Number.parseFloat(popup.style.top) < trigger.rect.top, 'opens above near bottom');
+  assert.equal(popup.style.position, 'fixed');
+  popup.dispatch('toggle', {newState: 'closed'});
+  assert.equal(picker.open, false, 'outside click also closes the picker');
 });

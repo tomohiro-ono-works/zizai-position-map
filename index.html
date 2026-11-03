@@ -87,7 +87,7 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 @media(hover:none){.entry-table .cell-entry-actions{opacity:1;pointer-events:auto}}
 .entry-table tr.project-expanded .root-cell::before{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;background:#3d8b98;z-index:2;pointer-events:none}
 .entry-table tbody tr.project-collapsed{height:64px}.entry-table .root-cell .entry-editor-text>textarea.control{padding-left:31px;overflow-y:hidden}.project-row-toggle{position:absolute;top:9px;left:6px;z-index:1;width:17px;height:18px;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:#375979;font-size:12px}.project-row-toggle:hover{background:transparent;color:#1d5077}.project-row-toggle:focus-visible{outline:2px solid #5286df;outline-offset:1px}
-.table-wrap{max-height:72vh;overscroll-behavior:contain}
+.table-wrap{overscroll-behavior:contain}
 .entry-table thead th{position:sticky;top:0;z-index:7}
 .entry-table thead th:first-child{left:0;z-index:9;padding-left:68px}
 .entry-table thead th:first-child::before{content:"#";position:absolute;left:0;top:0;bottom:0;width:36px;display:flex;align-items:center;justify-content:center;background:#344f67;border-right:1px solid #688096;font-size:11px}
@@ -1336,6 +1336,14 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     row.style.height=`${minimum}px`;
     row.style.height=`${Math.max(minimum,Math.ceil(Number(area.scrollHeight)||0))}px`;
   }
+  function updateInputTableHeight(){
+    if(view!=='input'||inputMode!=='table')return;
+    const scroll=$('table-input').querySelector('.table-wrap');
+    const top=scroll.getBoundingClientRect().top;
+    const height=Math.max(120,Math.floor(window.innerHeight-Math.max(0,top)-12));
+    scroll.style.height=`${height}px`;
+    scroll.style.maxHeight=`${height}px`;
+  }
   function positionChoicePopover(popup,trigger){
     const anchor=trigger.getBoundingClientRect(),box=popup.getBoundingClientRect();
     const viewportHeight=window.innerHeight,viewportWidth=window.innerWidth,gap=4,edge=8;
@@ -1499,6 +1507,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     for(const [row,area] of rootNames)sizeRootNameRow(row,area,collapsedTextMinimum);
     for(const area of body.querySelectorAll?.('textarea[data-autosize-detail="true"]')??[])sizeDetailTextarea(area);
     scroll.scrollLeft=left;scroll.scrollTop=top;
+    updateInputTableHeight();
   }
   function downloadFile(contents,mime,filename){
     const blob=new Blob([contents],{type:mime}),url=URL.createObjectURL(blob),a=el('a');
@@ -1795,6 +1804,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   }
 
   document.querySelectorAll('[data-view-tab]').forEach(b=>b.addEventListener('click',()=>b.dataset.viewTab==='analysis'?activateAnalysisTab(state.analysisTabs[0].id):switchView(b.dataset.viewTab)));
+  window.addEventListener('resize',updateInputTableHeight);
   document.addEventListener('click',event=>{
     if($('analysis-click-menu').hidden)return;
     if(event.target.closest?.('.root-menu-trigger')||$('analysis-click-menu').contains(event.target))return;

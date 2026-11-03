@@ -145,6 +145,24 @@ test('definition formatting prompt prioritizes cleanup while adding justified mi
   assert.match(prompt, /【入力内容】/);
 });
 
+test('input formatting prompt uses live field definitions as its classification guide for YAML', () => {
+  const {context, storage} = setup(true);
+  const columns = JSON.parse(storage.get('dx_three_screens_v2')).columns;
+  columns[1].description = '案件が担う工程と意思決定までの距離を表します。';
+  const prompt = context.buildFormattingPrompt(columns);
+  assert.match(prompt, /【項目定義（分類基準・変更禁止）】/);
+  assert.match(prompt, /description: "案件が担う工程と意思決定までの距離を表します。"/, 'latest description is copied into the prompt');
+  assert.match(prompt, /type: multiselect/);
+  assert.match(prompt, /cardinality: 1:1/);
+  assert.match(prompt, /options: \[/);
+  assert.match(prompt, /項目名と項目説明の意味を優先/);
+  assert.match(prompt, /選択候補の中から/);
+  assert.match(prompt, /項目定義にない項目.*追加しない/);
+  assert.match(prompt, /根拠のない.*補完しない/);
+  assert.match(prompt, /【出力構造】\nprojects:/);
+  assert.match(prompt, /【入力内容】/);
+});
+
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {
   const {navigation, getElement, find} = setup();
   navigation.definition.dispatch('click');

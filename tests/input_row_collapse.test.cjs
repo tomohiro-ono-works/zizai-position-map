@@ -115,3 +115,44 @@ test('existing 1:N controls remain available when project details are collapsed'
   assert.match(body.children[1].className, /project-collapsed/);
   assert.equal(body.children[0].children[0].rowSpan, 2);
 });
+
+test('single selection is shown as a label and edited only through the arrow', () => {
+  const {body, find, storage} = setup();
+  const stageCell = body.children[0].children[1];
+  const label = find(stageCell, node => node.className === 'choice-chip');
+  assert.equal(label?.textContent, '設計');
+  const select = find(stageCell, node => node.tagName === 'select');
+  assert.equal(select?.hidden, true);
+  const edit = find(stageCell, node => node.tagName === 'button' && node.textContent === '▼');
+  assert.ok(edit, 'the editor has a dedicated arrow');
+  edit.dispatch('click');
+  assert.equal(select.hidden, false);
+  select.value = '評価';
+  select.dispatch('change');
+  const changed = find(body.children[0].children[1], node => node.className === 'choice-chip');
+  assert.equal(changed?.textContent, '評価');
+  assert.equal(find(body.children[0].children[1], node => node.tagName === 'select')?.hidden, true);
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].value, '評価');
+});
+
+test('multiple selections show one label per value and keep the 1:N controls', () => {
+  const {body, find} = setup();
+  const labels = node => {
+    const results = [];
+    const walk = item => {
+      if (item?.className === 'choice-chip') results.push(item.textContent);
+      for (const child of item?.children ?? []) walk(child);
+    };
+    walk(node);
+    return results;
+  };
+  const techCell = body.children[0].children[2];
+  assert.deepEqual(labels(techCell), ['統計']);
+  const edit = find(techCell, node => node.tagName === 'summary');
+  assert.equal(edit?.textContent, '▼');
+  const second = find(techCell, node => node.tagName === 'input' && node.attributes['aria-label'] === '技術の高度化 機械学習');
+  second.checked = true;
+  second.dispatch('change');
+  assert.deepEqual(labels(techCell), ['統計', '機械学習']);
+  assert.ok(find(techCell, node => node.tagName === 'button' && node.textContent === '＋'));
+});

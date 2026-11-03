@@ -17,6 +17,7 @@ class Element {
     this.className = '';
     this.textContent = '';
     this.hidden = false;
+    this.style = {};
     this.scrollLeft = 0;
     this.scrollTop = 0;
     this.dataset = {};
@@ -31,7 +32,7 @@ class Element {
   querySelector(name) { return name === '.table-wrap' ? this.scrollArea : null; }
 }
 
-function setup() {
+function setup(useInitialSample = false) {
   const elements = new Map();
   const navigation = {};
   const getElement = id => {
@@ -45,14 +46,14 @@ function setup() {
   }
   const columns = [
     {id: 'name', name: '案件名', type: 'text', cardinality: '1:1', options: []},
-    {id: 'stage', name: '業務の上位工程', type: 'select', cardinality: '1:1', options: ['設計', '評価'], allowDetail: true},
-    {id: 'tech', name: '技術の高度化', type: 'multiselect', cardinality: '1:N', options: ['統計', '機械学習'], allowDetail: true}
+    {id: 'stage', name: '業務の上位工程', type: 'select', cardinality: '1:1', options: ['設計', '評価'], allowDetail: true, optionColors: {'設計': '#112233'}},
+    {id: 'tech', name: '技術の高度化', type: 'multiselect', cardinality: '1:N', options: ['統計', '機械学習'], allowDetail: true, optionColors: {'統計': '#e3a4c5'}}
   ];
   const projects = [
     {id: 'p1', data: {name: '案件A', stage: '設計', tech: ['統計']}},
     {id: 'p2', data: {name: '案件B', stage: '評価', tech: ['機械学習']}}
   ];
-  const storage = new Map([['dx_three_screens_v2', JSON.stringify({detailUiVersion: 1, columns, projects})]]);
+  const storage = useInitialSample ? new Map() : new Map([['dx_three_screens_v2', JSON.stringify({detailUiVersion: 1, columns, projects})]]);
   const document = {
     createElement: tag => new Element(tag),
     createTextNode: text => ({textContent: text}),
@@ -63,12 +64,13 @@ function setup() {
     },
     querySelectorAll: selector => selector === '[data-view-tab]' ? Object.values(navigation) : []
   };
-  vm.runInNewContext(scripts.join('\n'), {
+  const context = {
     document,
     localStorage: {getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value)},
     structuredClone, Date, Math, JSON, Set, Map, console,
     setTimeout: () => 0, clearTimeout: () => {}, confirm: () => true
-  });
+  };
+  vm.runInNewContext(scripts.join('\n'), context);
   navigation.input.dispatch('click');
   const find = (node, predicate) => {
     if (predicate(node)) return node;
@@ -78,7 +80,7 @@ function setup() {
     }
     return null;
   };
-  return {body: getElement('entry-body'), find, storage};
+  return {body: getElement('entry-body'), find, storage, navigation, getElement, context};
 }
 
 test('projects are initially collapsed and expand independently without changing their data', () => {
@@ -155,4 +157,69 @@ test('multiple selections show one label per value and keep the 1:N controls', (
   second.dispatch('change');
   assert.deepEqual(labels(techCell), ['統計', '機械学習']);
   assert.ok(find(techCell, node => node.tagName === 'button' && node.textContent === '＋'));
+});
+
+test('definition YAML preserves per-option label colors and validates mappings', () => {
+  const {context} = setup();
+  const schema = {columns: [
+    {name: '案件名', type: 'text', cardinality: '1:1'},
+    {name: '技術', type: 'multiselect', cardinality: '1:N', options: ['統計', '機械学習'], allowDetail: true,
+      optionColors: {'統計': '#aabbcc', '機械学習': '#112233'}}
+  ]};
+  const yaml = context.serializeSchema(schema);
+  assert.match(yaml, /optionColors:/);
+  assert.match(yaml, /"統計": "#aabbcc"/);
+  const parsed = context.parseSchema(yaml);
+  assert.equal(context.validateSchema(parsed), true);
+  assert.equal(parsed.columns[1].optionColors['機械学習'], '#112233');
+  parsed.columns[1].optionColors['機械学習'] = '#hijklm';
+  assert.throws(() => context.validateSchema(parsed), /色|#[Rr][Gg][Bb]/);
+  delete parsed.columns[1].optionColors['機械学習'];
+  parsed.columns[1].optionColors['未定義候補'] = '#ffffff';
+  assert.throws(() => context.validateSchema(parsed), /未定義|候補/);
+});
+
+test('workspace YAML saves label colors and reports incompatible merged definitions', () => {
+  const {context, storage} = setup();
+  const source = JSON.parse(storage.get('dx_three_screens_v2'));
+  const yaml = context.serializeWorkspaceYaml(source);
+  const parsed = context.parseWorkspaceYaml(yaml);
+  assert.equal(parsed.columns[1].optionColors['設計'], '#112233');
+  assert.equal(parsed.columns[2].optionColors['統計'], '#e3a4c5');
+  const incompatible = structuredClone(parsed);
+  incompatible.columns[2].optionColors['統計'] = '#112233';
+  assert.throws(() => context.mergeWorkspaceYamlSnapshots([parsed, incompatible]), /定義が一致しません/);
+});
+
+test('per-option color from definition applies to all matching labels and can be edited or cleared', () => {
+  const {body, find, storage, navigation, getElement} = setup();
+  const firstStage = find(body.children[0].children[1], node => node.className === 'choice-chip');
+  assert.equal(firstStage?.style.backgroundColor, '#112233');
+  const firstTech = find(body.children[0].children[2], node => node.className === 'choice-chip');
+  assert.equal(firstTech?.style.backgroundColor, '#e3a4c5');
+  navigation.definition.dispatch('click');
+  const editor = getElement('field-editor');
+  const picker = find(editor, node => node.tagName === 'input' && node.type === 'color' && node.attributes['aria-label'] === '技術の高度化 統計のラベル色');
+  assert.ok(picker);
+  picker.value = '#abc123';
+  picker.dispatch('change');
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).columns[2].optionColors['統計'], '#abc123');
+  navigation.input.dispatch('click');
+  assert.equal(find(body.children[0].children[2], node => node.className === 'choice-chip')?.style.backgroundColor, '#abc123');
+  navigation.definition.dispatch('click');
+  const reset = find(getElement('field-editor'), node => node.tagName === 'button' && node.attributes['aria-label'] === '技術の高度化 統計のラベル色を解除');
+  assert.ok(reset);
+  reset.dispatch('click');
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).columns[2].optionColors['統計'], undefined);
+});
+
+test('initial demo renders visible preset colors for the four technology directions', () => {
+  const {body, find, storage} = setup(true);
+  const demo = JSON.parse(storage.get('dx_three_screens_v2'));
+  const tech = demo.columns.find(column => column.name === '技術の高度化');
+  for (const option of ['エンジニアリング', '統計', '機械学習', '推論・生成AI']) {
+    assert.match(tech.optionColors[option], /^#[0-9a-f]{6}$/);
+  }
+  const engineering = find(body.children[0].children[3], node => node.className === 'choice-chip');
+  assert.equal(engineering.style.backgroundColor, tech.optionColors['エンジニアリング']);
 });

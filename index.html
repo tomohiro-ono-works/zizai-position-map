@@ -18,25 +18,30 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 #definition-gui{display:flex;flex-direction:column;gap:14px;max-width:1040px}
 #definition-gui .panel{padding:12px 16px;box-shadow:none;border-radius:10px}
 #field-editor{overflow-x:auto}
-#field-editor .field-card{margin:0;padding:6px 0;border:0;border-bottom:1px solid #e8edf2;border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px 44px minmax(0,1fr) 164px 62px;column-gap:6px;row-gap:4px;min-width:760px;align-items:center}
+#field-editor .field-card{margin:0;padding:6px 0;border:0;border-bottom:1px solid #e8edf2;border-radius:0;background:transparent;display:grid;grid-template-columns:36px 44px minmax(0,1fr) 164px 62px;column-gap:6px;row-gap:4px;min-width:680px;align-items:center}
 #field-editor .field-card:last-child{border-bottom:0}
+#field-editor .field-card[data-drop-target="true"]{box-shadow:inset 0 2px #7099c5}
+#field-editor .field-order{justify-content:center}
+#field-editor .field-drag-handle{display:flex;align-items:center;justify-content:center;width:28px;height:30px;border:0;border-radius:3px;background:transparent;color:#8a9bad;font-size:19px;line-height:1;cursor:grab;touch-action:none}
+#field-editor .field-drag-handle:hover{color:#416583;background:#f3f6f8}
+#field-editor .field-drag-handle:active{cursor:grabbing}
+#field-editor .field-drag-handle:focus-visible{outline:2px solid #5286df;outline-offset:1px}
 #field-editor .field-name-label{font-size:11px;font-weight:750;color:#62768b;white-space:nowrap;text-align:right}
 #field-editor .field-card>input.control{width:100%;min-width:0;height:32px;padding:5px 8px;border:1px solid transparent;background:transparent;box-shadow:none;font-size:16px;font-weight:650}
 #field-editor .field-card>input.control:hover{border-color:#c8d5e4;background:#f7f8fa}
 #field-editor .field-card>input.control:focus{border-color:#5286df;background:#f7f8fa;box-shadow:0 0 0 2px #ddeaff}
-#field-editor .field-description-row{grid-column:3 / 6;display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:6px;align-items:start;min-width:0}
+#field-editor .field-description-row{grid-column:2 / 4;grid-row:2;display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:6px;align-items:start;min-width:0}
 #field-editor .field-description-row label{font-size:11px;font-weight:700;color:#62768b;text-align:right;padding-top:6px;white-space:nowrap}
 #field-editor .field-description-row textarea{width:100%;min-width:0;min-height:32px;height:32px;padding:6px 8px;border:1px solid transparent;border-radius:4px;background:transparent;box-shadow:none;outline:0;font-size:11px;line-height:1.5;resize:none;overflow-y:hidden}
 #field-editor .field-description-row textarea:hover{border-color:#c8d5e4;background:#f7f8fa}
 #field-editor .field-description-row textarea:focus{border-color:#5286df;background:#f7f8fa;box-shadow:0 0 0 2px #ddeaff}
-#field-editor .field-card>select.control{height:32px;padding:4px 8px;border:0;background:#f7f8fa;border-radius:4px;box-shadow:none}
+#field-editor .field-card>select.control{height:32px;padding:4px 8px;border:0;background:#f7f8fa;border-radius:4px;box-shadow:none;font-size:11px}
 #field-editor .field-card>select.control:hover{background:#f1f3f5}
 #field-editor .field-card>select.control:focus{outline:2px solid #5286df;outline-offset:1px;box-shadow:none}
 #field-editor .field-card>select.control:not(.cardinality-select){width:164px}
-#field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{width:102px!important;height:32px;display:flex;align-items:center;justify-content:center}
+#field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{grid-column:4;grid-row:2;width:164px!important;height:32px;display:flex;align-items:center;justify-content:center}
 #field-editor .field-card>.btn{width:62px;padding:4px 3px;height:30px}
-#field-editor .field-order .btn{min-width:25px;height:28px;padding:3px 4px}
-#field-editor .field-settings{grid-column:4 / 6;display:flex;align-items:center;gap:8px;min-width:0}
+#field-editor .field-settings{grid-column:3 / 5;grid-row:3;display:flex;align-items:center;gap:8px;min-width:0}
 #field-editor .field-settings>.definition-accordion{flex:1;min-width:0;align-self:stretch}
 .definition-accordion{margin:2px 0 0;border:0;border-radius:0;background:transparent}
 .definition-accordion>summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;border:0;background:transparent;padding:4px 2px;font-size:11px;color:#4e6480;font-weight:700}
@@ -875,6 +880,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   const initial=()=>({title:'DX案件ワークスペース',columns:structuredClone(initialColumns),projects:structuredClone(initialProjects),analysis:defaultAnalysis()});
   let state,view='',formatMode='table',definitionMode='gui',inputMode='table',analysisMode='table',statusTimeout,inputYamlBaseline=null,analysisYamlBaseline=null,activeColorKey='';
   const openFieldOptions=new Set(),expandedInputProjects=new Set();
+  let draggingDefinitionFieldId=null;
   function toast(message){const n=$('status');n.textContent=message;n.hidden=false;clearTimeout(statusTimeout);statusTimeout=setTimeout(()=>n.hidden=true,4000);}
   function persist(){
     const active=state.analysisTabs?.find(tab=>tab.id===state.activeAnalysisTabId);
@@ -1069,12 +1075,45 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   function renderDefinition(){
     if(definitionMode!=='gui')return;
     const editor=$('field-editor');editor.replaceChildren();
+    const clearDropTargets=()=>{for(const row of editor.children)delete row.dataset.dropTarget;};
     for(const [index,col] of state.columns.entries()){
       const box=el('div','field-card');
       const order=el('div','field-order');
-      const up=button('↑',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index-1);}), 'btn small');up.disabled=index===0;up.setAttribute('aria-label',`${col.name}を上に移動`);
-      const down=button('↓',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index+1);}), 'btn small');down.disabled=index===state.columns.length-1;down.setAttribute('aria-label',`${col.name}を下に移動`);
-      order.append(up,down);
+      const handle=el('button','field-drag-handle','⠿');handle.type='button';handle.draggable=true;
+      const handleId=`field-grip-${col.id}`;handle.setAttribute('id',handleId);
+      handle.setAttribute('aria-label',`${col.name}をドラッグして並び替え。上下矢印キーでも移動できます`);
+      handle.title='ドラッグして並び替え（上下キーでも操作）';
+      handle.addEventListener('dragstart',event=>{
+        draggingDefinitionFieldId=col.id;
+        if(event.dataTransfer){event.dataTransfer.setData('text/plain',col.id);event.dataTransfer.effectAllowed='move';}
+      });
+      handle.addEventListener('dragend',()=>{draggingDefinitionFieldId=null;clearDropTargets();});
+      handle.addEventListener('keydown',event=>{
+        if(event.key!=='ArrowUp'&&event.key!=='ArrowDown')return;
+        event.preventDefault();
+        const to=index+(event.key==='ArrowUp'?-1:1);
+        if(to<0||to>=state.columns.length)return;
+        safeMutation(()=>{state.columns=moveColumn(state.columns,index,to);});
+        document.getElementById(handleId)?.focus?.();
+      });
+      order.append(handle);
+      box.addEventListener('dragover',event=>{
+        if(!draggingDefinitionFieldId||draggingDefinitionFieldId===col.id)return;
+        event.preventDefault();
+        if(event.dataTransfer)event.dataTransfer.dropEffect='move';
+        clearDropTargets();box.dataset.dropTarget='true';
+      });
+      box.addEventListener('dragleave',event=>{
+        if(!event.relatedTarget||!box.contains?.(event.relatedTarget))delete box.dataset.dropTarget;
+      });
+      box.addEventListener('drop',event=>{
+        if(!draggingDefinitionFieldId)return;
+        event.preventDefault();
+        const from=state.columns.findIndex(field=>field.id===draggingDefinitionFieldId);
+        const to=state.columns.findIndex(field=>field.id===col.id);
+        draggingDefinitionFieldId=null;clearDropTargets();
+        if(from>=0&&to>=0&&from!==to)safeMutation(()=>{state.columns=moveColumn(state.columns,from,to);});
+      });
       const nameId=`definition-name-${col.id}`;
       const nameLabel=el('label','field-name-label','項目名');nameLabel.setAttribute('for',nameId);
       const input=el('input','control');input.value=col.name;input.setAttribute('id',nameId);input.setAttribute('aria-label','項目名');
@@ -1105,7 +1144,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         relation.value=col.cardinality||'1:1';
         relation.addEventListener('change',()=>safeMutation(()=>{col.cardinality=relation.value;}));marker=relation;
       }
-      box.append(order,marker,nameLabel,input,type,remove);
+      box.append(order,nameLabel,input,type,remove,marker);
       const descriptionRow=el('div','field-description-row'),descriptionLabel=el('label','','項目説明'),description=el('textarea');
       const descriptionId=`definition-description-${col.id}`;
       descriptionLabel.setAttribute('for',descriptionId);

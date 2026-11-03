@@ -524,10 +524,6 @@ ${serializeSchema({columns}).trimEnd()}${formattingPromptInputBlock()}`;
 }
 
 function buildFormattingPrompt(columns){
-  const definitions=columns.map((col,index)=>{
-    const choices=['select','multiselect'].includes(col.type)?`、選択肢: ${(col.options||[]).map(option=>JSON.stringify(option)).join(' / ')}`:'';
-    return `${index+1}. ${col.name}（${col.type}、${col.cardinality||'1:1'}${choices}${col.allowDetail===true?'、detail可':''}）${col.description?`\n   項目説明: ${col.description}`:''}`;
-  }).join('\n');
   const sample=(depth=0)=>{
     const col=columns[depth];
     const value=col.type==='multiselect'?(col.options||[]).slice(0,2):col.type==='select'?(col.options?.[0]||''):`${col.name}の値`;
@@ -535,21 +531,25 @@ function buildFormattingPrompt(columns){
     if(col.allowDetail===true)node.detail=`${col.name}の補足説明`;
     return node;
   };
-  return `以下の入力内容を解析し、項目入力用のYAMLに整形してください。
+  return `以下の文章を、現在の項目定義を分類基準として読み取り、案件データのYAMLに整形してください。
 
 【変換ルール】
-- 自由文章・箇条書き・Markdownから案件と情報を判定し、対応する項目に自動分類する。誤字・表記揺れ・冗長表現を修正し、意味を変えず、情報を創作しない。
-- 案件が複数ある場合は projects: 配下に案件ごとのレコードを追加する。
-- 項目名・順序・型・選択肢は現在の項目定義に一致させる。単一選択は候補から1つ、複数選択は候補から配列で選ぶ。
+- 【項目定義】の項目名と項目説明の意味を優先して、文章中の情報をどの項目に対応させるか判断する。単語の完全一致だけに頼らず、内容・目的・文脈から分類する。
+- 項目定義の name、description、type、options、cardinality、allowDetail を読み取り、型・候補・階層の制約を厳守する。optionColors は表示色なので分類には使わない。
+- 自由文章・箇条書き・Markdownの意味を変えず、誤字・表記揺れ・冗長表現を整える。根拠のない情報は補完しない。
+- 複数案件が書かれていれば、projects: 配下に案件ごとのレコードを作る。1案件の情報を別案件へ混在させない。
+- 項目名・順序・型・選択候補は定義に合わせ、項目定義にない項目は追加しない。入力データをYAMLへ変換する処理であり、項目定義自体は編集しない。
+- 単一プルダウンは定義された選択候補の中から1つだけ選び、複数プルダウンは選択候補の中から該当するものを配列で選ぶ。候補にない値を新しく作らない。
+- 自由入力は文章の内容を簡潔に整え、日付は入力にある日付を文字列で表す。不明な値を推測しない。
 - 1:Nは直前の項目を親とし、複数値を同じ親の下の「- value:」として並べる。各子は独立した下位階層を持ち、別の親の情報を混在させない。
 - 1:1は1つのオブジェクトで「value:」を指定する。ルート項目は案件ごとのキーとする。
-- detail は許可された項目だけに、分類理由・背景・具体的な補足を文字列で付ける。補足がなければ detail を省略する。
+- 詳しい説明・背景・分類の根拠が入力文章にある場合、allowDetail: true の項目だけに detail として残す。補足がなければ detail を省略する。
 - 不明な情報は推測せず、文字列は ""、複数選択は [] とする。必須の下位階層は省略せず、空値で1件作る。
 - インデントは半角スペース2個単位。文字列・キーはダブルクォートで囲み、改行や引用符をエスケープする。
 - 項目定義・項目分析は出力せず、YAMLのみを返す。説明・コードブロックは不要。
 
-【現在の項目定義】
-${definitions}
+【項目定義（分類基準・変更禁止）】
+${serializeSchema({columns}).trimEnd()}
 
 【出力構造】
 ${serializeProjectsYaml([{id:'example',tree:sample()}],columns).trimEnd()}

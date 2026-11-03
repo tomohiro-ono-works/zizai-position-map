@@ -364,7 +364,24 @@ test('pivot rotates only row field names sideways while keeping row values horiz
   const fieldRule=html.match(/\.pivot tbody \.pivot-row-field-text\{([^}]+)\}/)?.[1]||'';
   assert.match(fieldRule,/writing-mode:vertical-rl/);
   assert.match(fieldRule,/text-orientation:sideways/,'Japanese characters rotate as a 90-degree line, not upright vertical writing');
+  assert.match(fieldRule,/transform:rotate\(180deg\)/,'the text faces counterclockwise instead of clockwise');
   assert.match(fieldRule,/white-space:nowrap/,'name does not break into separate vertical columns');
+  const colgroup=find(pivot,node=>node.tagName==='colgroup');
+  assert.equal(colgroup.children[0].style.width,'64px','rotated field name has a compact default width');
+  assert.equal(colgroup.children[1].style.width,'160px','row choice values keep their existing width');
+});
+
+test('pivot preserves a user-resized row field name width', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'stage',name:'業務工程',type:'select',cardinality:'1:1',options:['設計']}
+  ];
+  const snapshot={detailUiVersion:1,columns,projects:[{id:'p1',tree:{value:'案件A',children:[{value:'設計',children:[]}]}}],
+    analysis:{rows:['業務工程'],columns:[],values:['案件名'],tooltip:[],filters:{},columnWidths:{'row-field:業務工程':104}}};
+  const {navigation,getElement,find}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const colgroup=find(getElement('pivot-host'),node=>node.tagName==='colgroup');
+  assert.equal(colgroup.children[0].style.width,'104px');
 });
 
 test('pivot merges deeper axis names per parent without losing resize columns', () => {

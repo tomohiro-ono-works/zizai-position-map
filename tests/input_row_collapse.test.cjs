@@ -1026,6 +1026,51 @@ test('double clicking detail message opens only its project using existing row e
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].value,'設計');
 });
 
+test('double clicking an expanded detail message collapses that project again', () => {
+  const {body,find} = setup();
+  find(body.children[0].children[1],node=>node.className==='detail-message-wrap').dispatch('dblclick');
+  assert.match(body.children[0].className,/project-expanded/);
+  const expandedDetail = find(body.children[0].children[1],node=>node.className==='detail-message-wrap');
+  expandedDetail.dispatch('dblclick');
+  assert.match(body.children[0].className,/project-collapsed/);
+  assert.match(body.children[1].className,/project-collapsed/);
+  assert.ok(find(body.children[0],node=>node.className==='project-row-toggle'&&node.textContent==='＞'));
+});
+
+test('input table freezes header and project root while scrolling within the table', () => {
+  const scrollRules = [...html.matchAll(/\.table-wrap\{([^}]+)\}/g)].map(match=>match[1]);
+  assert.match(scrollRules[0] || '',/overflow:auto/);
+  const scrollRule = scrollRules.at(-1) || '';
+  assert.match(scrollRule,/max-height:72vh/,'vertical scrolling stays within the table');
+  const headerRule = html.match(/\.entry-table thead th\{([^}]+)\}/)?.[1] || '';
+  assert.match(headerRule,/position:sticky/);
+  assert.match(headerRule,/top:0/);
+  const rootRule = [...html.matchAll(/\.entry-table \.root-cell\{([^}]+)\}/g)].at(-1)?.[1] || '';
+  assert.match(rootRule,/position:sticky/);
+  assert.match(rootRule,/left:0/);
+  assert.match(html,/\.entry-table thead th:first-child\{[^}]*left:0/);
+});
+
+test('each project shows a narrow root-colored number on the left that tracks project order', () => {
+  const {body,find} = setup();
+  assert.equal(body.children[0].children[0].getAttribute('data-project-index'),'#1');
+  assert.equal(body.children[1].children[0].getAttribute('data-project-index'),'#2');
+  const numberRule = html.match(/\.entry-table \.root-cell::after\{([^}]+)\}/)?.[1] || '';
+  assert.match(numberRule,/content:attr\(data-project-index\)/);
+  assert.match(numberRule,/width:36px/);
+  assert.match(numberRule,/background:#f7fbff/);
+  const nameRule = [...html.matchAll(/\.entry-table \.root-cell \.entry-editor-text>textarea\.control\{([^}]+)\}/g)].at(-1)?.[1] || '';
+  assert.match(nameRule,/padding-left:68px/,'name is offset past the number and expand toggle');
+  const addProject = find(body.children[1].children[0],node=>node.tagName==='button'&&node.textContent==='＋');
+  addProject.dispatch('click');
+  assert.equal(body.children[2].children[0].getAttribute('data-project-index'),'#3');
+  const addChild = find(body.children[0].children[2],node=>node.tagName==='button'&&node.textContent==='＋');
+  addChild.dispatch('click');
+  assert.equal(body.children[0].children[0].rowSpan,2);
+  assert.equal(body.children[0].children[0].getAttribute('data-project-index'),'#1');
+  assert.equal(body.children[1].children[0].getAttribute('data-project-index'),undefined,'continuation row does not duplicate the number');
+});
+
 test('long project names enlarge their collapsed row instead of showing a textarea scrollbar', () => {
   const {body, find, storage} = setup();
   const row = body.children[0];
@@ -1103,7 +1148,7 @@ test('project expand and collapse controls show only a simple glyph with no fram
   collapsed.dispatch('click');
   const expanded = find(body.children[0], node => node.className === 'project-row-toggle');
   assert.equal(expanded?.textContent, '⋁');
-  const rule = [...html.matchAll(/\.project-row-toggle\{([^}]+)\}/g)].at(-1)?.[1] || '';
+  const rule = [...html.matchAll(/\.project-row-toggle\{([^}]+)\}/g)].map(match=>match[1]).find(style=>style.includes('border:0')) || '';
   assert.match(rule, /border:0/);
   assert.match(rule, /background:transparent/);
   assert.match(rule, /font-size:12px/);

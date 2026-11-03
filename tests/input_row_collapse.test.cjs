@@ -29,7 +29,12 @@ class Element {
   getAttribute(name) { return this.attributes[name]; }
   addEventListener(name, fn) { this.handlers[name] = fn; }
   dispatch(name, details = {}) { this.handlers[name]?.({target: this, ...details}); }
-  querySelector(name) { return name === '.table-wrap' ? this.scrollArea : null; }
+  querySelector(name) {
+    if (name === '.table-wrap') return this.scrollArea;
+    if (name === '.picker-options') return this.pickerOptions;
+    if (name === 'summary') return this.summary;
+    return null;
+  }
   getBoundingClientRect() { return this.rect ?? {top: 100, bottom: 120, left: 100, right: 120, width: 20, height: 20}; }
   showPopover() { this.popoverOpen = true; }
   hidePopover() { this.popoverOpen = false; }
@@ -50,6 +55,7 @@ function setup(useInitialSample = false, customSnapshot = null) {
   const elements = new Map();
   const navigation = {};
   const formatting = {};
+  const analysisPickers = {};
   const getElement = id => {
     if (!elements.has(id)) elements.set(id, new Element());
     return elements.get(id);
@@ -62,6 +68,12 @@ function setup(useInitialSample = false, customSnapshot = null) {
   for (const format of ['table', 'yaml']) {
     formatting[format] = new Element('button');
     formatting[format].dataset.formatTab = format;
+  }
+  for (const key of ['rows','columns','values','filters','tooltip']) {
+    const picker = new Element('details');
+    picker.pickerOptions = new Element('div');
+    picker.summary = new Element('summary');
+    analysisPickers[key] = picker;
   }
   const columns = [
     {id: 'name', name: '案件名', type: 'text', cardinality: '1:1', options: []},
@@ -80,7 +92,8 @@ function setup(useInitialSample = false, customSnapshot = null) {
     querySelector: selector => {
       const match = selector.match(/^\[data-view-tab="(.+)"\]$/);
       const formatMatch = selector.match(/^\[data-format-tab="(.+)"\]$/);
-      return match ? navigation[match[1]] : formatMatch ? formatting[formatMatch[1]] : new Element();
+      const pickerMatch = selector.match(/^\[data-picker="(.+)"\]$/);
+      return match ? navigation[match[1]] : formatMatch ? formatting[formatMatch[1]] : pickerMatch ? analysisPickers[pickerMatch[1]] : new Element();
     },
     querySelectorAll: selector => selector === '[data-view-tab]' ? Object.values(navigation) : selector === '[data-format-tab]' ? Object.values(formatting) : []
   };
@@ -100,7 +113,7 @@ function setup(useInitialSample = false, customSnapshot = null) {
     }
     return null;
   };
-  return {body: getElement('entry-body'), find, storage, navigation, formatting, getElement, context};
+  return {body: getElement('entry-body'), find, storage, navigation, formatting, analysisPickers, getElement, context};
 }
 
 test('formatting prompt copy is visible only in YAML mode on definition and input views', () => {
@@ -192,6 +205,94 @@ test('analysis removes independent cell color controls and stops saving colors i
   assert.doesNotMatch(yaml, /^colors:/m, 'obsolete analysis-specific colors are no longer written');
   const parsed = context.parseAnalysisYaml(yaml+'colors: {}\n',['案件名']);
   assert.equal(parsed.valueColors,undefined, 'old analysis YAML remains readable but cannot override definition colors');
+});
+
+test('analysis offers detailed messages only in hover settings and retains the YAML selection', () => {
+  const {context} = setup();
+  const columns = [{name:'案件名'}, {name:'業務の高度化'}];
+  for (const axis of ['rows','columns','values','filters']) {
+    assert.deepEqual(Array.from(context.analysisPickerFields(axis, columns)), ['案件名','業務の高度化'], `${axis} does not offer detail text`);
+  }
+  assert.deepEqual(Array.from(context.analysisPickerFields('tooltip', columns)), ['案件名','業務の高度化','詳細メッセージ']);
+  const analysis = {rows:['案件名'],columns:['業務の高度化'],values:['案件名'],tooltip:['詳細メッセージ'],filters:{}};
+  const parsed = context.parseAnalysisYaml(context.serializeAnalysisYaml(analysis), ['案件名','業務の高度化']);
+  assert.deepEqual(Array.from(parsed.tooltip), ['詳細メッセージ']);
+  assert.throws(() => context.parseAnalysisYaml(context.serializeAnalysisYaml({...analysis,rows:['詳細メッセージ']}),['案件名','業務の高度化']), /rows: 未定義の項目/);
+});
+
+test('hover detail content preserves source field names and deduplicates matching project messages', () => {
+  const {context} = setup();
+  const columns = [{name:'案件名'},{name:'業務の高度化'},{name:'技術の高度化'}];
+  const tree = {value:'案件A',children:[{value:'解像度',detail:'要因を検証',children:[{value:'統計',detail:'回帰分析を実施',children:[]}]}]};
+  const records = context.treeRecords([{tree},{tree:structuredClone(tree)}], columns);
+  const details = context.analysisDetailValues(records);
+  assert.deepEqual(JSON.parse(JSON.stringify(details)), [
+    {field:'業務の高度化',detail:'要因を検証'},
+    {field:'技術の高度化',detail:'回帰分析を実施'}
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(context.analysisDetailValues(context.treeRecords([{tree:{value:'案件B',children:[]}}],columns)))), []);
+});
+
+test('pivot uses every defined select and multiselect option across row and column axes', () => {
+  const {context} = setup();
+  const columns = [
+    {name:'工程',type:'select',options:['設計','評価']},
+    {name:'品質',type:'multiselect',options:['正確性','妥当性']},
+    {name:'技術',type:'select',options:['統計','機械学習']}
+  ];
+  const records = [{工程:'設計',品質:['正確性'],技術:'統計',案件名:'案件A'}];
+  const pivot = context.makePivot(records,['工程','品質'],['技術'],['案件名'],columns);
+  assert.deepEqual(JSON.parse(JSON.stringify(pivot.rows.map(row=>row.values))), [
+    ['設計','正確性'],['設計','妥当性'],['評価','正確性'],['評価','妥当性']
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(pivot.columns.map(col=>col.values))), [['統計'],['機械学習']]);
+  assert.deepEqual(JSON.parse(JSON.stringify(pivot.cells['["設計","正確性"]']['["統計"]'])), ['案件A']);
+  assert.equal(pivot.cells['["設計","妥当性"]'],undefined, 'no matching data yields an empty cell');
+  const noRecords = context.makePivot([],['工程'],['技術'],['案件名'],columns);
+  assert.deepEqual(JSON.parse(JSON.stringify(noRecords.rows.map(row=>row.values))), [['設計'],['評価']]);
+  assert.deepEqual(JSON.parse(JSON.stringify(noRecords.columns.map(col=>col.values))), [['統計'],['機械学習']]);
+});
+
+test('pivot keeps observed text axis values and out-of-definition existing selections', () => {
+  const {context} = setup();
+  const columns = [{name:'案件名',type:'text',options:[]},{name:'工程',type:'select',options:['設計','評価']}];
+  const records = [{案件名:'案件A',工程:'旧工程',備考:'内容A'},{案件名:'案件B',工程:'設計',備考:'内容B'}];
+  const pivot = context.makePivot(records,['案件名','工程'],[],['備考'],columns);
+  assert.deepEqual(JSON.parse(JSON.stringify(pivot.rows.map(row=>row.values))), [
+    ['案件A','設計'],['案件A','評価'],['案件A','旧工程'],
+    ['案件B','設計'],['案件B','評価'],['案件B','旧工程']
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(pivot.columns.map(col=>col.values))), [[]]);
+  assert.equal(pivot.cells['["案件A","評価"]'],undefined);
+  assert.deepEqual(JSON.parse(JSON.stringify(pivot.cells['["案件A","旧工程"]']['[]'])),['内容A']);
+});
+
+test('pivot cell displays only values even when multiple fields supply different colors', () => {
+  const columns = [
+    {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
+    {id:'stage',name:'工程: 区分',type:'select',options:['設計','評価'],cardinality:'1:1',optionColors:{'設計':'#112233'}},
+    {id:'tech',name:'技術',type:'multiselect',options:['統計','機械学習'],cardinality:'1:1',optionColors:{'統計':'#dceafe'}}
+  ];
+  const snapshot = {detailUiVersion:1,columns,projects:[{id:'p1',tree:{value:'案件A',children:[
+    {value:'設計',detail:'要件整理を実施',children:[{value:['統計'],detail:'回帰分析を実施',children:[]}]}
+  ]}}],analysis:{rows:['工程: 区分'],columns:['技術'],values:['工程: 区分','技術'],tooltip:['詳細メッセージ'],filters:{}}};
+  const {navigation,getElement,context} = setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const findAll = (node, predicate) => [
+    ...(predicate(node) ? [node] : []),
+    ...(node.children ?? []).flatMap(child=>findAll(child,predicate))
+  ];
+  const chips = findAll(getElement('pivot-host'),node=>node.className==='cell-item');
+  assert.deepEqual(chips.map(chip=>chip.textContent),['設計','統計']);
+  assert.deepEqual(chips.map(chip=>chip.style.backgroundColor),['#112233','#dceafe']);
+  assert.equal(findAll(getElement('pivot-host'),node=>node.className==='empty').length,3, 'unfilled option combinations show a dash');
+  const hoveredCell = findAll(getElement('pivot-host'),node=>node.className==='hover-enabled')[0];
+  hoveredCell.dispatch('mouseenter',{clientX:120,clientY:160});
+  assert.deepEqual(findAll(getElement('analysis-hover-tooltip'),node=>node.className==='tooltip-value').map(node=>node.textContent),[
+    '工程: 区分：要件整理を実施','技術：回帰分析を実施'
+  ]);
+  assert.equal(context.pivotCellDisplayValue('工程: 区分: 設計',['工程: 区分','技術']),'設計');
+  assert.equal(context.pivotCellDisplayValue('技術: 統計',['工程: 区分','技術']),'統計');
 });
 
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {

@@ -87,6 +87,15 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 @media(hover:none){.entry-table .cell-entry-actions{opacity:1;pointer-events:auto}}
 .entry-table tr.project-expanded .root-cell::before{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;background:#3d8b98;z-index:2;pointer-events:none}
 .entry-table tbody tr.project-collapsed{height:64px}.entry-table .root-cell .entry-editor-text>textarea.control{padding-left:31px;overflow-y:hidden}.project-row-toggle{position:absolute;top:9px;left:6px;z-index:1;width:17px;height:18px;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:#375979;font-size:12px}.project-row-toggle:hover{background:transparent;color:#1d5077}.project-row-toggle:focus-visible{outline:2px solid #5286df;outline-offset:1px}
+.table-wrap{max-height:72vh;overscroll-behavior:contain}
+.entry-table thead th{position:sticky;top:0;z-index:7}
+.entry-table thead th:first-child{left:0;z-index:9;padding-left:68px}
+.entry-table thead th:first-child::before{content:"#";position:absolute;left:0;top:0;bottom:0;width:36px;display:flex;align-items:center;justify-content:center;background:#344f67;border-right:1px solid #688096;font-size:11px}
+.entry-table .root-cell{position:sticky;left:0;z-index:4}
+.entry-table .root-cell::after{content:attr(data-project-index);position:absolute;left:0;top:0;bottom:0;width:36px;display:flex;align-items:flex-start;justify-content:center;padding-top:11px;background:#f7fbff;border-right:1px solid #dce6f0;color:#3d5873;font-size:11px;font-weight:750;z-index:3;pointer-events:none}
+.entry-table .root-cell .entry-editor-text>textarea.control{padding-left:68px}
+.entry-table .project-row-toggle{left:42px;z-index:4}
+.entry-table tr.project-expanded .root-cell::before{z-index:5}
 .field-detail-toggle{display:flex!important;align-items:center;gap:7px;margin:0!important;padding:7px 9px;border:1px solid #c8d5e4;border-radius:8px;background:#fff;font-size:11px!important;white-space:nowrap;cursor:pointer}.field-detail-toggle input{accent-color:var(--teal);width:16px;height:16px}.multi-picker{border:1px solid #c8d5e4;border-radius:8px;background:#fff;max-width:100%}.multi-picker summary{cursor:pointer;font-size:11px;color:#4d687b;padding:9px 10px;overflow-wrap:anywhere;font-weight:700}.multi-picker[open] summary{border-bottom:1px solid var(--line)}.multi-picker .checklist{border:0;border-radius:0;max-height:190px}.detail-message-wrap{margin-top:8px}.detail-message-wrap label{display:block;color:#60788d;font-size:10px;font-weight:700;margin-bottom:4px}.entry-table .detail-message-wrap textarea.control{min-height:65px;font-size:11px}.entry-table .entry-editor-choice .detail-message-wrap textarea.control{min-height:0}
 .entry-table .entry-editor-choice .detail-message-wrap textarea.control{flex:none;height:auto;min-height:65px;overflow:hidden;resize:none;padding:5px 4px 8px}
 .entry-table .detail-message-preview{display:block;min-width:0;width:100%;max-width:100%;padding:3px 4px;border:0;background:transparent;color:var(--ink);font-size:11px;line-height:1.5;text-align:left;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;cursor:default}
@@ -1433,9 +1442,13 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     const collapsedTextMinimum=state.columns.slice(1).some(col=>col.type==='text')?96:64;
     for(const col of state.columns)header.append(el('th','',`${col.name}${isRepeatedColumn(col)?' (1:N)':''}`));
     head.append(header);
-    for(const project of state.projects){
+    for(const [projectIndex,project] of state.projects.entries()){
       const paths=treeRows(project.tree),seen=new Set(),expanded=expandedInputProjects.has(project.id);
-      const openProject=()=>{if(expandedInputProjects.has(project.id))return;expandedInputProjects.add(project.id);renderTableInput();};
+      const toggleProject=()=>{
+        if(expandedInputProjects.has(project.id))expandedInputProjects.delete(project.id);
+        else expandedInputProjects.add(project.id);
+        renderTableInput();
+      };
       for(const [index,path] of paths.entries()){
         const row=el('tr',`${index===0?'project-first':'detail-follow'} ${expanded?'project-expanded':'project-collapsed'}`);
         for(const [depth,node] of path.entries()){
@@ -1445,8 +1458,9 @@ function mergeWorkspaceYamlSnapshots(workspaces){
           const className=[depth===0?'root-cell':'',col.type==='text'?'text-cell':['select','multiselect'].includes(col.type)?'choice-cell':''].filter(Boolean).join(' ');
           const cell=el('td',className);
           cell.rowSpan=node.rowSpan;
+          if(depth===0)cell.setAttribute('data-project-index',`#${projectIndex+1}`);
           const editor=el('div',col.type==='text'?'entry-editor entry-editor-text':['select','multiselect'].includes(col.type)?'entry-editor entry-editor-choice':'entry-editor');
-          const content=tableNodeEditor(node,col,expanded||depth===0,depth===0?area=>sizeRootNameRow(row,area,collapsedTextMinimum):null,openProject);
+          const content=tableNodeEditor(node,col,expanded||depth===0,depth===0?area=>sizeRootNameRow(row,area,collapsedTextMinimum):null,toggleProject);
           editor.append(content);cell.append(editor);
           if(depth===0&&col.type==='text')rootNames.push([row,content]);
           if(depth>0&&col.cardinality==='1:N'){
@@ -1460,11 +1474,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
             editor.append(controls);
           }
           if(depth===0){
-            const toggle=button(expanded?'⋁':'＞',()=>{
-              if(expanded)expandedInputProjects.delete(project.id);
-              else expandedInputProjects.add(project.id);
-              renderTableInput();
-            },'project-row-toggle');
+            const toggle=button(expanded?'⋁':'＞',toggleProject,'project-row-toggle');
             toggle.setAttribute('aria-label',expanded?'案件の詳細を閉じる':'案件の詳細を表示');
             toggle.setAttribute('aria-expanded',String(expanded));
             editor.append(toggle);

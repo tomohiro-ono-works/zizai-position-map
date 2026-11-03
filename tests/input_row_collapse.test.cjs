@@ -102,7 +102,8 @@ test('projects are initially collapsed and expand independently without changing
   assert.equal(body.children.length, 2);
   for (const row of body.children) {
     assert.match(row.className, /project-collapsed/);
-    assert.equal(find(row, node => node.className === 'detail-message-wrap')?.hidden, true);
+    assert.equal(find(row, node => node.className === 'detail-message-wrap')?.hidden, false);
+    assert.equal(find(row, node => node.className === 'detail-message-preview')?.hidden, false);
   }
   const openFirst = find(body.children[0], node => node.tagName === 'button' && node.textContent === '＞');
   assert.ok(openFirst, 'project title includes an expand button');
@@ -274,21 +275,23 @@ test('input table headers use dark blue-gray with white text while preserving li
   assert.ok(find(body.children[0], node => node.className === 'choice-chip'));
 });
 
-test('detail message shows one truncated preview line and opens full editor on demand', () => {
+test('collapsed row previews one line; expanded row displays and edits the complete message', () => {
   const {body, find, storage} = setup(true);
   const firstRow = body.children[0];
   const detailWrap = find(firstRow.children[1], node => node.className === 'detail-message-wrap');
-  assert.equal(detailWrap.hidden, true);
+  const collapsedPreview = find(firstRow.children[1], node => node.className === 'detail-message-preview');
+  const collapsedEditor = find(firstRow.children[1], node => node.tagName === 'textarea' && node.attributes['aria-label'] === '業務の上位工程の詳細メッセージ');
+  assert.equal(detailWrap.hidden, false);
+  assert.equal(collapsedPreview.hidden, false);
+  assert.equal(collapsedEditor.hidden, true);
   find(firstRow, node => node.tagName === 'button' && node.textContent === '＞').dispatch('click');
   const detail = find(body.children[0].children[1], node => node.tagName === 'textarea' && node.attributes['aria-label'] === '業務の上位工程の詳細メッセージ');
   const preview = find(body.children[0].children[1], node => node.className === 'detail-message-preview');
   assert.ok(detail, 'details stay under their existing column');
-  assert.ok(preview, 'a compact preview is visible');
-  assert.equal(detail.hidden, true, 'the full editor is initially hidden');
+  assert.ok(preview, 'preview is available for the collapsed state');
+  assert.equal(detail.hidden, false, 'the full editor is visible in the expanded row');
   assert.ok(preview.textContent.length > 0);
-  preview.dispatch('click');
   assert.equal(preview.hidden, true);
-  assert.equal(detail.hidden, false, 'the entire message remains editable');
   assert.equal(detail.getAttribute('data-autosize-detail'), 'true');
   assert.equal(detail.style.height, `${Math.max(65, detail.scrollHeight)}px`);
   const contents = '要件と設計の記録を詳細に残します。'.repeat(24);
@@ -296,10 +299,13 @@ test('detail message shows one truncated preview line and opens full editor on d
   detail.dispatch('input');
   assert.equal(detail.style.height, `${Math.max(65, detail.scrollHeight)}px`);
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].detail, contents);
-  detail.dispatch('blur');
-  assert.equal(detail.hidden, true);
-  assert.equal(preview.hidden, false);
-  assert.match(preview.textContent, /要件と設計/);
+  find(body.children[0], node => node.tagName === 'button' && node.textContent === '⋁').dispatch('click');
+  const afterClose = find(body.children[0].children[1], node => node.className === 'detail-message-preview');
+  const afterCloseEditor = find(body.children[0].children[1], node => node.tagName === 'textarea' && node.attributes['aria-label'] === '業務の上位工程の詳細メッセージ');
+  assert.equal(afterClose.hidden, false);
+  assert.equal(afterCloseEditor.hidden, true);
+  assert.match(afterClose.textContent, /要件と設計/);
+  assert.ok(afterClose.textContent.length > 10, 'preview retains text without truncating the saved data');
   Object.defineProperty(detail, 'scrollHeight', {configurable: true, value: undefined});
   detail.dispatch('input');
   assert.equal(detail.style.height, '65px', 'unknown size falls back to a usable minimum');
@@ -312,6 +318,20 @@ test('detail message shows one truncated preview line and opens full editor on d
   assert.match(previewRule, /white-space:nowrap/);
   assert.match(previewRule, /text-overflow:ellipsis/);
   assert.match(previewRule, /overflow:hidden/);
+  assert.match(previewRule, /cursor:default/);
+});
+
+test('long project names enlarge their collapsed row instead of showing a textarea scrollbar', () => {
+  const {body, find, storage} = setup();
+  const row = body.children[0];
+  const name = find(row, node => node.tagName === 'textarea' && node.attributes['aria-label'] === '案件名');
+  assert.ok(name);
+  Object.defineProperty(name, 'scrollHeight', {configurable: true, value: 92});
+  name.value = '日本語が長く折り返される案件名の例';
+  name.dispatch('input');
+  assert.equal(row.style.height, '92px');
+  assert.match(html, /\.entry-table \.root-cell \.entry-editor-text>textarea\.control\{[^}]*overflow-y:hidden/);
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.value, name.value);
 });
 
 test('expanded project has a slim left accent without a new row background', () => {

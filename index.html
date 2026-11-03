@@ -111,6 +111,9 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 .pivot tbody .pivot-row-field-text{display:inline-block;writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg);white-space:nowrap}
 .axis-order{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;min-height:26px}.axis-chip{display:flex;gap:9px;align-items:center;padding:5px 8px;border:1px solid #bed3e8;border-radius:7px;background:#f0f6ff;color:#285378;font-size:11px;font-weight:750;cursor:grab;user-select:none;max-width:100%}.axis-chip:active{cursor:grabbing}.axis-chip:focus{outline:2px solid var(--blue)}.axis-chip .grip{color:#7596b4;font-size:13px;letter-spacing:-3px}.axis-empty{font-size:11px;color:#94a5b8}.filter-value-group{margin-top:9px;border:1px solid var(--line);border-radius:8px;background:#fbfcfe}.filter-value-group summary{font-size:11px;font-weight:750;padding:8px 10px;cursor:pointer}.filter-value-list{max-height:185px;overflow:auto;border-top:1px solid var(--line);padding:5px 8px}.filter-value-list label{display:flex;align-items:center;gap:6px;font-size:11px;padding:5px;cursor:pointer}.filter-value-list input{accent-color:var(--teal)}.pivot .cell-root-links{display:flex;justify-content:flex-end;gap:2px;flex-wrap:wrap;margin-bottom:3px}.pivot .root-menu-trigger{border:0;border-radius:3px;background:transparent;color:#476c89;font-size:13px;line-height:1;padding:2px;cursor:pointer}.pivot .root-menu-trigger:hover,.pivot .root-menu-trigger[aria-expanded="true"]{background:#edf2f6;color:#164c75}.pivot .root-menu-trigger:focus-visible{outline:2px solid #4687c5;outline-offset:1px}.analysis-click-menu{position:fixed;z-index:200;width:max-content;min-width:220px;max-width:min(360px,85vw);max-height:58vh;overflow:auto;background:#fff;color:#1a2b3d;border:1px solid #cbd9e6;padding:11px 13px;border-radius:7px;box-shadow:0 5px 16px #102b4326;font-size:11px}.analysis-click-menu .menu-close{position:absolute;top:5px;right:6px;padding:2px 5px;border:0;background:transparent;color:#476c89;font-size:16px;cursor:pointer}.analysis-click-menu .tooltip-project{padding-right:16px}.analysis-click-menu .tooltip-root{font-size:12px;font-weight:800;color:#172b40;margin-bottom:8px}.analysis-click-menu .tooltip-field{margin:0 0 9px}.analysis-click-menu .tooltip-field:last-child{margin:0}.analysis-click-menu strong{display:block;font-size:11px;color:#40566b;margin-bottom:4px}.analysis-click-menu .tooltip-value{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:2px 0;color:#1a2b3d}.analysis-click-menu .tooltip-choice-list{display:flex;flex-wrap:wrap;gap:4px}.analysis-click-menu .tooltip-choice{display:inline-block;max-width:100%;border:1px solid #cbd9e6;background:#edf4fa;color:#365575;border-radius:3px;padding:1px 5px;line-height:1.35;overflow-wrap:anywhere}
 .analysis-click-menu{width:min(420px,calc(100vw - 44px));min-width:0;max-width:none}
+.analysis-click-menu .tooltip-root{position:relative;padding-left:14px;cursor:grab;user-select:none;touch-action:none}
+.analysis-click-menu .tooltip-root:active{cursor:grabbing}
+.analysis-click-menu .tooltip-root::before{content:'⋮⋮';position:absolute;left:0;top:0;color:#7890a6;letter-spacing:-3px}
 .analysis-click-menu .tooltip-group+.tooltip-group{margin-top:13px;padding-top:9px;border-top:1px solid #edf1f5}
 .analysis-click-menu .tooltip-group-name{margin:0 0 5px;font-size:11px;font-weight:750;color:#40566b}
 .analysis-click-menu .tooltip-choice-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
@@ -987,7 +990,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     return {rows:row?[row]:[],columns:col?[col]:[],values:value?[value]:[],filters:{},tooltip:[],columnWidths:{},matrixOpen:true};
   };
   const initial=()=>({title:'DX案件ワークスペース',columns:structuredClone(initialColumns),projects:structuredClone(initialProjects),analysis:defaultAnalysis()});
-  let state,view='',formatMode='table',definitionMode='gui',inputMode='table',analysisMode='table',statusTimeout,inputYamlBaseline=null,analysisYamlBaseline=null,activeAnalysisMenuTrigger=null;
+  let state,view='',formatMode='table',definitionMode='gui',inputMode='table',analysisMode='table',statusTimeout,inputYamlBaseline=null,analysisYamlBaseline=null,activeAnalysisMenuTrigger=null,analysisMenuDrag=null;
   const openFieldOptions=new Set(),expandedInputProjects=new Set();
   let draggingDefinitionFieldId=null;
   function toast(message){const n=$('status');n.textContent=message;n.hidden=false;clearTimeout(statusTimeout);statusTimeout=setTimeout(()=>n.hidden=true,4000);}
@@ -1628,9 +1631,33 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     }
   }
   function closeAnalysisClickMenu(){
+    analysisMenuDrag=null;
     $('analysis-click-menu').hidden=true;
     if(activeAnalysisMenuTrigger)activeAnalysisMenuTrigger.setAttribute('aria-expanded','false');
     activeAnalysisMenuTrigger=null;
+  }
+  function startAnalysisClickMenuDrag(event){
+    if(event.button!==undefined&&event.button!==0)return;
+    const popup=$('analysis-click-menu');
+    if(popup.hidden)return;
+    analysisMenuDrag={pointerId:event.pointerId??null,x:event.clientX,y:event.clientY,
+      left:parseFloat(popup.style.left)||0,top:parseFloat(popup.style.top)||0};
+    event.preventDefault?.();
+  }
+  function moveAnalysisClickMenu(event){
+    if(!analysisMenuDrag)return;
+    const drag=analysisMenuDrag;
+    if(drag.pointerId!==null&&event.pointerId!==drag.pointerId)return;
+    const popup=$('analysis-click-menu');
+    if(popup.hidden){analysisMenuDrag=null;return;}
+    const width=popup.offsetWidth||popup.getBoundingClientRect().width||280;
+    const height=popup.offsetHeight||popup.getBoundingClientRect().height||180;
+    const clamp=(value,max)=>Math.max(8,Math.min(value,Math.max(8,max)));
+    popup.style.left=`${clamp(drag.left+event.clientX-drag.x,window.innerWidth-width-8)}px`;
+    popup.style.top=`${clamp(drag.top+event.clientY-drag.y,window.innerHeight-height-8)}px`;
+  }
+  function endAnalysisClickMenuDrag(event){
+    if(analysisMenuDrag&&(analysisMenuDrag.pointerId===null||event.pointerId===analysisMenuDrag.pointerId))analysisMenuDrag=null;
   }
   function positionAnalysisClickMenu(anchor){
     const popup=$('analysis-click-menu'),rect=anchor.getBoundingClientRect();
@@ -1649,7 +1676,10 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     closeAnalysisClickMenu();popup.replaceChildren();
     const close=el('button','menu-close','×');close.type='button';close.setAttribute('aria-label','閉じる');
     close.addEventListener('click',closeAnalysisClickMenu);popup.append(close);
-    const section=el('section','tooltip-project');section.append(el('div','tooltip-root',group.root));
+    const section=el('section','tooltip-project'),title=el('div','tooltip-root',group.root);
+    title.setAttribute('title','ドラッグして移動');
+    title.addEventListener('pointerdown',startAnalysisClickMenuDrag);
+    section.append(title);
     const entries=analysisClickMenuEntries(group.records,state.analysis.tooltip,state.columns,state.columns[0]?.name);
     for(const field of state.columns.map(column=>column.name)){
       const fieldEntries=entries.filter(entry=>entry.field===field);
@@ -1855,6 +1885,9 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     closeAnalysisClickMenu();
   });
   document.addEventListener('keydown',event=>{if(event.key==='Escape')closeAnalysisClickMenu();});
+  document.addEventListener('pointermove',moveAnalysisClickMenu);
+  document.addEventListener('pointerup',endAnalysisClickMenuDrag);
+  document.addEventListener('pointercancel',endAnalysisClickMenuDrag);
   $('copy-definition-prompt').addEventListener('click',()=>copyFormattingPrompt('definition'));
   $('copy-input-prompt').addEventListener('click',()=>copyFormattingPrompt('input'));
   $('add-analysis-tab').addEventListener('click',addAnalysisTab);

@@ -312,9 +312,15 @@ function treeRows(tree){
   };
   visit(tree,[]);return rows;
 }
-function treeRecords(projects,columns){return projects.flatMap(project=>treeRows(project.tree).map(path=>Object.fromEntries(
-  columns.map((col,depth)=>[col.name,path[depth]?.value??(col.type==='multiselect'?[]:'')])
-)));}
+const ANALYSIS_DETAIL_KEY=Symbol('analysis-detail');
+function treeRecords(projects,columns){return projects.flatMap(project=>treeRows(project.tree).map(path=>{
+  const record=Object.fromEntries(columns.map((col,depth)=>[col.name,path[depth]?.value??(col.type==='multiselect'?[]:'')]));
+  record[ANALYSIS_DETAIL_KEY]=columns.flatMap((col,depth)=>{
+    const detail=String(path[depth]?.detail??'').trim();
+    return detail?[{field:col.name,detail}]:[];
+  });
+  return record;
+}));}
 function fromFlatData(data,columns){
   const root=makeDefaultTree(columns);root.value=nodeValue(data?.[columns[0].id],columns[0]);
   let parents=[root];
@@ -564,6 +570,19 @@ function reorderAnalysisFields(fields,from,to){
 function analysisDataValues(value){
   return [...new Set((Array.isArray(value)?value:[value]).map(v=>String(v??'').trim()).filter(Boolean))];
 }
+const ANALYSIS_DETAIL_LABEL='詳細メッセージ';
+function analysisPickerFields(key,columns){
+  const names=columns.map(col=>col.name);
+  return key==='tooltip'?[...names,ANALYSIS_DETAIL_LABEL]:names;
+}
+function analysisDetailValues(records){
+  const unique=new Map();
+  for(const record of records)for(const item of record[ANALYSIS_DETAIL_KEY]||[]){
+    const key=JSON.stringify([item.field,item.detail]);
+    if(!unique.has(key))unique.set(key,item);
+  }
+  return [...unique.values()];
+}
 function pivotValueColorMap(records,valueFields,definitions){
   const byName=new Map(definitions.map(col=>[col.name,col]));
   const colors=new Map();
@@ -579,6 +598,11 @@ function pivotValueColorMap(records,valueFields,definitions){
   }
   return colors;
 }
+function pivotCellDisplayValue(label,valueFields){
+  if(valueFields.length<2)return label;
+  const field=[...valueFields].sort((a,b)=>b.length-a.length).find(name=>label.startsWith(`${name}: `));
+  return field?label.slice(field.length+2):label;
+}
 function analysisFilterValues(records,field){
   return [...new Set(records.flatMap(record=>{
     const values=analysisDataValues(record[field]);return values.length?values:['（未設定）'];
@@ -591,13 +615,22 @@ function filterAnalysisRecords(records,filters){
     return (values.length?values:['（未設定）']).some(value=>selected.includes(value));
   }));
 }
-function makePivot(records,rowFields,colFields,valueFields){
-  const rows=[],columns=[],cells=Object.create(null),recordCells=Object.create(null),rSeen=new Set(),cSeen=new Set();
+function makePivot(records,rowFields,colFields,valueFields,definitions=[]){
+  const cells=Object.create(null),recordCells=Object.create(null),byName=new Map(definitions.map(col=>[col.name,col]));
   const values=analysisDataValues;
   const combos=(record,fields)=>fields.reduce((acc,field)=>acc.flatMap(a=>(values(record[field]).length?values(record[field]):['（未設定）']).map(v=>[...a,v])),[[]]);
+  const axis=fields=>{
+    const paths=fields.reduce((acc,field)=>{
+      const definition=byName.get(field),options=['select','multiselect'].includes(definition?.type)?definition.options||[]:[];
+      const choices=[...new Set([...options,...analysisFilterValues(records,field)])];
+      return acc.flatMap(path=>choices.map(value=>[...path,value]));
+    },[[]]);
+    return orderPivotAxis(paths.map(path=>({key:JSON.stringify(path),values:path})));
+  };
+  const rows=axis(rowFields),columns=axis(colFields);
   for(const record of records){const rCombos=combos(record,rowFields),cCombos=combos(record,colFields);const items=valueFields.flatMap(field=>values(record[field]).map(v=>valueFields.length>1?`${field}: ${v}`:v));
-    for(const r of rCombos){const rk=JSON.stringify(r);if(!rSeen.has(rk)){rSeen.add(rk);rows.push({key:rk,values:r});}for(const c of cCombos){const ck=JSON.stringify(c);if(!cSeen.has(ck)){cSeen.add(ck);columns.push({key:ck,values:c});}if(!cells[rk])cells[rk]=Object.create(null);if(!cells[rk][ck])cells[rk][ck]=[];for(const item of items)if(!cells[rk][ck].includes(item))cells[rk][ck].push(item);if(!recordCells[rk])recordCells[rk]=Object.create(null);if(!recordCells[rk][ck])recordCells[rk][ck]=[];recordCells[rk][ck].push(record);}}
-  }return {rows:orderPivotAxis(rows),columns:orderPivotAxis(columns),cells,recordCells};
+    for(const r of rCombos){const rk=JSON.stringify(r);for(const c of cCombos){const ck=JSON.stringify(c);if(!cells[rk])cells[rk]=Object.create(null);if(!cells[rk][ck])cells[rk][ck]=[];for(const item of items)if(!cells[rk][ck].includes(item))cells[rk][ck].push(item);if(!recordCells[rk])recordCells[rk]=Object.create(null);if(!recordCells[rk][ck])recordCells[rk][ck]=[];recordCells[rk][ck].push(record);}}
+  }return {rows,columns,cells,recordCells};
 }
 // Keep each parent prefix together without sorting or renaming user-entered values.
 function orderPivotAxis(axis){
@@ -705,7 +738,7 @@ function parseAnalysisYaml(source,availableFields){
   const known=new Set(availableFields);
   for(const key of lists){
     if(new Set(document[key]).size!==document[key].length)throw Error(key+': 同じ項目を重複指定できません。');
-    for(const field of document[key])if(!known.has(field))throw Error(key+': 未定義の項目「'+field+'」です。');
+    for(const field of document[key])if(!known.has(field)&&!(key==='tooltip'&&field===ANALYSIS_DETAIL_LABEL))throw Error(key+': 未定義の項目「'+field+'」です。');
   }
   for(const field of Object.keys(document.filters||{}))if(!known.has(field))throw Error('filters: 未定義の項目「'+field+'」です。');
   for(const [field,values] of Object.entries(document.colors||{})){
@@ -1063,7 +1096,8 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const updatedFilters={};for(const [name,values] of Object.entries(analysis.filters||{})){
         const mapped=remap([name])[0];if(mapped)updatedFilters[mapped]=values;
       }
-      return {...analysis,rows:remap(analysis.rows||[]),columns:remap(analysis.columns||[]),values:remap(analysis.values||[]),tooltip:remap(analysis.tooltip||[]),filters:updatedFilters};
+      const tooltip=(analysis.tooltip||[]).flatMap(name=>name===ANALYSIS_DETAIL_LABEL?[name]:remap([name]));
+      return {...analysis,rows:remap(analysis.rows||[]),columns:remap(analysis.columns||[]),values:remap(analysis.values||[]),tooltip,filters:updatedFilters};
     };
     state={...state,columns,projects,analysis:remapAnalysis(state.analysis),analysisTabs:state.analysisTabs.map(tab=>({...tab,analysis:remapAnalysis(tab.analysis)}))};
     persist();
@@ -1447,7 +1481,8 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   }
   function availableFields(){return state.columns.map(c=>c.name);}
   function analysisRecords(){return treeRecords(state.projects,state.columns);}
-  function renderPickers(){const fields=availableFields();for(const key of ['rows','columns','values','tooltip']){
+  function renderPickers(){for(const key of ['rows','columns','values','tooltip']){
+    const fields=analysisPickerFields(key,state.columns);
     state.analysis[key]=(state.analysis[key]||[]).filter(f=>fields.includes(f));
     const details=document.querySelector(`[data-picker="${key}"]`),host=details.querySelector('.picker-options');host.replaceChildren();details.querySelector('summary').textContent=state.analysis[key].length?state.analysis[key].join(' ＋ '):'選択なし（全件）';
     if(key==='tooltip'&&!state.analysis[key].length)details.querySelector('summary').textContent='表示項目を選択';
@@ -1511,7 +1546,11 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     const popup=$('analysis-hover-tooltip');popup.replaceChildren();
     for(const field of state.analysis.tooltip){
       const block=el('div','tooltip-field');block.append(el('strong','',field));
-      for(const value of analysisFilterValues(records,field))block.append(el('span','tooltip-value',value));
+      if(field===ANALYSIS_DETAIL_LABEL){
+        const details=analysisDetailValues(records);
+        for(const {field:source,detail} of details)block.append(el('span','tooltip-value',`${source}：${detail}`));
+        if(!details.length)block.append(el('span','tooltip-value','（未設定）'));
+      }else for(const value of analysisFilterValues(records,field))block.append(el('span','tooltip-value',value));
       popup.append(block);
     }
     if(!popup.children.length)return;
@@ -1525,9 +1564,9 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   }
   function renderPivot(){
     $('analysis-hover-tooltip').hidden=true;
-    const records=filterAnalysisRecords(analysisRecords(),state.analysis.filters),{rows,columns,cells,recordCells}=makePivot(records,state.analysis.rows,state.analysis.columns,state.analysis.values);
+    const records=filterAnalysisRecords(analysisRecords(),state.analysis.filters),{rows,columns,cells,recordCells}=makePivot(records,state.analysis.rows,state.analysis.columns,state.analysis.values,state.columns);
     const cellColors=pivotValueColorMap(records,state.analysis.values,state.columns);
-    const host=$('pivot-host');host.replaceChildren();if(!records.length){host.append(el('div','hint',Object.keys(state.analysis.filters).length?'条件に一致する明細がありません。':'案件データがありません。'));return;}
+    const host=$('pivot-host');host.replaceChildren();if(!rows.length||!columns.length){host.append(el('div','hint',Object.keys(state.analysis.filters).length?'条件に一致する明細がありません。':'案件データがありません。'));return;}
     const table=el('table','pivot'),thead=el('thead'),rowDepth=Math.max(1,state.analysis.rows.length),columnDepth=Math.max(1,state.analysis.columns.length);
     const widthKeys=[...Array.from({length:rowDepth},(_,level)=>`row:${state.analysis.rows[level]||'__all__'}`),
       ...columns.map(c=>`data:${JSON.stringify(state.analysis.columns)}:${c.key}`)];
@@ -1590,7 +1629,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       }
       for(const c of columns){const td=el('td'),list=el('div','cell-list'),values=cells[r.key]?.[c.key]||[];
         if(values.length){for(const v of values){
-          list.append(applyOptionColor(el('span','cell-item',v),cellColors.get(v)));
+          list.append(applyOptionColor(el('span','cell-item',pivotCellDisplayValue(v,state.analysis.values)),cellColors.get(v)));
         }}else list.append(el('span','empty','—'));
         td.append(list);
         const cellRecords=recordCells[r.key]?.[c.key]||[];

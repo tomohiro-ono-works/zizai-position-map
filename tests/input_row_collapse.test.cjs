@@ -334,6 +334,24 @@ test('long project names enlarge their collapsed row instead of showing a textar
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.value, name.value);
 });
 
+test('project rows keep tight spacing while allowing expanded detail and 1:N controls', () => {
+  const {body, find} = setup();
+  assert.equal(body.children[0].style.height, '64px', 'collapsed row uses the compact baseline');
+  find(body.children[0], node => node.tagName === 'button' && node.textContent === '＞').dispatch('click');
+  assert.equal(body.children[0].style.height, '104px', 'expanded row no longer reserves 160px');
+  assert.match(html, /\.entry-table tbody tr\{height:104px\}/, 'child rows also use a compact default');
+  const baseChoice = html.match(/\.entry-table \.entry-editor-choice\{([^}]+)\}/)?.[1] || '';
+  assert.match(baseChoice, /min-height:104px/);
+  const collapsedChoice = html.match(/\.entry-table tr\.project-collapsed \.entry-editor-choice\{([^}]+)\}/)?.[1] || '';
+  assert.match(collapsedChoice, /min-height:64px/);
+  const finalChoice = [...html.matchAll(/\.entry-table \.entry-editor-choice\{([^}]+)\}/g)].at(-1)?.[1] || '';
+  assert.match(finalChoice, /padding:5px 5px 6px/);
+  assert.match(html, /\.entry-table \.entry-editor-choice:has\(>\.cell-entry-actions\)\{padding-bottom:28px\}/);
+  const expandedDetail = find(body.children[0].children[1], node => node.tagName === 'textarea' && node.getAttribute('data-autosize-detail') === 'true');
+  assert.equal(expandedDetail.hidden, false, 'full detail remains available in expanded rows');
+  assert.ok(find(body.children[0], node => node.tagName === 'button' && node.textContent === '＋'), 'add controls remain');
+});
+
 test('expanded project has a slim left accent without a new row background', () => {
   const accent = html.match(/\.entry-table tr\.project-expanded \.root-cell::before\{([^}]+)\}/)?.[1];
   assert.ok(accent, 'project accent is scoped to the expanded root cell');
@@ -355,7 +373,7 @@ test('input project separators and editor spacing are subtle and consistent', ()
   const followRows = [...html.matchAll(/\.entry-table tr\.detail-follow>td\{([^}]+)\}/g)];
   assert.match(followRows.at(-1)?.[1] || '', /border-top-color:#e8eef5/);
   const editorRules = [...html.matchAll(/\.entry-table \.entry-editor-choice\{([^}]+)\}/g)];
-  assert.match(editorRules.at(-1)?.[1] || '', /padding:6px 7px 29px/);
+  assert.match(editorRules.at(-1)?.[1] || '', /padding:5px 5px 6px/);
 });
 
 test('filter editors use the Google filter_alt symbol in borderless compact controls', () => {

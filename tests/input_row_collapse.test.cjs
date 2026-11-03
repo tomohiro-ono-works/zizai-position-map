@@ -300,7 +300,7 @@ test('pivot cell displays only values even when multiple fields supply different
   const chips = findAll(getElement('pivot-host'),node=>node.className==='cell-item');
   assert.deepEqual(chips.map(chip=>chip.textContent),['設計','統計']);
   assert.deepEqual(chips.map(chip=>chip.style.backgroundColor),['#112233','#dceafe']);
-  assert.equal(findAll(getElement('pivot-host'),node=>node.className==='empty').length,3, 'unfilled option combinations show a dash');
+  assert.equal(findAll(getElement('pivot-host'),node=>node.className==='empty').length,0, 'unfilled intersections remain truly blank');
   const trigger = findAll(getElement('pivot-host'),node=>node.className==='root-menu-trigger')[0];
   trigger.dispatch('click');
   assert.deepEqual(findAll(getElement('analysis-click-menu'),node=>node.className==='tooltip-detail').map(node=>node.textContent),[
@@ -308,6 +308,77 @@ test('pivot cell displays only values even when multiple fields supply different
   ]);
   assert.equal(context.pivotCellDisplayValue('工程: 区分: 設計',['工程: 区分','技術']),'設計');
   assert.equal(context.pivotCellDisplayValue('技術: 統計',['工程: 区分','技術']),'統計');
+});
+
+test('pivot displays merged field names above columns and to the left of row values', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'stage',name:'工程',type:'select',cardinality:'1:1',options:['設計','評価']},
+    {id:'tech',name:'技術',type:'select',cardinality:'1:1',options:['統計','機械学習']}
+  ];
+  const snapshot={detailUiVersion:1,columns,projects:[{id:'p1',tree:{value:'案件A',children:[{value:'設計',children:[{value:'統計',children:[]}]}]}}],
+    analysis:{rows:['工程'],columns:['技術'],values:['案件名'],tooltip:[],filters:{}}};
+  const {navigation,getElement,find}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const table=find(getElement('pivot-host'),node=>node.tagName==='table');
+  const thead=find(table,node=>node.tagName==='thead'),tbody=find(table,node=>node.tagName==='tbody');
+  assert.equal(thead.children.length,2,'column field name takes its own header row');
+  const corner=find(thead.children[0],node=>node.className==='corner');
+  assert.equal(corner.rowSpan,2);
+  assert.equal(corner.colSpan,2,'row field label and row value occupy separate columns');
+  const columnField=find(thead.children[0],node=>node.className==='pivot-column-field');
+  assert.equal(columnField?.textContent,'技術');
+  assert.equal(columnField.colSpan,2,'field name spans both choice columns');
+  assert.deepEqual(thead.children[1].children.map(node=>node.textContent),['統計','機械学習']);
+  const fieldCell=find(tbody.children[0],node=>node.className==='pivot-row-field');
+  assert.equal(fieldCell?.textContent,'工程');
+  assert.equal(fieldCell?.rowSpan,2,'row field name spans all row choices');
+  assert.equal(find(tbody.children[0],node=>node.className==='pivot-row-header')?.textContent,'設計');
+  assert.equal(find(tbody.children[1],node=>node.className==='pivot-row-field'),null,'field name is not repeated in second row');
+  const emptyCell=tbody.children[1].children.find(node=>node.tagName==='td');
+  assert.equal(find(emptyCell,node=>node.className==='empty'),null);
+  const colRule=html.match(/\.pivot thead \.pivot-column-header\{([^}]+)\}/)?.[1]||'';
+  const rowRule=html.match(/\.pivot tbody \.pivot-row-header\{([^}]+)\}/)?.[1]||'';
+  assert.match(colRule,/text-align:center/);
+  assert.match(colRule,/vertical-align:middle/);
+  assert.match(rowRule,/text-align:left/);
+  assert.match(rowRule,/vertical-align:middle/);
+});
+
+test('pivot merges deeper axis names per parent without losing resize columns', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'stage',name:'工程',type:'select',cardinality:'1:1',options:['設計','評価']},
+    {id:'quality',name:'品質',type:'select',cardinality:'1:1',options:['正確性','妥当性']},
+    {id:'tech',name:'技術',type:'select',cardinality:'1:1',options:['統計','機械学習']},
+    {id:'auto',name:'自動化',type:'select',cardinality:'1:1',options:['手動','自動']}
+  ];
+  const tree={value:'案件A',children:[]};
+  let current=tree;
+  for(const value of ['設計','正確性','統計','自動']){
+    const child={value,children:[]};current.children.push(child);current=child;
+  }
+  const snapshot={detailUiVersion:1,columns,projects:[{id:'p1',tree}],
+    analysis:{rows:['工程','品質'],columns:['技術','自動化'],values:['案件名'],tooltip:[],filters:{}}};
+  const {navigation,getElement,find}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const table=find(getElement('pivot-host'),node=>node.tagName==='table');
+  const thead=find(table,node=>node.tagName==='thead'),tbody=find(table,node=>node.tagName==='tbody');
+  assert.equal(thead.children.length,4,'two column levels create two name rows and two choice rows');
+  const corner=find(thead.children[0],node=>node.className==='corner');
+  assert.equal(corner.rowSpan,4);
+  assert.equal(corner.colSpan,4,'two row levels create four left-side columns');
+  assert.equal(find(thead.children[0],node=>node.className==='pivot-column-field')?.colSpan,4);
+  assert.deepEqual(thead.children[1].children.map(node=>[node.textContent,node.colSpan]),[['統計',2],['機械学習',2]]);
+  assert.deepEqual(thead.children[2].children.map(node=>[node.textContent,node.colSpan]),[['自動化',2],['自動化',2]]);
+  assert.equal(thead.children[3].children.filter(node=>node.className==='pivot-column-header').length,4);
+  assert.equal(find(tbody.children[0],node=>node.className==='pivot-row-field')?.rowSpan,4);
+  const qualityNames=tbody.children.flatMap(row=>row.children.filter(node=>node.className==='pivot-row-field'&&node.textContent==='品質'));
+  assert.deepEqual(qualityNames.map(node=>node.rowSpan),[2,2],'deeper row field name repeats only per parent group');
+  const colgroup=find(table,node=>node.tagName==='colgroup');
+  assert.equal(colgroup.children.length,8,'row name/value columns and data columns retain independent widths');
+  const resizeHandles=thead.children[3].children.flatMap(head=>head.children.filter(child=>child.className==='pivot-resize-handle'));
+  assert.equal(resizeHandles.length,4,'data headers remain resizable');
 });
 
 test('analysis root buttons open only their project, switch selection, and position the click menu above the cell', () => {

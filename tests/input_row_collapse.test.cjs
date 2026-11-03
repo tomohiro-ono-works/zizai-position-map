@@ -223,3 +223,17 @@ test('initial demo renders visible preset colors for the four technology directi
   const engineering = find(body.children[0].children[3], node => node.className === 'choice-chip');
   assert.equal(engineering.style.backgroundColor, tech.optionColors['エンジニアリング']);
 });
+
+test('choice labels are compact and flat without gradients or shadows', () => {
+  const rule = html.match(/\.entry-table \.choice-chip\{([^}]+)\}/)?.[1];
+  assert.ok(rule, 'labels have a dedicated style rule');
+  assert.match(rule, /border-radius:3px/);
+  assert.match(rule, /padding:1px 5px/);
+  assert.match(rule, /line-height:1\.35/);
+  assert.match(rule, /box-shadow:none/);
+  assert.match(rule, /background-image:none/);
+  const listRule = html.match(/\.entry-table \.choice-chip-list\{([^}]+)\}/)?.[1];
+  assert.match(listRule, /gap:3px/);
+  const {body, find} = setup();
+  assert.equal(find(body.children[0].children[1], node => node.className === 'choice-chip')?.textContent, '設計');
+});

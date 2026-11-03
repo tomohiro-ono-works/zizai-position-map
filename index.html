@@ -219,8 +219,7 @@ function serializeSchema(schema){
   const array=values=>`[${(values||[]).map(quote).join(', ')}]`;
   const out=['columns:'];
   for(const col of schema.columns){
-    out.push(`  - name: ${quote(col.name)}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);
-    if(col.description)out.push(`    description: ${quote(col.description)}`);
+    out.push(`  - name: ${quote(col.name)}`,`    description: ${quote(col.description||'')}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);
     if(['select','multiselect'].includes(col.type)){
       out.push(`    options: ${array(col.options)}`,`    allowDetail: ${col.allowDetail===true}`);
       const colors=col.optionColors||{};
@@ -509,7 +508,7 @@ function buildDefinitionFormattingPrompt(columns){
 - 自由文章・箇条書き・Markdownから項目定義を読み取り、誤字・表記揺れを整える。意味を変えず、情報を創作しない。
 - 現在の定義を基準とし、入力で明示された変更だけを反映する。
 - 最上位キーは columns: のみ。項目の順序は親子関係の順序で、最初がルートキー。
-- 各項目は name、type、cardinality を記述し、項目説明は任意の description に文字列で記述する。select/multiselect は options と allowDetail も記述する。ラベル色は任意の optionColors に「候補名: #RRGGBB」で指定する。
+- 各項目は name、description、type、cardinality を記述し、description は空欄でも文字列として残す。select/multiselect は options と allowDetail も記述する。ラベル色は任意の optionColors に「候補名: #RRGGBB」で指定する。
 - type は text / date / select / multiselect、cardinality は 1:1 / 1:N。1:Nは直前の項目が親となる。
 - select/multiselect には選択候補を配列で指定し、detailを入力できる場合は allowDetail: true とする。
 - 未指定の項目・項目説明・選択候補・1:1／1:N・detail可否・ラベル色は現在の定義を維持する。
@@ -718,7 +717,7 @@ function parseAnalysisYaml(source,availableFields){
 /* Standalone, strict YAML 1.2 subset for complete offline workspace backups. */
 function serializeWorkspaceYaml(workspace){
   const snapshot={version:1,title:workspace.title,columns:workspace.columns,projects:workspace.projects,
-    analysisTabs:workspace.analysisTabs,activeAnalysisTabId:workspace.activeAnalysisTabId};
+    analysisTabs:workspace.analysisTabs,activeAnalysisTabId:workspace.activeAnalysisTabId,descriptionPresetVersion:workspace.descriptionPresetVersion??1};
   const scalar=value=>JSON.stringify(value);
   const isContainer=value=>value!==null&&typeof value==='object';
   const isNested=value=>isContainer(value)&&(Array.isArray(value)?value.length>0:Object.keys(value).length>0);
@@ -798,10 +797,12 @@ function parseWorkspaceYaml(source){
   const document=parseBlock(0);
   if(cursor!==tokens.length)fail('項目のインデントが不正です。');
   if(!document||Array.isArray(document)||typeof document!=='object')throw Error('全体YAMLは項目名を持つ形式にしてください。');
-  const allowed=['version','title','columns','projects','analysisTabs','activeAnalysisTabId'];
+  const required=['version','title','columns','projects','analysisTabs','activeAnalysisTabId'];
+  const allowed=[...required,'descriptionPresetVersion'];
   for(const key of Object.keys(document))if(!allowed.includes(key))throw Error('不明な項目です: '+key);
-  for(const key of allowed)if(!Object.prototype.hasOwnProperty.call(document,key))throw Error('必須項目がありません: '+key);
+  for(const key of required)if(!Object.prototype.hasOwnProperty.call(document,key))throw Error('必須項目がありません: '+key);
   if(document.version!==1)throw Error('対応していないYAMLバージョンです。');
+  if(document.descriptionPresetVersion!==undefined&&document.descriptionPresetVersion!==1)throw Error('descriptionPresetVersion は 1 で指定してください。');
   if(typeof document.title!=='string'||!document.title.trim())throw Error('title は文字列で指定してください。');
   if(!Array.isArray(document.columns)||!document.columns.length)throw Error('columns は項目配列で指定してください。');
   if(!Array.isArray(document.projects)||!document.projects.length)throw Error('projects は案件配列で指定してください。');
@@ -847,6 +848,15 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     column('operationSavings','運用工数の削減','select',['1 手作業','2 標準化','3 人間と機械の分離','4 半自動化','5 自動化'],'1:1',true),
     column('creationSavings','作成工数の削減','select',['1 手作業','2 ナレッジ化','3 工程の自動化','4 共通部品化','5 循環的な開発（仮）'],'1:1',true)
   ];
+  const initialDescriptions={
+    name:'支援対象となる案件やプロジェクトを識別する名称を記載します。',
+    businessStage:'業務の中で支援が担う工程や役割を示します。実行・処理から意思決定支援までの位置づけを選びます。',
+    businessQuality:'業務上の判断や成果物の品質がどの観点で高度化したかを示します。正確性、解像度、妥当性などを選びます。',
+    technicalLevel:'支援に用いる技術領域を示します。エンジニアリング、統計、機械学習、推論・生成AIから該当するものを選びます。',
+    operationSavings:'導入後の定常運用で人手による作業や確認の工数をどれだけ削減できるかを、作業の自動化段階で示します。',
+    creationSavings:'成果物や仕組みの作成・改修に必要な工数をどれだけ削減できるかを、ナレッジ化・再利用・開発工程の自動化などで示します。'
+  };
+  for(const col of initialColumns)col.description=initialDescriptions[col.id]||'';
   // Sample colors are editable in the definition view; other values remain neutral.
   initialColumns[3].optionColors={
     'エンジニアリング':'#dceafe','統計':'#ebe2f9','機械学習':'#d7f1e5','推論・生成AI':'#fbe5d5'
@@ -905,9 +915,12 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const {hierarchies,ontology,...clean}=loaded;
       clean.title=typeof loaded.title==='string'&&loaded.title.trim()?loaded.title.slice(0,80):'DX案件ワークスペース';
       const enableLegacyDetails=upgradeLocalState&&loaded.detailUiVersion!==1;
-      clean.columns=clean.columns.map(col=>({...col,description:col.description||'',cardinality:col.cardinality||'1:1',
+      clean.columns=clean.columns.map(col=>({...col,
+        description:col.description||(loaded.descriptionPresetVersion!==1&&initialColumns.some(preset=>preset.id===col.id&&preset.name===col.name)?initialDescriptions[col.id]:''),
+        cardinality:col.cardinality||'1:1',
         allowDetail:enableLegacyDetails&&['select','multiselect'].includes(col.type)?true:col.allowDetail===true}));
       clean.detailUiVersion=1;
+      clean.descriptionPresetVersion=1;
       if(clean.columns.length)clean.columns[0].cardinality='1:1';
       clean.projects=clean.projects.map(project=>({id:project.id,tree:project.tree?
         normalizeTree(structuredClone(project.tree),clean.columns):fromFlatData(project.data||{},clean.columns)}));

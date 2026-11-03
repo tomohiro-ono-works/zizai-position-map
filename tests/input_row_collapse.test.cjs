@@ -30,6 +30,17 @@ class Element {
   addEventListener(name, fn) { this.handlers[name] = fn; }
   dispatch(name) { this.handlers[name]?.({target: this}); }
   querySelector(name) { return name === '.table-wrap' ? this.scrollArea : null; }
+  querySelectorAll(selector) {
+    if (selector !== 'textarea[data-autosize-detail="true"]') return [];
+    const found = [];
+    const walk = node => {
+      if (node.tagName === 'textarea' && node.attributes['data-autosize-detail'] === 'true') found.push(node);
+      for (const child of node.children ?? []) walk(child);
+    };
+    walk(this);
+    return found;
+  }
+  get scrollHeight() { return this.tagName === 'textarea' ? 18 + Math.ceil(String(this.value).length / 20) * 18 : 0; }
 }
 
 function setup(useInitialSample = false) {
@@ -247,4 +258,29 @@ test('input table headers use dark blue-gray with white text while preserving li
   const {body, find} = setup();
   assert.equal(body.children.length, 2);
   assert.ok(find(body.children[0], node => node.className === 'choice-chip'));
+});
+
+test('expanded detail messages grow with content instead of scrolling inside a cell', () => {
+  const {body, find, storage} = setup(true);
+  const firstRow = body.children[0];
+  const detailWrap = find(firstRow.children[1], node => node.className === 'detail-message-wrap');
+  assert.equal(detailWrap.hidden, true);
+  find(firstRow, node => node.tagName === 'button' && node.textContent === '▶').dispatch('click');
+  const detail = find(body.children[0].children[1], node => node.tagName === 'textarea' && node.attributes['aria-label'] === '業務の上位工程の詳細メッセージ');
+  assert.ok(detail, 'details stay under their existing column');
+  assert.equal(detail.getAttribute('data-autosize-detail'), 'true');
+  assert.equal(detail.style.height, `${Math.max(65, detail.scrollHeight)}px`);
+  const contents = '要件と設計の記録を詳細に残します。'.repeat(24);
+  detail.value = contents;
+  detail.dispatch('input');
+  assert.equal(detail.style.height, `${Math.max(65, detail.scrollHeight)}px`);
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].detail, contents);
+  Object.defineProperty(detail, 'scrollHeight', {configurable: true, value: undefined});
+  detail.dispatch('input');
+  assert.equal(detail.style.height, '65px', 'unknown size falls back to a usable minimum');
+  const rules = [...html.matchAll(/\.entry-table \.entry-editor-choice \.detail-message-wrap textarea\.control\{([^}]+)\}/g)];
+  const finalRule = rules.at(-1)?.[1] || '';
+  assert.match(finalRule, /overflow:hidden/);
+  assert.match(finalRule, /flex:none/);
+  assert.match(finalRule, /resize:none/);
 });

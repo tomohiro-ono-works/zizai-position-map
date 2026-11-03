@@ -7,6 +7,13 @@ const vm = require('node:vm');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(match => match[1]);
 
+test('Noto Sans JP is loaded and used before system fallbacks throughout the interface', () => {
+  assert.match(html,/href="https:\/\/fonts\.googleapis\.com\/css2\?family=Noto\+Sans\+JP:wght@100\.\.900&amp;display=swap"/);
+  const bodyRule=html.match(/body\{([^}]+)\}/)?.[1]||'';
+  assert.match(bodyRule,/font:14px\/1\.6 "Noto Sans JP","Yu Gothic",Meiryo,sans-serif/);
+  assert.match(html,/button,input,select,textarea\{font:inherit\}/,'form controls inherit the new font');
+});
+
 class Element {
   constructor(tag = 'div') {
     this.tagName = tag;

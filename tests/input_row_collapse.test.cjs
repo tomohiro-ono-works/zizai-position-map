@@ -331,7 +331,7 @@ test('pivot displays merged field names above columns and to the left of row val
   assert.equal(columnField.colSpan,2,'field name spans both choice columns');
   assert.deepEqual(thead.children[1].children.map(node=>node.textContent),['統計','機械学習']);
   const fieldCell=find(tbody.children[0],node=>node.className==='pivot-row-field');
-  assert.equal(fieldCell?.textContent,'工程');
+  assert.equal(find(fieldCell,node=>node.className==='pivot-row-field-text')?.textContent,'工程');
   assert.equal(fieldCell?.rowSpan,2,'row field name spans all row choices');
   assert.equal(find(tbody.children[0],node=>node.className==='pivot-row-header')?.textContent,'設計');
   assert.equal(find(tbody.children[1],node=>node.className==='pivot-row-field'),null,'field name is not repeated in second row');
@@ -343,6 +343,28 @@ test('pivot displays merged field names above columns and to the left of row val
   assert.match(colRule,/vertical-align:middle/);
   assert.match(rowRule,/text-align:left/);
   assert.match(rowRule,/vertical-align:middle/);
+});
+
+test('pivot rotates only row field names sideways while keeping row values horizontal', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'stage',name:'業務工程',type:'select',cardinality:'1:1',options:['設計','評価']}
+  ];
+  const snapshot={detailUiVersion:1,columns,projects:[{id:'p1',tree:{value:'案件A',children:[{value:'設計',children:[]}]}}],
+    analysis:{rows:['業務工程'],columns:[],values:['案件名'],tooltip:[],filters:{}}};
+  const {navigation,getElement,find}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const pivot=getElement('pivot-host');
+  const fieldCell=find(pivot,node=>node.className==='pivot-row-field');
+  const fieldText=find(fieldCell,node=>node.className==='pivot-row-field-text');
+  assert.equal(fieldText?.textContent,'業務工程','rotatable text is contained inside the merged field cell');
+  const valueCell=find(pivot,node=>node.className==='pivot-row-header');
+  assert.equal(valueCell?.textContent,'設計');
+  assert.equal(find(valueCell,node=>node.className==='pivot-row-field-text'),null,'axis values keep ordinary horizontal text');
+  const fieldRule=html.match(/\.pivot tbody \.pivot-row-field-text\{([^}]+)\}/)?.[1]||'';
+  assert.match(fieldRule,/writing-mode:vertical-rl/);
+  assert.match(fieldRule,/text-orientation:sideways/,'Japanese characters rotate as a 90-degree line, not upright vertical writing');
+  assert.match(fieldRule,/white-space:nowrap/,'name does not break into separate vertical columns');
 });
 
 test('pivot merges deeper axis names per parent without losing resize columns', () => {
@@ -373,7 +395,7 @@ test('pivot merges deeper axis names per parent without losing resize columns', 
   assert.deepEqual(thead.children[2].children.map(node=>[node.textContent,node.colSpan]),[['自動化',2],['自動化',2]]);
   assert.equal(thead.children[3].children.filter(node=>node.className==='pivot-column-header').length,4);
   assert.equal(find(tbody.children[0],node=>node.className==='pivot-row-field')?.rowSpan,4);
-  const qualityNames=tbody.children.flatMap(row=>row.children.filter(node=>node.className==='pivot-row-field'&&node.textContent==='品質'));
+  const qualityNames=tbody.children.flatMap(row=>row.children.filter(node=>node.className==='pivot-row-field'&&find(node,child=>child.className==='pivot-row-field-text')?.textContent==='品質'));
   assert.deepEqual(qualityNames.map(node=>node.rowSpan),[2,2],'deeper row field name repeats only per parent group');
   const colgroup=find(table,node=>node.tagName==='colgroup');
   assert.equal(colgroup.children.length,8,'row name/value columns and data columns retain independent widths');

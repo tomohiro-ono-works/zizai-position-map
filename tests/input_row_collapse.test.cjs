@@ -212,6 +212,28 @@ test('definition detail and color editors use flat surfaces without raised cards
   assert.match(colorControl, /background:transparent/);
 });
 
+test('definition rows use compact controls and spacing while allowing wrapped option labels', () => {
+  const panel = html.match(/#definition-gui \.panel\{([^}]+)\}/)?.[1] || '';
+  assert.match(panel, /padding:12px 16px/);
+  const row = html.match(/#field-editor \.field-card\{([^}]+)\}/)?.[1] || '';
+  assert.match(row, /padding:6px 0/);
+  assert.match(row, /column-gap:6px/);
+  assert.match(row, /row-gap:4px/);
+  assert.doesNotMatch(row, /(?:^|;)height:/, 'row height is determined by wrapped content');
+  const name = html.match(/#field-editor \.field-card>input\.control\{([^}]+)\}/)?.[1] || '';
+  assert.match(name, /height:32px/);
+  const select = html.match(/#field-editor \.field-card>select\.control\{([^}]+)\}/)?.[1] || '';
+  assert.match(select, /height:32px/);
+  const marker = html.match(/#field-editor \.field-card>\.root-mark,#field-editor \.field-card>\.cardinality-select\{([^}]+)\}/)?.[1] || '';
+  assert.match(marker, /height:32px/);
+  const removeButton = html.match(/#field-editor \.field-card>\.btn\{([^}]+)\}/)?.[1] || '';
+  assert.match(removeButton, /height:30px/);
+  const extra = html.match(/\.definition-accordion \.field-extra\{([^}]+)\}/)?.[1] || '';
+  assert.match(extra, /padding:8px 8px 10px/);
+  const wrapping = html.match(/\.definition-option-chips\{([^}]+)\}/)?.[1] || '';
+  assert.match(wrapping, /flex-wrap:wrap/, 'compact rows still grow when labels wrap');
+});
+
 test('projects are initially collapsed and expand independently without changing their data', () => {
   const {body, find, storage} = setup();
   assert.equal(body.children.length, 2);

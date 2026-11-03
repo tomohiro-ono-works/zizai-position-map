@@ -222,16 +222,20 @@ test('analysis removes independent cell color controls and stops saving colors i
   assert.equal(parsed.valueColors,undefined, 'old analysis YAML remains readable but cannot override definition colors');
 });
 
-test('analysis offers detailed messages only in click-menu settings and retains the YAML selection', () => {
+test('analysis click-menu always includes details without a selectable detail checkbox', () => {
   const {context} = setup();
   const columns = [{name:'案件名'}, {name:'業務の高度化'}];
   for (const axis of ['rows','columns','values','filters']) {
     assert.deepEqual(Array.from(context.analysisPickerFields(axis, columns)), ['案件名','業務の高度化'], `${axis} does not offer detail text`);
   }
-  assert.deepEqual(Array.from(context.analysisPickerFields('tooltip', columns)), ['案件名','業務の高度化','詳細メッセージ']);
-  const analysis = {rows:['案件名'],columns:['業務の高度化'],values:['案件名'],tooltip:['詳細メッセージ'],filters:{}};
-  const parsed = context.parseAnalysisYaml(context.serializeAnalysisYaml(analysis), ['案件名','業務の高度化']);
-  assert.deepEqual(Array.from(parsed.tooltip), ['詳細メッセージ']);
+  assert.deepEqual(Array.from(context.analysisPickerFields('tooltip', columns)), ['案件名','業務の高度化']);
+  const analysis = {rows:['案件名'],columns:['業務の高度化'],values:['案件名'],tooltip:['業務の高度化','詳細メッセージ'],filters:{}};
+  const yaml=context.serializeAnalysisYaml(analysis);
+  assert.match(yaml,/tooltip: \["業務の高度化"\]/,'detail checkbox is removed from exported settings');
+  const parsed = context.parseAnalysisYaml(yaml, ['案件名','業務の高度化']);
+  assert.deepEqual(Array.from(parsed.tooltip), ['業務の高度化']);
+  const legacy=context.parseAnalysisYaml(yaml.replace('tooltip: ["業務の高度化"]','tooltip: ["業務の高度化","詳細メッセージ"]'),['案件名','業務の高度化']);
+  assert.deepEqual(Array.from(legacy.tooltip), ['業務の高度化'],'old YAML checkbox selection is safely ignored');
   assert.throws(() => context.parseAnalysisYaml(context.serializeAnalysisYaml({...analysis,rows:['詳細メッセージ']}),['案件名','業務の高度化']), /rows: 未定義の項目/);
 });
 
@@ -345,6 +349,23 @@ test('pivot displays merged field names above columns and to the left of row val
   assert.match(rowRule,/vertical-align:middle/);
 });
 
+test('analysis field names reveal their definition descriptions on mouse hover', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',description:'案件の名称',cardinality:'1:1',options:[]},
+    {id:'stage',name:'工程',type:'select',description:'業務プロセスの段階',cardinality:'1:1',options:['設計']},
+    {id:'tech',name:'技術',type:'select',description:'利用した技術分野',cardinality:'1:1',options:['統計']}
+  ];
+  const snapshot={detailUiVersion:1,columns,projects:[{id:'p1',tree:{value:'案件A',children:[{value:'設計',children:[{value:'統計',children:[]}]}]}}],
+    analysis:{rows:['工程'],columns:['技術'],values:['案件名'],tooltip:[],filters:{}}};
+  const {navigation,getElement,find,analysisPickers}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  assert.equal(find(getElement('pivot-host'),node=>node.className==='pivot-row-field').attributes.title,'業務プロセスの段階');
+  assert.equal(find(getElement('pivot-host'),node=>node.className==='pivot-column-field').attributes.title,'利用した技術分野');
+  assert.equal(find(getElement('pivot-host'),node=>node.className==='pivot-row-header').attributes.title,undefined,'value cells do not inherit the field description');
+  const rowPickerLabel=analysisPickers.rows.pickerOptions.children.find(label=>label.children[1]?.textContent==='工程');
+  assert.equal(rowPickerLabel.attributes.title,'業務プロセスの段階','the field picker also exposes the description');
+});
+
 test('pivot rotates only row field names sideways while keeping row values horizontal', () => {
   const columns=[
     {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
@@ -436,7 +457,7 @@ test('analysis root buttons open only their project, switch selection, and posit
   const host = getElement('pivot-host');
   const findAll = (node,predicate) => [...(predicate(node)?[node]:[]),...(node.children??[]).flatMap(child=>findAll(child,predicate))];
   const buttons = findAll(host,node=>node.className==='root-menu-trigger');
-  assert.deepEqual(buttons.map(button=>button.textContent),['①','②']);
+  assert.deepEqual(buttons.map(button=>button.textContent),['#1','#2']);
   assert.deepEqual(buttons.map(button=>button.attributes['aria-label']),['案件Aの詳細を表示','案件Bの詳細を表示']);
   const cell = find(host,node=>node.tagName==='td'&&find(node,child=>child.className==='cell-root-links'));
   assert.ok(cell);
@@ -470,6 +491,32 @@ test('analysis root buttons open only their project, switch selection, and posit
   find(menu,node=>node.className==='menu-close').dispatch('click');
   assert.equal(menu.hidden,true,'the close control dismisses the menu');
   assert.match(html, /<label>クリックメニュー<\/label>/,'picker name matches the click interaction');
+});
+
+test('click menu uses global input project numbers even when rows are filtered or project names repeat', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'stage',name:'工程',type:'select',cardinality:'1:1',options:['設計','評価']}
+  ];
+  const projects=[
+    {id:'p1',tree:{value:'同名案件',children:[{value:'設計',detail:'最初の案件',children:[]}]}},
+    {id:'p2',tree:{value:'別案件',children:[{value:'評価',detail:'二番目の案件',children:[]}]}},
+    {id:'p3',tree:{value:'同名案件',children:[{value:'設計',detail:'三番目の案件',children:[]}]}}
+  ];
+  const snapshot={detailUiVersion:1,columns,projects,analysis:{rows:['工程'],columns:[],values:['工程'],tooltip:['工程'],filters:{}}};
+  const {navigation,getElement,find}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const tbody=find(getElement('pivot-host'),node=>node.tagName==='tbody');
+  const buttonsIn=(row)=>{
+    const cell=row.children.find(child=>child.tagName==='td');
+    return find(cell,node=>node.className==='cell-root-links')?.children||[];
+  };
+  assert.deepEqual(buttonsIn(tbody.children[0]).map(button=>button.textContent),['#1','#3'],'the second matching root preserves project number 3');
+  assert.deepEqual(buttonsIn(tbody.children[1]).map(button=>button.textContent),['#2']);
+  buttonsIn(tbody.children[0])[1].dispatch('click');
+  const popup=getElement('analysis-click-menu');
+  assert.equal(find(popup,node=>node.className==='tooltip-root').textContent,'同名案件');
+  assert.equal(find(popup,node=>node.className==='tooltip-detail').textContent,'三番目の案件','same-name projects retain their own details');
 });
 
 test('click menu groups colored labels above one detail per field and avoids a project chip', () => {
@@ -511,7 +558,7 @@ test('click menu groups text and selectable fields separately with aligned detai
     {id:'stage',name:'業務の上位工程',type:'select',options:['評価'],cardinality:'1:1',allowDetail:true,optionColors:{'評価':'#bed3e8'}},
     {id:'tech',name:'技術の高度化',type:'multiselect',options:['統計','機械学習'],cardinality:'1:1',allowDetail:true,optionColors:{'統計':'#e3a4c5','機械学習':'#b9e5ce'}}
   ];
-  const projects = [{id:'p1',tree:{value:'案件A',children:[{value:'需要予測モデルを導入',children:[
+  const projects = [{id:'p1',tree:{value:'案件A',children:[{value:'需要予測モデルを導入',detail:'現場への導入内容を記録',children:[
     {value:'評価',detail:'施策を比較',children:[{value:['統計','機械学習'],detail:'精度を比較',children:[]}]}
   ]}]}}];
   const snapshot={detailUiVersion:1,columns,projects,analysis:{
@@ -530,6 +577,7 @@ test('click menu groups text and selectable fields separately with aligned detai
   assert.equal(find(textLine,node=>node.className==='tooltip-label').textContent,'支援内容');
   assert.equal(find(textLine,node=>node.className==='tooltip-value').textContent,'需要予測モデルを導入');
   assert.equal(find(textLine,node=>node.className==='tooltip-choice'),null,'text values are not chips');
+  assert.deepEqual(find(groups[0],node=>node.className==='tooltip-details')?.children.map(node=>node.textContent),['現場への導入内容を記録'],'free-text field detail is always shown under its value');
   for(const group of groups.slice(1)){
     assert.equal(group.children.filter(node=>node.className==='tooltip-choice-list').length,1,'labels are in one horizontal wrapping row');
     assert.equal(group.children.filter(node=>node.className==='tooltip-details').length,1,'details are in a separate block below labels');
@@ -561,7 +609,7 @@ test('click menu deduplicates repeated messages while preserving distinct ones i
   assert.deepEqual(details.children.map(node=>node.textContent),['精度を検証','モデルを評価']);
 });
 
-test('click menu displays only chosen fields; the detail toggle adds messages, not new fields', () => {
+test('click menu always includes details for chosen fields without showing unchosen fields', () => {
   const columns=[
     {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
     {id:'stage',name:'業務の上位工程',type:'select',options:['評価'],cardinality:'1:1',allowDetail:true},
@@ -571,7 +619,7 @@ test('click menu displays only chosen fields; the detail toggle adds messages, n
     {value:'統計',detail:'分析を実施',children:[]}
   ]}]}}];
   const makeSnapshot=tooltip=>({detailUiVersion:1,columns,projects,analysis:{rows:['業務の上位工程'],columns:[],values:['技術の高度化'],tooltip,filters:{}}});
-  const {navigation,getElement,find}=setup(false,makeSnapshot(['業務の上位工程','詳細メッセージ']));
+  const {navigation,getElement,find}=setup(false,makeSnapshot(['業務の上位工程']));
   navigation.analysis.dispatch('click');
   find(getElement('pivot-host'),node=>node.className==='root-menu-trigger').dispatch('click');
   const groupNames=getElement('analysis-click-menu').children.flatMap(node=>node.className==='tooltip-project'

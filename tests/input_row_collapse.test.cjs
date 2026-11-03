@@ -1322,6 +1322,35 @@ test('long project names enlarge their collapsed row instead of showing a textar
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.value, name.value);
 });
 
+test('adding a child does not inflate the first row from the merged root textarea height', () => {
+  const {body,find} = setup();
+  const addChild=find(body.children[0].children[2],node=>node.tagName==='button'&&node.textContent==='＋');
+  addChild.dispatch('click');
+  assert.equal(body.children[0].children[0].rowSpan,2);
+  const firstRow=body.children[0];
+  const name=find(firstRow,node=>node.tagName==='textarea'&&node.attributes['aria-label']==='案件名');
+  Object.defineProperty(name,'scrollHeight',{configurable:true,get(){
+    return this.style.height==='0px'?45:360;
+  }});
+  name.dispatch('input');
+  assert.equal(firstRow.style.height,'64px','only the name content, not the 360px merged cell, determines first-row height');
+  assert.equal(name.style.height,'','the visible textarea returns to spanning the root cell');
+});
+
+test('root name wrapping still expands its own row independently of child rows', () => {
+  const {body,find} = setup();
+  find(body.children[0].children[2],node=>node.tagName==='button'&&node.textContent==='＋').dispatch('click');
+  const row=body.children[0];
+  const name=find(row,node=>node.tagName==='textarea'&&node.attributes['aria-label']==='案件名');
+  Object.defineProperty(name,'scrollHeight',{configurable:true,get(){
+    return this.style.height==='0px'?136:440;
+  }});
+  name.value='複数行に折り返す案件名';
+  name.dispatch('input');
+  assert.equal(row.style.height,'136px','actual content is still allowed to increase the first row height');
+  assert.equal(body.children[1].style.height,undefined,'the added row keeps its own independent height');
+});
+
 test('project rows keep tight spacing while allowing expanded detail and 1:N controls', () => {
   const {body, find} = setup();
   assert.equal(body.children[0].style.height, '64px', 'collapsed row uses the compact baseline');

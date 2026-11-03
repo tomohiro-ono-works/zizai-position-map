@@ -554,11 +554,11 @@ test('definition detail and color editors use flat surfaces without raised cards
   assert.match(colorControl, /background:transparent/);
 });
 
-test('definition rows use compact controls and spacing while allowing wrapped option labels', () => {
+test('definition nodes keep compact controls but have generous outer padding and room for wrapped labels', () => {
   const panel = html.match(/#definition-gui \.panel\{([^}]+)\}/)?.[1] || '';
-  assert.match(panel, /padding:12px 16px/);
+  assert.match(panel, /padding:22px 24px/);
   const row = html.match(/#field-editor \.field-card\{([^}]+)\}/)?.[1] || '';
-  assert.match(row, /padding:6px 0/);
+  assert.match(row, /padding:14px 16px/);
   assert.match(row, /column-gap:6px/);
   assert.match(row, /row-gap:4px/);
   assert.doesNotMatch(row, /(?:^|;)height:/, 'row height is determined by wrapped content');
@@ -595,13 +595,15 @@ test('each definition name editor has a visible label on its left and larger edi
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).columns[0].name, '改修後の項目名');
 });
 
-test('definition row boundaries are thin pale gray without individual card outlines', () => {
+test('definition items are independent flat bordered nodes with separation between them', () => {
   const rowRule = html.match(/#field-editor \.field-card\{([^}]+)\}/)?.[1] || '';
-  assert.match(rowRule, /border:0/);
-  assert.match(rowRule, /border-bottom:1px solid #e8edf2/);
-  assert.match(rowRule, /border-radius:0/);
-  assert.match(rowRule, /background:transparent/);
-  assert.match(html, /#field-editor \.field-card:last-child\{border-bottom:0\}/);
+  assert.match(rowRule, /border:1px solid #dce5f0/);
+  assert.match(rowRule, /border-radius:8px/);
+  assert.match(rowRule, /background:#fff/);
+  assert.match(rowRule, /box-shadow:none/,'nodes remain flat without a raised shadow');
+  const hostRule = html.match(/#field-editor\{([^}]+)\}/)?.[1] || '';
+  assert.match(hostRule,/display:grid/);
+  assert.match(hostRule,/gap:12px/,'independent nodes have visible space between them');
 });
 
 test('definition description editor is placed between name and candidate labels and saves its text', () => {

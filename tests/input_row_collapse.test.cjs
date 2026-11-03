@@ -237,3 +237,14 @@ test('choice labels are compact and flat without gradients or shadows', () => {
   const {body, find} = setup();
   assert.equal(find(body.children[0].children[1], node => node.className === 'choice-chip')?.textContent, '設計');
 });
+
+test('input table headers use dark blue-gray with white text while preserving light data cells', () => {
+  const headerRule = html.match(/\.entry-table th\{([^}]+)\}/)?.[1];
+  assert.ok(headerRule, 'input table has a dedicated header style');
+  assert.match(headerRule, /background:#344f67/);
+  assert.match(headerRule, /color:#fff/);
+  assert.match(headerRule, /border-bottom:1px solid #223e55/);
+  const {body, find} = setup();
+  assert.equal(body.children.length, 2);
+  assert.ok(find(body.children[0], node => node.className === 'choice-chip'));
+});

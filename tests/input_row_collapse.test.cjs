@@ -49,6 +49,7 @@ class Element {
 function setup(useInitialSample = false) {
   const elements = new Map();
   const navigation = {};
+  const formatting = {};
   const getElement = id => {
     if (!elements.has(id)) elements.set(id, new Element());
     return elements.get(id);
@@ -57,6 +58,10 @@ function setup(useInitialSample = false) {
   for (const view of ['definition', 'input', 'analysis']) {
     navigation[view] = new Element('button');
     navigation[view].dataset.viewTab = view;
+  }
+  for (const format of ['table', 'yaml']) {
+    formatting[format] = new Element('button');
+    formatting[format].dataset.formatTab = format;
   }
   const columns = [
     {id: 'name', name: '案件名', type: 'text', cardinality: '1:1', options: []},
@@ -74,9 +79,10 @@ function setup(useInitialSample = false) {
     getElementById: getElement,
     querySelector: selector => {
       const match = selector.match(/^\[data-view-tab="(.+)"\]$/);
-      return match ? navigation[match[1]] : new Element();
+      const formatMatch = selector.match(/^\[data-format-tab="(.+)"\]$/);
+      return match ? navigation[match[1]] : formatMatch ? formatting[formatMatch[1]] : new Element();
     },
-    querySelectorAll: selector => selector === '[data-view-tab]' ? Object.values(navigation) : []
+    querySelectorAll: selector => selector === '[data-view-tab]' ? Object.values(navigation) : selector === '[data-format-tab]' ? Object.values(formatting) : []
   };
   const context = {
     document,
@@ -94,8 +100,28 @@ function setup(useInitialSample = false) {
     }
     return null;
   };
-  return {body: getElement('entry-body'), find, storage, navigation, getElement, context};
+  return {body: getElement('entry-body'), find, storage, navigation, formatting, getElement, context};
 }
+
+test('formatting prompt copy is visible only in YAML mode on definition and input views', () => {
+  const {formatting, navigation, getElement} = setup();
+  const definitionButton = getElement('copy-definition-prompt');
+  const inputButton = getElement('copy-input-prompt');
+  const inputBar = getElement('input-prompt-action-bar');
+  assert.equal(definitionButton.hidden, true, 'definition prompt is hidden in table mode');
+  assert.equal(inputButton.hidden, true, 'input prompt is hidden in table mode');
+  assert.equal(inputBar.hidden, true, 'input prompt bar does not leave empty vertical space');
+  formatting.yaml.dispatch('click');
+  assert.equal(definitionButton.hidden, false);
+  assert.equal(inputButton.hidden, false);
+  assert.equal(inputBar.hidden, false);
+  navigation.input.dispatch('click');
+  assert.equal(inputButton.hidden, false, 'stays visible in input YAML view');
+  formatting.table.dispatch('click');
+  assert.equal(definitionButton.hidden, true);
+  assert.equal(inputButton.hidden, true);
+  assert.equal(inputBar.hidden, true);
+});
 
 test('projects are initially collapsed and expand independently without changing their data', () => {
   const {body, find, storage} = setup();

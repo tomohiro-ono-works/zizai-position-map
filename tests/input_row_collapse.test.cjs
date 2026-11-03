@@ -163,6 +163,37 @@ test('input formatting prompt uses live field definitions as its classification 
   assert.match(prompt, /【入力内容】/);
 });
 
+test('analysis cell labels inherit their colors from field option definitions', () => {
+  const {context} = setup();
+  const columns = [
+    {name:'業務の上位工程',optionColors:{'設計':'#112233'}},
+    {name:'技術の高度化',optionColors:{'統計':'#e3a4c5'}},
+    {name:'備考',type:'text'}
+  ];
+  const records = [
+    {'業務の上位工程':'設計','技術の高度化':['統計','機械学習'],備考:'その他'},
+    {'業務の上位工程':'評価','技術の高度化':['統計'],備考:'自由文'}
+  ];
+  const single = context.pivotValueColorMap(records,['技術の高度化'],columns);
+  assert.equal(single.get('統計'),'#e3a4c5');
+  assert.equal(single.has('機械学習'),false);
+  const multi = context.pivotValueColorMap(records,['業務の上位工程','技術の高度化','備考'],columns);
+  assert.equal(multi.get('業務の上位工程: 設計'),'#112233');
+  assert.equal(multi.get('技術の高度化: 統計'),'#e3a4c5');
+  assert.equal(multi.has('備考: その他'),false);
+  assert.equal(multi.has('業務の上位工程: 評価'),false);
+});
+
+test('analysis removes independent cell color controls and stops saving colors in analysis YAML', () => {
+  const {context} = setup();
+  assert.doesNotMatch(html, /id="analysis-color-bar"/, 'separate color settings are removed from analysis');
+  assert.doesNotMatch(html, /function renderColorControls\(/);
+  const yaml = context.serializeAnalysisYaml({rows:['案件名'],columns:[],values:['案件名'],tooltip:[],filters:{},valueColors:{'["案件名","A"]':'#ff0000'}});
+  assert.doesNotMatch(yaml, /^colors:/m, 'obsolete analysis-specific colors are no longer written');
+  const parsed = context.parseAnalysisYaml(yaml+'colors: {}\n',['案件名']);
+  assert.equal(parsed.valueColors,undefined, 'old analysis YAML remains readable but cannot override definition colors');
+});
+
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {
   const {navigation, getElement, find} = setup();
   navigation.definition.dispatch('click');

@@ -284,3 +284,27 @@ test('expanded detail messages grow with content instead of scrolling inside a c
   assert.match(finalRule, /flex:none/);
   assert.match(finalRule, /resize:none/);
 });
+
+test('expanded project has a slim left accent without a new row background', () => {
+  const accent = html.match(/\.entry-table tr\.project-expanded \.root-cell::before\{([^}]+)\}/)?.[1];
+  assert.ok(accent, 'project accent is scoped to the expanded root cell');
+  assert.match(accent, /left:0/);
+  assert.match(accent, /width:3px/);
+  assert.match(accent, /background:#3d8b98/);
+  const {body, find} = setup();
+  assert.match(body.children[0].className, /project-collapsed/);
+  find(body.children[0], node => node.tagName === 'button' && node.textContent === '▶').dispatch('click');
+  assert.match(body.children[0].className, /project-expanded/);
+  assert.match(body.children[1].className, /project-collapsed/);
+  assert.doesNotMatch(accent, /background-color:/);
+});
+
+test('input project separators and editor spacing are subtle and consistent', () => {
+  assert.match(html, /\.entry-table tbody td\{border-right-color:#e5edf3\}/);
+  const firstRows = [...html.matchAll(/\.entry-table tr\.project-first>td\{([^}]+)\}/g)];
+  assert.match(firstRows.at(-1)?.[1] || '', /border-top-color:#afc4d8/);
+  const followRows = [...html.matchAll(/\.entry-table tr\.detail-follow>td\{([^}]+)\}/g)];
+  assert.match(followRows.at(-1)?.[1] || '', /border-top-color:#e8eef5/);
+  const editorRules = [...html.matchAll(/\.entry-table \.entry-editor-choice\{([^}]+)\}/g)];
+  assert.match(editorRules.at(-1)?.[1] || '', /padding:6px 7px 29px/);
+});

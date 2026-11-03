@@ -292,7 +292,7 @@ test('pivot cell displays only values even when multiple fields supply different
   assert.equal(findAll(getElement('pivot-host'),node=>node.className==='empty').length,3, 'unfilled option combinations show a dash');
   const trigger = findAll(getElement('pivot-host'),node=>node.className==='root-menu-trigger')[0];
   trigger.dispatch('click');
-  assert.deepEqual(findAll(getElement('analysis-click-menu'),node=>node.className==='tooltip-value').map(node=>node.textContent),[
+  assert.deepEqual(findAll(getElement('analysis-click-menu'),node=>node.className==='tooltip-detail').map(node=>node.textContent),[
     '要件整理を実施','回帰分析を実施'
   ]);
   assert.equal(context.pivotCellDisplayValue('工程: 区分: 設計',['工程: 区分','技術']),'設計');
@@ -327,7 +327,7 @@ test('analysis root buttons open only their project, switch selection, and posit
   assert.equal(Number.parseInt(menu.style.top,10),282,'menu opens above the cell when space is available');
   assert.equal(buttons[0].attributes['aria-expanded'],'true');
   assert.deepEqual(menu.children.filter(node=>node.className==='tooltip-project').map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件A']);
-  assert.equal(find(menu,node=>node.className==='tooltip-value').textContent,'回帰分析を実施');
+  assert.equal(find(menu,node=>node.className==='tooltip-detail').textContent,'回帰分析を実施');
   assert.equal(find(menu,node=>node.className==='tooltip-choice').style.backgroundColor,'#e3a4c5');
   buttons[1].dispatch('click');
   assert.deepEqual(menu.children.filter(node=>node.className==='tooltip-project').map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件B']);
@@ -351,7 +351,7 @@ test('analysis root buttons open only their project, switch selection, and posit
   assert.match(html, /<label>クリックメニュー<\/label>/,'picker name matches the click interaction');
 });
 
-test('click menu pairs definition-colored labels with their details without field headings or a project chip', () => {
+test('click menu groups colored labels above one detail per field and avoids a project chip', () => {
   const columns = [
     {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
     {id:'stage',name:'業務の上位工程',type:'select',options:['評価'],cardinality:'1:1',allowDetail:true,optionColors:{'評価':'#bed3e8'}},
@@ -377,16 +377,10 @@ test('click menu pairs definition-colored labels with their details without fiel
   assert.equal(find(menu,node=>node.className==='tooltip-root').textContent,'案件A');
   assert.deepEqual(findAll(menu,node=>node.className==='tooltip-field').map(node=>node.textContent),[],'field-name headings are absent');
   assert.equal(findAll(menu,node=>node.className==='tooltip-choice'&&node.textContent==='案件A').length,0,'project name is not a chip');
-  const lines = findAll(menu,node=>node.className==='tooltip-entry');
-  assert.deepEqual(lines.map(line=>[
-    find(line,node=>node.className==='tooltip-choice')?.textContent,
-    find(line,node=>node.className==='tooltip-value')?.textContent??null
-  ]),[
-    ['評価','施策を比較'],
-    ['統計','モデルを検証'],
-    ['半自動化','']
-  ],'detail-only selection still shows source label and labels without details stay visible');
-  assert.deepEqual(lines.map(line=>find(line,node=>node.className==='tooltip-choice')?.style.backgroundColor),['#bed3e8','#e3a4c5','#b9e5ce']);
+  const labels=findAll(menu,node=>node.className==='tooltip-choice');
+  assert.deepEqual(labels.map(node=>node.textContent),['評価','統計','半自動化']);
+  assert.deepEqual(labels.map(node=>node.style.backgroundColor),['#bed3e8','#e3a4c5','#b9e5ce']);
+  assert.deepEqual(findAll(menu,node=>node.className==='tooltip-detail').map(node=>node.textContent),['施策を比較','モデルを検証']);
 });
 
 test('click menu groups text and selectable fields separately with aligned detail separators', () => {
@@ -410,25 +404,40 @@ test('click menu groups text and selectable fields separately with aligned detai
   const groups=menu.children.flatMap(node=>node.className==='tooltip-project'?node.children.filter(child=>child.className==='tooltip-group'):[]);
   assert.equal(find(menu,node=>node.className==='tooltip-root').textContent,'案件A');
   assert.deepEqual(groups.map(group=>group.attributes['data-field']),['支援内容','業務の上位工程','技術の高度化']);
-  assert.deepEqual(groups.map(group=>{
-    const header=find(group,node=>node.className==='tooltip-group-name');
-    return header?[find(header,node=>node.className==='tooltip-field-label')?.textContent,find(header,node=>node.className==='tooltip-separator')?.textContent]:null;
-  }),[null,['業務の上位工程','：'],['技術の高度化','：']]);
+  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-group-name')?.textContent??null),[null,'業務の上位工程','技術の高度化']);
   const textLine=find(groups[0],node=>node.className==='tooltip-entry');
   assert.equal(find(textLine,node=>node.className==='tooltip-label').textContent,'支援内容');
   assert.equal(find(textLine,node=>node.className==='tooltip-value').textContent,'需要予測モデルを導入');
   assert.equal(find(textLine,node=>node.className==='tooltip-choice'),null,'text values are not chips');
   for(const group of groups.slice(1)){
-    const lines=group.children.filter(child=>child.className==='tooltip-entry');
-    assert.ok(lines.length);
-    for(const line of lines){
-      assert.equal(find(line,node=>node.className==='tooltip-bullet')?.textContent,'・');
-      assert.equal(find(line,node=>node.className==='tooltip-separator')?.textContent,'：');
-    }
+    assert.equal(group.children.filter(node=>node.className==='tooltip-choice-list').length,1,'labels are in one horizontal wrapping row');
+    assert.equal(group.children.filter(node=>node.className==='tooltip-details').length,1,'details are in a separate block below labels');
   }
-  assert.deepEqual(groups[2].children.filter(node=>node.className==='tooltip-entry').map(line=>find(line,node=>node.className==='tooltip-choice').textContent),['統計','機械学習']);
-  assert.match(html,/\.analysis-click-menu \.tooltip-entry\{[^}]*display:grid;grid-template-columns:/,'shared grid columns align separator positions');
-  assert.match(html,/\.analysis-click-menu \.tooltip-group-name\{[^}]*display:grid;grid-template-columns:/,'field header separator shares the same grid');
+  assert.deepEqual(find(groups[2],node=>node.className==='tooltip-choice-list').children.map(node=>node.textContent),['統計','機械学習']);
+  assert.deepEqual(find(groups[2],node=>node.className==='tooltip-details').children.map(node=>node.textContent),['精度を比較'],'shared detail is displayed once for multiple labels');
+  assert.match(html,/\.analysis-click-menu \.tooltip-choice-list\{[^}]*display:flex;flex-wrap:wrap/,'labels wrap horizontally');
+  assert.match(html,/\.analysis-click-menu \.tooltip-entry\{[^}]*display:grid;grid-template-columns:/,'free-text separator remains aligned');
+});
+
+test('click menu deduplicates repeated messages while preserving distinct ones in a field', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
+    {id:'stage',name:'業務の上位工程',type:'select',options:['評価'],cardinality:'1:N'},
+    {id:'tech',name:'技術の高度化',type:'multiselect',options:['統計','機械学習'],cardinality:'1:1',allowDetail:true}
+  ];
+  const stage=(value,detail)=>({value:'評価',children:[{value:[value],detail,children:[]}]});
+  const projects=[{id:'p1',tree:{value:'案件A',children:[
+    stage('統計','精度を検証'),stage('統計','精度を検証'),stage('機械学習','モデルを評価')
+  ]}}];
+  const snapshot={detailUiVersion:1,columns,projects,analysis:{rows:['業務の上位工程'],columns:[],values:['技術の高度化'],tooltip:['詳細メッセージ'],filters:{}}};
+  const {navigation,getElement,find}=setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  find(getElement('pivot-host'),node=>node.className==='root-menu-trigger').dispatch('click');
+  const menu=getElement('analysis-click-menu');
+  const list=find(menu,node=>node.className==='tooltip-choice-list');
+  const details=find(menu,node=>node.className==='tooltip-details');
+  assert.deepEqual(list.children.map(node=>node.textContent),['統計','機械学習']);
+  assert.deepEqual(details.children.map(node=>node.textContent),['精度を検証','モデルを評価']);
 });
 
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {

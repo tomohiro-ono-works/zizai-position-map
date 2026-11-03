@@ -493,6 +493,67 @@ test('analysis root buttons open only their project, switch selection, and posit
   assert.match(html, /<label>クリックメニュー<\/label>/,'picker name matches the click interaction');
 });
 
+test('analysis click menu can be dragged by its title without closing or moving after release', () => {
+  const columns = [
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'stage',name:'工程',type:'select',cardinality:'1:1',options:['設計']}
+  ];
+  const projects = [{id:'p1',tree:{value:'案件A',children:[{value:'設計',detail:'調査を実施',children:[]}]}}];
+  const snapshot = {detailUiVersion:1,columns,projects,analysis:{rows:['工程'],columns:[],values:['工程'],tooltip:['工程'],filters:{}}};
+  const {navigation,getElement,find,context} = setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const host=getElement('pivot-host');
+  const cell=find(host,node=>node.tagName==='td'&&find(node,child=>child.className==='cell-root-links'));
+  cell.rect={top:400,bottom:445,left:100,right:320,width:220,height:45};
+  const menu=getElement('analysis-click-menu');menu.offsetWidth=240;menu.offsetHeight=130;
+  find(host,node=>node.className==='root-menu-trigger').dispatch('click');
+  assert.equal(menu.style.left,'80px');
+  assert.equal(menu.style.top,'262px');
+  const title=find(menu,node=>node.className==='tooltip-root');
+  assert.equal(title.attributes.title,'ドラッグして移動');
+  let defaultPrevented=false;
+  title.dispatch('pointerdown',{button:0,clientX:210,clientY:300,preventDefault:()=>{defaultPrevented=true;}});
+  context.document.dispatch('pointermove',{clientX:240,clientY:340});
+  assert.equal(defaultPrevented,true,'dragging prevents unwanted text selection');
+  assert.equal(menu.style.left,'110px');
+  assert.equal(menu.style.top,'302px');
+  assert.equal(menu.hidden,false,'dragging does not dismiss the click menu');
+  context.document.dispatch('pointerup');
+  context.document.dispatch('pointermove',{clientX:300,clientY:380});
+  assert.equal(menu.style.left,'110px','release fixes the chosen position');
+  assert.equal(menu.style.top,'302px');
+});
+
+test('analysis click menu drag stays inside the viewport and stops on cancel or close', () => {
+  const columns = [
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'stage',name:'工程',type:'select',cardinality:'1:1',options:['設計']}
+  ];
+  const projects = [{id:'p1',tree:{value:'案件A',children:[{value:'設計',children:[]}]}}];
+  const snapshot = {detailUiVersion:1,columns,projects,analysis:{rows:['工程'],columns:[],values:['工程'],tooltip:['工程'],filters:{}}};
+  const {navigation,getElement,find,context} = setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const menu=getElement('analysis-click-menu');menu.offsetWidth=240;menu.offsetHeight=130;
+  const trigger=find(getElement('pivot-host'),node=>node.className==='root-menu-trigger');
+  trigger.dispatch('click');
+  const title=find(menu,node=>node.className==='tooltip-root');
+  title.dispatch('pointerdown',{button:0,clientX:120,clientY:120});
+  context.document.dispatch('pointermove',{clientX:-3000,clientY:-3000});
+  assert.equal(menu.style.left,'8px');
+  assert.equal(menu.style.top,'8px');
+  context.document.dispatch('pointermove',{clientX:3000,clientY:3000});
+  assert.equal(menu.style.left,'952px');
+  assert.equal(menu.style.top,'542px');
+  context.document.dispatch('pointercancel');
+  context.document.dispatch('pointermove',{clientX:-3000,clientY:-3000});
+  assert.equal(menu.style.left,'952px');
+  title.dispatch('pointerdown',{button:0,clientX:120,clientY:120});
+  find(menu,node=>node.className==='menu-close').dispatch('click');
+  context.document.dispatch('pointermove',{clientX:-3000,clientY:-3000});
+  assert.equal(menu.hidden,true);
+  assert.equal(menu.style.left,'952px','closing cancels an in-progress drag');
+});
+
 test('click menu uses global input project numbers even when rows are filtered or project names repeat', () => {
   const columns=[
     {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},

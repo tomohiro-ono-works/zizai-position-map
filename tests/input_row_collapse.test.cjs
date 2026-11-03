@@ -152,13 +152,15 @@ test('definition option editor toggles with a plain small chevron and no surroun
 test('definition selects are borderless light gray while field names highlight on hover', () => {
   const dropdown = html.match(/#field-editor \.field-card>select\.control\{([^}]+)\}/)?.[1] || '';
   assert.match(dropdown, /border:0/);
-  assert.match(dropdown, /background:#f1f3f5/);
+  assert.match(dropdown, /background:#f7f8fa/);
+  const dropdownHover = html.match(/#field-editor \.field-card>select\.control:hover\{([^}]+)\}/)?.[1] || '';
+  assert.match(dropdownHover, /background:#f1f3f5/);
   const input = html.match(/#field-editor \.field-card>input\.control\{([^}]+)\}/)?.[1] || '';
   assert.match(input, /border:1px solid transparent/);
   assert.match(input, /background:transparent/);
   const hover = html.match(/#field-editor \.field-card>input\.control:hover\{([^}]+)\}/)?.[1] || '';
   assert.match(hover, /border-color:#c8d5e4/);
-  assert.match(hover, /background:#f1f3f5/);
+  assert.match(hover, /background:#f7f8fa/);
 });
 
 test('projects are initially collapsed and expand independently without changing their data', () => {

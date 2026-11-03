@@ -346,8 +346,10 @@ function treeRows(tree){
   visit(tree,[]);return rows;
 }
 const ANALYSIS_DETAIL_KEY=Symbol('analysis-detail');
-function treeRecords(projects,columns){return projects.flatMap(project=>treeRows(project.tree).map(path=>{
+const ANALYSIS_PROJECT_INDEX_KEY=Symbol('analysis-project-index');
+function treeRecords(projects,columns){return projects.flatMap((project,projectIndex)=>treeRows(project.tree).map(path=>{
   const record=Object.fromEntries(columns.map((col,depth)=>[col.name,path[depth]?.value??(col.type==='multiselect'?[]:'')]));
+  record[ANALYSIS_PROJECT_INDEX_KEY]=projectIndex;
   record[ANALYSIS_DETAIL_KEY]=columns.flatMap((col,depth)=>{
     const detail=String(path[depth]?.detail??'').trim();
     return detail?[{field:col.name,detail}]:[];
@@ -605,8 +607,7 @@ function analysisDataValues(value){
 }
 const ANALYSIS_DETAIL_LABEL='詳細メッセージ';
 function analysisPickerFields(key,columns){
-  const names=columns.map(col=>col.name);
-  return key==='tooltip'?[...names,ANALYSIS_DETAIL_LABEL]:names;
+  return columns.map(col=>col.name);
 }
 function analysisDetailValues(records){
   const unique=new Map();
@@ -617,12 +618,11 @@ function analysisDetailValues(records){
   return [...unique.values()];
 }
 function analysisClickMenuEntries(records,selectedFields,definitions,rootField){
-  const showDetails=selectedFields.includes(ANALYSIS_DETAIL_LABEL);
   return definitions.flatMap(column=>{
     if(column.name===rootField||!selectedFields.includes(column.name))return [];
     const byValue=new Map();
     for(const record of records){
-      const details=showDetails?(record[ANALYSIS_DETAIL_KEY]||[]).filter(item=>item.field===column.name).map(item=>item.detail):[];
+      const details=(record[ANALYSIS_DETAIL_KEY]||[]).filter(item=>item.field===column.name).map(item=>item.detail);
       const values=analysisDataValues(record[column.name]);
       for(const value of values.length?values:['（未設定）']){
         if(!byValue.has(value))byValue.set(value,new Set());
@@ -638,10 +638,12 @@ function groupAnalysisRecordsByRoot(records,rootField){
   const groups=new Map();
   for(const record of records){
     const root=analysisDataValues(record[rootField])[0]||'（未設定）';
-    if(!groups.has(root))groups.set(root,[]);
-    groups.get(root).push(record);
+    const projectIndex=record[ANALYSIS_PROJECT_INDEX_KEY];
+    const groupKey=Number.isInteger(projectIndex)?`project:${projectIndex}`:`root:${root}`;
+    if(!groups.has(groupKey))groups.set(groupKey,{root,number:Number.isInteger(projectIndex)?projectIndex+1:null,records:[]});
+    groups.get(groupKey).records.push(record);
   }
-  return [...groups].map(([root,items])=>({root,records:items}));
+  return [...groups.values()];
 }
 function pivotValueColorMap(records,valueFields,definitions){
   const byName=new Map(definitions.map(col=>[col.name,col]));
@@ -716,7 +718,7 @@ function pivotAxisGroups(items,level){
 /* YAML subset for editing pivot settings without external libraries. */
 function serializeAnalysisYaml(analysis){
   const names=['rows','columns','values','tooltip'],lines=[];
-  for(const name of names)lines.push(name+': '+JSON.stringify(analysis[name]||[]));
+  for(const name of names)lines.push(name+': '+JSON.stringify(name==='tooltip'?(analysis[name]||[]).filter(field=>field!==ANALYSIS_DETAIL_LABEL):analysis[name]||[]));
   const filters=analysis.filters||{},filterNames=Object.keys(filters);
   lines.push(filterNames.length?'filters:':'filters: {}');
   for(const field of filterNames)lines.push('  '+JSON.stringify(field)+': '+JSON.stringify(filters[field]));
@@ -807,7 +809,7 @@ function parseAnalysisYaml(source,availableFields){
       if(!/^#[0-9a-f]{6}$/i.test(color))throw Error('colors: '+field+' / '+value+' の色は #RRGGBB で指定してください。');
     }
   }
-  return {rows:document.rows,columns:document.columns,values:document.values,tooltip:document.tooltip,filters:document.filters||{}};
+  return {rows:document.rows,columns:document.columns,values:document.values,tooltip:document.tooltip.filter(field=>field!==ANALYSIS_DETAIL_LABEL),filters:document.filters||{}};
 }
 </script>
 <script id="workspace-yaml-core">
@@ -996,6 +998,11 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   }
   function asSchema(){return {columns:state.columns.map(({name,description,type,options,cardinality,allowDetail,optionColors})=>({name,description:description||'',type,options,cardinality,allowDetail:allowDetail===true,optionColors}))};}
   const byName=name=>state.columns.find(c=>c.name===name);
+  const describeAnalysisField=(node,name)=>{
+    const description=byName(name)?.description?.trim();
+    if(description)node.setAttribute('title',description);
+    return node;
+  };
   const blankValue=col=>isManyColumn(col)?[]:'';
   function normalizeAnalysisConfig(analysis){
     const filters=analysis.filters&&typeof analysis.filters==='object'&&!Array.isArray(analysis.filters)?analysis.filters:{};
@@ -1003,7 +1010,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     const {valueColors:legacyColors,...retained}=analysis;
     return {...retained,rows:Array.isArray(analysis.rows)?analysis.rows:[],columns:Array.isArray(analysis.columns)?analysis.columns:[],values:Array.isArray(analysis.values)?analysis.values:[],
       filters:Object.fromEntries(Object.entries(filters).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,v.filter(x=>typeof x==='string')])),
-      tooltip:Array.isArray(analysis.tooltip)?analysis.tooltip:[],columnWidths:Object.fromEntries(Object.entries(columnWidths).filter(([,v])=>Number.isFinite(v)&&v>=90&&v<=700)),
+      tooltip:Array.isArray(analysis.tooltip)?analysis.tooltip.filter(field=>field!==ANALYSIS_DETAIL_LABEL):[],columnWidths:Object.fromEntries(Object.entries(columnWidths).filter(([,v])=>Number.isFinite(v)&&v>=90&&v<=700)),
       matrixOpen:analysis.matrixOpen!==false};
   }
   function normalizeState(loaded,upgradeLocalState=false){
@@ -1564,7 +1571,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     state.analysis[key]=(state.analysis[key]||[]).filter(f=>fields.includes(f));
     const details=document.querySelector(`[data-picker="${key}"]`),host=details.querySelector('.picker-options');host.replaceChildren();details.querySelector('summary').textContent=state.analysis[key].length?state.analysis[key].join(' ＋ '):'選択なし（全件）';
     if(key==='tooltip'&&!state.analysis[key].length)details.querySelector('summary').textContent='表示項目を選択';
-    for(const name of fields){const label=el('label'),check=el('input');check.type='checkbox';check.checked=state.analysis[key].includes(name);check.setAttribute('aria-label',`${key==='tooltip'?'クリックメニュー':key} ${name}`);check.addEventListener('change',()=>{
+    for(const name of fields){const label=describeAnalysisField(el('label'),name),check=el('input');check.type='checkbox';check.checked=state.analysis[key].includes(name);check.setAttribute('aria-label',`${key==='tooltip'?'クリックメニュー':key} ${name}`);check.addEventListener('change',()=>{
       state.analysis[key]=check.checked?[...new Set([...state.analysis[key],name])]:state.analysis[key].filter(x=>x!==name);persist();renderPickers();renderAxisOrder();renderPivot();
     });label.append(check,el('span','',name));host.append(label);}
   }}
@@ -1573,7 +1580,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const host=$(hostId);host.replaceChildren();
       if(!state.analysis[axis].length){host.append(el('span','axis-empty','項目を選択すると並び替えできます'));continue;}
       state.analysis[axis].forEach((name,index)=>{
-        const chip=el('div','axis-chip');chip.draggable=true;chip.setAttribute('aria-label',`${name}をドラッグして順番変更`);
+        const chip=describeAnalysisField(el('div','axis-chip'),name);chip.draggable=true;chip.setAttribute('aria-label',`${name}をドラッグして順番変更`);
         chip.append(el('span','',name),el('span','grip','⋮⋮'));
         chip.addEventListener('dragstart',e=>{e.dataTransfer?.setData('text/plain',`${axis}:${index}`);});
         chip.addEventListener('dragover',e=>e.preventDefault());
@@ -1656,18 +1663,18 @@ function mergeWorkspaceYamlSnapshots(workspaces){
           choices.append(applyOptionColor(el('span','tooltip-choice',value),byName(field)?.optionColors?.[value]));
         }
         block.append(choices);
-        const distinctDetails=[...new Set(fieldEntries.map(entry=>entry.detail).filter(Boolean))];
-        if(distinctDetails.length){
-          const details=el('div','tooltip-details');
-          for(const detail of distinctDetails)details.append(el('div','tooltip-detail',detail));
-          block.append(details);
-        }
       }else{
-        for(const {value} of fieldEntries){
+        for(const value of new Set(fieldEntries.map(entry=>entry.value))){
           const line=el('div','tooltip-entry');
           line.append(el('span','tooltip-bullet',''),el('span','tooltip-label',field),el('span','tooltip-separator','：'),el('span','tooltip-value',value));
           block.append(line);
         }
+      }
+      const distinctDetails=[...new Set(fieldEntries.map(entry=>entry.detail).filter(Boolean))];
+      if(distinctDetails.length){
+        const details=el('div','tooltip-details');
+        for(const detail of distinctDetails)details.append(el('div','tooltip-detail',detail));
+        block.append(details);
       }
       section.append(block);
     }
@@ -1736,7 +1743,8 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         if(level===0)names.append(makeCorner());
         const parents=level===0?[{start:0,span:columns.length}]:pivotAxisGroups(columns,level-1);
         for(const group of parents){
-          const th=el('th','pivot-column-field',state.analysis.columns[level]);th.colSpan=group.span;names.append(th);
+          const fieldName=state.analysis.columns[level],th=describeAnalysisField(el('th','pivot-column-field',fieldName),fieldName);
+          th.colSpan=group.span;names.append(th);
         }
         thead.append(names);
       }
@@ -1757,7 +1765,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         if(state.analysis.rows.length){
           const fieldGroup=rowFieldGroups[level].get(index);
           if(fieldGroup){
-            const axisIndex=2*level,th=el('th','pivot-row-field');
+            const axisIndex=2*level,th=describeAnalysisField(el('th','pivot-row-field'),state.analysis.rows[level]);
             th.append(el('span','pivot-row-field-text',state.analysis.rows[level]));
             th.rowSpan=fieldGroup.span;
             th.style.left=`${widths.slice(0,axisIndex).reduce((total,width)=>total+width,0)}px`;
@@ -1776,10 +1784,10 @@ function mergeWorkspaceYamlSnapshots(workspaces){
           list.append(applyOptionColor(el('span','cell-item',pivotCellDisplayValue(v,state.analysis.values)),cellColors.get(v)));
         }}
         const cellRecords=recordCells[r.key]?.[c.key]||[];
-        if(state.analysis.tooltip.some(field=>field!==ANALYSIS_DETAIL_LABEL)&&cellRecords.length){
+        if(state.analysis.tooltip.length&&cellRecords.length){
           const links=el('div','cell-root-links');
           for(const [rootIndex,group] of groupAnalysisRecordsByRoot(cellRecords,state.columns[0]?.name).entries()){
-            const label=rootIndex<20?String.fromCodePoint(0x2460+rootIndex):String(rootIndex+1);
+            const label=`#${group.number??rootIndex+1}`;
             const button=el('button','root-menu-trigger',label);button.type='button';
             button.setAttribute('aria-label',`${group.root}の詳細を表示`);
             button.setAttribute('aria-controls','analysis-click-menu');button.setAttribute('aria-expanded','false');

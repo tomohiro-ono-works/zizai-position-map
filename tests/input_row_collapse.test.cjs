@@ -29,6 +29,7 @@ class Element {
   getAttribute(name) { return this.attributes[name]; }
   addEventListener(name, fn) { this.handlers[name] = fn; }
   dispatch(name, details = {}) { this.handlers[name]?.({target: this, ...details}); }
+  contains(target) { return this === target || this.children.some(child=>child.contains?.(target)); }
   querySelector(name) {
     if (name === '.table-wrap') return this.scrollArea;
     if (name === '.picker-options') return this.pickerOptions;
@@ -86,6 +87,9 @@ function setup(useInitialSample = false, customSnapshot = null) {
   ];
   const storage = useInitialSample ? new Map() : new Map([['dx_three_screens_v2', JSON.stringify(customSnapshot ?? {detailUiVersion: 1, columns, projects})]]);
   const document = {
+    handlers: {},
+    addEventListener(name, fn) { this.handlers[name] = fn; },
+    dispatch(name, details = {}) { this.handlers[name]?.({target: this, ...details}); },
     createElement: tag => new Element(tag),
     createTextNode: text => ({textContent: text}),
     getElementById: getElement,
@@ -207,7 +211,7 @@ test('analysis removes independent cell color controls and stops saving colors i
   assert.equal(parsed.valueColors,undefined, 'old analysis YAML remains readable but cannot override definition colors');
 });
 
-test('analysis offers detailed messages only in hover settings and retains the YAML selection', () => {
+test('analysis offers detailed messages only in click-menu settings and retains the YAML selection', () => {
   const {context} = setup();
   const columns = [{name:'案件名'}, {name:'業務の高度化'}];
   for (const axis of ['rows','columns','values','filters']) {
@@ -220,7 +224,7 @@ test('analysis offers detailed messages only in hover settings and retains the Y
   assert.throws(() => context.parseAnalysisYaml(context.serializeAnalysisYaml({...analysis,rows:['詳細メッセージ']}),['案件名','業務の高度化']), /rows: 未定義の項目/);
 });
 
-test('hover detail content preserves source field names and deduplicates matching project messages', () => {
+test('click-menu detail content preserves source field names and deduplicates matching project messages', () => {
   const {context} = setup();
   const columns = [{name:'案件名'},{name:'業務の高度化'},{name:'技術の高度化'}];
   const tree = {value:'案件A',children:[{value:'解像度',detail:'要因を検証',children:[{value:'統計',detail:'回帰分析を実施',children:[]}]}]};
@@ -286,16 +290,16 @@ test('pivot cell displays only values even when multiple fields supply different
   assert.deepEqual(chips.map(chip=>chip.textContent),['設計','統計']);
   assert.deepEqual(chips.map(chip=>chip.style.backgroundColor),['#112233','#dceafe']);
   assert.equal(findAll(getElement('pivot-host'),node=>node.className==='empty').length,3, 'unfilled option combinations show a dash');
-  const hoveredCell = findAll(getElement('pivot-host'),node=>node.className==='hover-enabled')[0];
-  hoveredCell.dispatch('mouseenter',{clientX:120,clientY:160});
-  assert.deepEqual(findAll(getElement('analysis-hover-tooltip'),node=>node.className==='tooltip-value').map(node=>node.textContent),[
+  const trigger = findAll(getElement('pivot-host'),node=>node.className==='root-menu-trigger')[0];
+  trigger.dispatch('click');
+  assert.deepEqual(findAll(getElement('analysis-click-menu'),node=>node.className==='tooltip-value').map(node=>node.textContent),[
     '工程: 区分：要件整理を実施','技術：回帰分析を実施'
   ]);
   assert.equal(context.pivotCellDisplayValue('工程: 区分: 設計',['工程: 区分','技術']),'設計');
   assert.equal(context.pivotCellDisplayValue('技術: 統計',['工程: 区分','技術']),'統計');
 });
 
-test('analysis hover groups matching records by root project and colors defined labels', () => {
+test('analysis root buttons open only their project, switch selection, and position the click menu above the cell', () => {
   const columns = [
     {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
     {id:'tech',name:'技術の高度化',type:'select',options:['統計'],cardinality:'1:1',allowDetail:true,optionColors:{'統計':'#e3a4c5'}}
@@ -306,19 +310,45 @@ test('analysis hover groups matching records by root project and colors defined 
   ];
   const snapshot = {detailUiVersion:1,columns,projects,
     analysis:{rows:['技術の高度化'],columns:[],values:['技術の高度化'],tooltip:['技術の高度化','詳細メッセージ'],filters:{}}};
-  const {navigation,getElement,find} = setup(false,snapshot);
+  const {navigation,getElement,find,context} = setup(false,snapshot);
   navigation.analysis.dispatch('click');
-  const cell = find(getElement('pivot-host'),node=>node.className==='hover-enabled');
-  cell.dispatch('mouseenter',{clientX:110,clientY:155});
-  const popup = getElement('analysis-hover-tooltip');
-  const groups = popup.children.filter(node=>node.className==='tooltip-project');
-  assert.equal(groups.length,2,'same matrix cell contains two separate root projects');
-  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件A','案件B']);
-  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-value').textContent),[
-    '技術の高度化：回帰分析を実施','技術の高度化：分類モデルを検証'
-  ]);
-  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-choice').textContent),['統計','統計']);
-  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-choice').style.backgroundColor),['#e3a4c5','#e3a4c5']);
+  const host = getElement('pivot-host');
+  const findAll = (node,predicate) => [...(predicate(node)?[node]:[]),...(node.children??[]).flatMap(child=>findAll(child,predicate))];
+  const buttons = findAll(host,node=>node.className==='root-menu-trigger');
+  assert.deepEqual(buttons.map(button=>button.textContent),['①','②']);
+  assert.deepEqual(buttons.map(button=>button.attributes['aria-label']),['案件Aの詳細を表示','案件Bの詳細を表示']);
+  const cell = find(host,node=>node.tagName==='td'&&find(node,child=>child.className==='cell-root-links'));
+  assert.ok(cell);
+  assert.equal(cell.handlers.mouseenter,undefined,'hover no longer opens a menu');
+  cell.rect = {top:430,bottom:495,left:220,right:420,width:200,height:65};
+  const menu = getElement('analysis-click-menu');menu.offsetHeight=140;menu.offsetWidth=280;
+  buttons[0].dispatch('click');
+  assert.equal(menu.hidden,false);
+  assert.equal(Number.parseInt(menu.style.top,10),282,'menu opens above the cell when space is available');
+  assert.equal(buttons[0].attributes['aria-expanded'],'true');
+  assert.deepEqual(menu.children.filter(node=>node.className==='tooltip-project').map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件A']);
+  assert.equal(find(menu,node=>node.className==='tooltip-value').textContent,'技術の高度化：回帰分析を実施');
+  assert.equal(find(menu,node=>node.className==='tooltip-choice').style.backgroundColor,'#e3a4c5');
+  buttons[1].dispatch('click');
+  assert.deepEqual(menu.children.filter(node=>node.className==='tooltip-project').map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件B']);
+  assert.equal(buttons[0].attributes['aria-expanded'],'false');
+  assert.equal(buttons[1].attributes['aria-expanded'],'true');
+  buttons[1].dispatch('click');
+  assert.equal(menu.hidden,true,'re-clicking the active root closes its menu');
+  buttons[0].dispatch('click');
+  context.document.dispatch('keydown',{key:'Escape'});
+  assert.equal(menu.hidden,true,'Escape closes the menu');
+  cell.rect = {top:90,bottom:140,left:220,right:420,width:200,height:50};
+  buttons[0].dispatch('click');
+  assert.equal(Number.parseInt(menu.style.top,10),148,'menu moves below the cell when there is no space above');
+  context.document.dispatch('click',{target:find(menu,node=>node.className==='tooltip-root')});
+  assert.equal(menu.hidden,false,'clicks within the menu do not close it');
+  context.document.dispatch('click',{target:new Element('div')});
+  assert.equal(menu.hidden,true,'clicking elsewhere closes the menu');
+  buttons[0].dispatch('click');
+  find(menu,node=>node.className==='menu-close').dispatch('click');
+  assert.equal(menu.hidden,true,'the close control dismisses the menu');
+  assert.match(html, /<label>クリックメニュー<\/label>/,'picker name matches the click interaction');
 });
 
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {

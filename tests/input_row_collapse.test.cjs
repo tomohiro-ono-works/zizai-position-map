@@ -279,7 +279,7 @@ test('pivot cell displays only values even when multiple fields supply different
   ];
   const snapshot = {detailUiVersion:1,columns,projects:[{id:'p1',tree:{value:'案件A',children:[
     {value:'設計',detail:'要件整理を実施',children:[{value:['統計'],detail:'回帰分析を実施',children:[]}]}
-  ]}}],analysis:{rows:['工程: 区分'],columns:['技術'],values:['工程: 区分','技術'],tooltip:['詳細メッセージ'],filters:{}}};
+  ]}}],analysis:{rows:['工程: 区分'],columns:['技術'],values:['工程: 区分','技術'],tooltip:['工程: 区分','技術','詳細メッセージ'],filters:{}}};
   const {navigation,getElement,context} = setup(false,snapshot);
   navigation.analysis.dispatch('click');
   const findAll = (node, predicate) => [
@@ -367,7 +367,7 @@ test('click menu groups colored labels above one detail per field and avoids a p
   ]}}];
   const snapshot = {detailUiVersion:1,columns,projects,analysis:{
     rows:['業務の上位工程'],columns:[],values:['業務の上位工程'],
-    tooltip:['案件名','業務の上位工程','運用工数の削減','詳細メッセージ'],filters:{}
+    tooltip:['案件名','業務の上位工程','技術の高度化','運用工数の削減','詳細メッセージ'],filters:{}
   }};
   const {navigation,getElement,find} = setup(false,snapshot);
   navigation.analysis.dispatch('click');
@@ -429,7 +429,7 @@ test('click menu deduplicates repeated messages while preserving distinct ones i
   const projects=[{id:'p1',tree:{value:'案件A',children:[
     stage('統計','精度を検証'),stage('統計','精度を検証'),stage('機械学習','モデルを評価')
   ]}}];
-  const snapshot={detailUiVersion:1,columns,projects,analysis:{rows:['業務の上位工程'],columns:[],values:['技術の高度化'],tooltip:['詳細メッセージ'],filters:{}}};
+  const snapshot={detailUiVersion:1,columns,projects,analysis:{rows:['業務の上位工程'],columns:[],values:['技術の高度化'],tooltip:['技術の高度化','詳細メッセージ'],filters:{}}};
   const {navigation,getElement,find}=setup(false,snapshot);
   navigation.analysis.dispatch('click');
   find(getElement('pivot-host'),node=>node.className==='root-menu-trigger').dispatch('click');
@@ -438,6 +438,30 @@ test('click menu deduplicates repeated messages while preserving distinct ones i
   const details=find(menu,node=>node.className==='tooltip-details');
   assert.deepEqual(list.children.map(node=>node.textContent),['統計','機械学習']);
   assert.deepEqual(details.children.map(node=>node.textContent),['精度を検証','モデルを評価']);
+});
+
+test('click menu displays only chosen fields; the detail toggle adds messages, not new fields', () => {
+  const columns=[
+    {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
+    {id:'stage',name:'業務の上位工程',type:'select',options:['評価'],cardinality:'1:1',allowDetail:true},
+    {id:'tech',name:'技術の高度化',type:'select',options:['統計'],cardinality:'1:1',allowDetail:true}
+  ];
+  const projects=[{id:'p1',tree:{value:'案件A',children:[{value:'評価',detail:'工程を評価',children:[
+    {value:'統計',detail:'分析を実施',children:[]}
+  ]}]}}];
+  const makeSnapshot=tooltip=>({detailUiVersion:1,columns,projects,analysis:{rows:['業務の上位工程'],columns:[],values:['技術の高度化'],tooltip,filters:{}}});
+  const {navigation,getElement,find}=setup(false,makeSnapshot(['業務の上位工程','詳細メッセージ']));
+  navigation.analysis.dispatch('click');
+  find(getElement('pivot-host'),node=>node.className==='root-menu-trigger').dispatch('click');
+  const groupNames=getElement('analysis-click-menu').children.flatMap(node=>node.className==='tooltip-project'
+    ?node.children.filter(child=>child.className==='tooltip-group').map(child=>child.attributes['data-field']):[]);
+  assert.deepEqual(groupNames,['業務の上位工程'],'unselected technology is excluded even when it contains detail text');
+  const details=find(getElement('analysis-click-menu'),node=>node.className==='tooltip-details');
+  assert.deepEqual(details.children.map(node=>node.textContent),['工程を評価']);
+
+  const onlyDetails=setup(false,makeSnapshot(['詳細メッセージ']));
+  onlyDetails.navigation.analysis.dispatch('click');
+  assert.equal(onlyDetails.find(onlyDetails.getElement('pivot-host'),node=>node.className==='root-menu-trigger'),null,'detail alone produces no click-menu trigger');
 });
 
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {

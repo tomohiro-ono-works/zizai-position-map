@@ -770,15 +770,16 @@ test('existing 1:N controls remain available when project details are collapsed'
   assert.equal(body.children[0].children[0].rowSpan, 2);
 });
 
-test('single selection uses the same filter menu with exclusive radio options', () => {
+test('single selection opens from the chosen label and retains exclusive radio options', () => {
   const {body, find, storage} = setup();
   const stageCell = body.children[0].children[1];
   const label = find(stageCell, node => node.className === 'choice-chip');
   assert.equal(label?.textContent, '設計');
   const picker = find(stageCell, node => node.tagName === 'details' && node.className === 'multi-picker');
-  assert.ok(picker, 'single choice uses the same filter dropdown component');
-  const glyph = find(picker, node => node.className === 'filter-alt-icon');
-  assert.ok(glyph);
+  assert.ok(picker, 'single choice retains the same option menu');
+  const summary = find(picker, node => node.tagName === 'summary');
+  assert.equal(find(summary, node => node.className === 'choice-chip')?.textContent, '設計', 'the label itself opens the menu');
+  assert.equal(find(picker, node => node.className === 'filter-alt-icon'), null, 'separate filter icons are removed');
   const inputs = [];
   const collect = node => {
     if (node.tagName === 'input') inputs.push(node);
@@ -795,8 +796,12 @@ test('single selection uses the same filter menu with exclusive radio options', 
   inputs[2].dispatch('change');
   const changed = find(body.children[0].children[1], node => node.className === 'choice-chip');
   assert.equal(changed?.textContent, '評価');
+  assert.equal(find(summary, node => node.className === 'choice-chip')?.textContent, '評価');
   assert.equal(picker.open, false, 'single picker closes after one choice');
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].value, '評価');
+  inputs[0].checked = true;
+  inputs[0].dispatch('change');
+  assert.equal(find(summary, node => node.className === 'choice-placeholder')?.textContent, '未選択', 'empty selection uses the menu trigger');
 });
 
 test('multiple selections show one label per value and keep the 1:N controls', () => {
@@ -814,7 +819,8 @@ test('multiple selections show one label per value and keep the 1:N controls', (
   assert.deepEqual(labels(techCell), ['統計']);
   const edit = find(techCell, node => node.tagName === 'summary');
   assert.equal(edit?.textContent, '');
-  assert.ok(find(edit, node => node.className === 'filter-alt-icon'));
+  assert.equal(find(edit, node => node.className === 'choice-chip')?.textContent, '統計');
+  assert.equal(find(edit, node => node.className === 'filter-alt-icon'), null);
   const second = find(techCell, node => node.tagName === 'input' && node.attributes['aria-label'] === '技術の高度化 機械学習');
   second.checked = true;
   second.dispatch('change');
@@ -912,6 +918,27 @@ test('input table headers use dark blue-gray with white text while preserving li
   assert.ok(find(body.children[0], node => node.className === 'choice-chip'));
 });
 
+test('input table layout widens every column by half and adds comfortable cell padding', () => {
+  const tableRule = html.match(/\.entry-table\{([^}]+)\}/)?.[1] || '';
+  assert.match(tableRule, /width:150%/, 'each fixed-layout column grows to 150% of its previous width');
+  assert.match(tableRule, /min-width:1680px/, 'minimum table width also grows by 50%');
+  const cellRule = html.match(/\.entry-table td\{([^}]+)\}/)?.[1] || '';
+  assert.match(cellRule, /padding:8px/);
+  const choiceRules = [...html.matchAll(/\.entry-table \.entry-editor-choice\{([^}]+)\}/g)];
+  assert.match(choiceRules.at(-1)?.[1] || '', /padding:8px 8px 9px/);
+  const textRule = html.match(/\.entry-editor-text>textarea\.control\{([^}]+)\}/)?.[1] || '';
+  assert.match(textRule, /padding:10px 8px 31px/);
+});
+
+test('cell actions stay hidden until that cell is hovered or keyboard-focused', () => {
+  const actionsRule = [...html.matchAll(/\.entry-table \.cell-entry-actions\{([^}]+)\}/g)][0]?.[1] || '';
+  assert.match(actionsRule, /opacity:0/);
+  assert.match(actionsRule, /pointer-events:none/);
+  assert.match(html, /\.entry-table td:hover \.cell-entry-actions/);
+  assert.match(html, /\.entry-table td:focus-within \.cell-entry-actions/);
+  assert.match(html, /@media\(hover:none\)\{\.entry-table \.cell-entry-actions\{opacity:1/);
+});
+
 test('collapsed row previews one line; expanded row displays and edits the complete message', () => {
   const {body, find, storage} = setup(true);
   const firstRow = body.children[0];
@@ -958,6 +985,47 @@ test('collapsed row previews one line; expanded row displays and edits the compl
   assert.match(previewRule, /cursor:default/);
 });
 
+test('collapsed non-root free text shows three read-only lines while project name remains editable', () => {
+  const columns = [
+    {id:'name',name:'案件名',type:'text',cardinality:'1:1',options:[]},
+    {id:'notes',name:'業務課題',type:'text',cardinality:'1:1',options:[]}
+  ];
+  const projects = [{id:'p1',data:{name:'案件A',notes:'一行目\n二行目\n三行目\n四行目'}}];
+  const {body,find,storage} = setup(false,{detailUiVersion:1,columns,projects});
+  const name = find(body.children[0].children[0],node=>node.tagName==='textarea'&&node.getAttribute('aria-label')==='案件名');
+  const notes = body.children[0].children[1];
+  const preview = find(notes,node=>node.className==='text-value-preview');
+  const editor = find(notes,node=>node.tagName==='textarea'&&node.getAttribute('aria-label')==='業務課題');
+  assert.equal(name.hidden,false,'root field stays editable');
+  assert.equal(preview?.hidden,false,'non-root text is visible as read-only preview');
+  assert.equal(preview?.textContent,'一行目\n二行目\n三行目\n四行目');
+  assert.equal(editor?.hidden,true,'editing is disabled while collapsed');
+  assert.ok(Number.parseInt(body.children[0].style.height,10)>=96,'three-line preview has enough height');
+  const rule = html.match(/\.entry-table \.text-value-preview\{([^}]+)\}/)?.[1] || '';
+  assert.match(rule, /-webkit-line-clamp:3/);
+  assert.match(rule, /overflow:hidden/);
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].value,'一行目\n二行目\n三行目\n四行目');
+  const previewWrapper = find(notes,node=>node.className==='text-value-editor');
+  previewWrapper.dispatch('dblclick');
+  assert.match(body.children[0].className,/project-expanded/);
+  const fullText = find(body.children[0].children[1],node=>node.tagName==='textarea'&&node.getAttribute('aria-label')==='業務課題');
+  assert.equal(fullText.hidden,false);
+  assert.equal(fullText.value,'一行目\n二行目\n三行目\n四行目');
+});
+
+test('double clicking detail message opens only its project using existing row expansion', () => {
+  const {body,find,storage} = setup();
+  const first = find(body.children[0].children[1],node=>node.className==='detail-message-wrap');
+  assert.ok(first);
+  first.dispatch('dblclick');
+  assert.match(body.children[0].className,/project-expanded/);
+  assert.match(body.children[1].className,/project-collapsed/);
+  const area = find(body.children[0].children[1],node=>node.tagName==='textarea'&&node.getAttribute('data-autosize-detail')==='true');
+  assert.equal(area.hidden,false);
+  assert.ok(find(body.children[0],node=>node.tagName==='button'&&node.textContent==='⋁'));
+  assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].value,'設計');
+});
+
 test('long project names enlarge their collapsed row instead of showing a textarea scrollbar', () => {
   const {body, find, storage} = setup();
   const row = body.children[0];
@@ -982,8 +1050,8 @@ test('project rows keep tight spacing while allowing expanded detail and 1:N con
   const collapsedChoice = html.match(/\.entry-table tr\.project-collapsed \.entry-editor-choice\{([^}]+)\}/)?.[1] || '';
   assert.match(collapsedChoice, /min-height:64px/);
   const finalChoice = [...html.matchAll(/\.entry-table \.entry-editor-choice\{([^}]+)\}/g)].at(-1)?.[1] || '';
-  assert.match(finalChoice, /padding:5px 5px 6px/);
-  assert.match(html, /\.entry-table \.entry-editor-choice:has\(>\.cell-entry-actions\)\{padding-bottom:28px\}/);
+  assert.match(finalChoice, /padding:8px 8px 9px/);
+  assert.match(html, /\.entry-table \.entry-editor-choice:has\(>\.cell-entry-actions\)\{padding-bottom:30px\}/);
   const expandedDetail = find(body.children[0].children[1], node => node.tagName === 'textarea' && node.getAttribute('data-autosize-detail') === 'true');
   assert.equal(expandedDetail.hidden, false, 'full detail remains available in expanded rows');
   assert.ok(find(body.children[0], node => node.tagName === 'button' && node.textContent === '＋'), 'add controls remain');
@@ -1010,26 +1078,22 @@ test('input project separators and editor spacing are subtle and consistent', ()
   const followRows = [...html.matchAll(/\.entry-table tr\.detail-follow>td\{([^}]+)\}/g)];
   assert.match(followRows.at(-1)?.[1] || '', /border-top-color:#e8eef5/);
   const editorRules = [...html.matchAll(/\.entry-table \.entry-editor-choice\{([^}]+)\}/g)];
-  assert.match(editorRules.at(-1)?.[1] || '', /padding:5px 5px 6px/);
+  assert.match(editorRules.at(-1)?.[1] || '', /padding:8px 8px 9px/);
 });
 
-test('filter editors use the Google filter_alt symbol in borderless compact controls', () => {
+test('choice editors use only label and placeholder as the menu trigger', () => {
   const {body, find} = setup();
   const single = find(body.children[0].children[1], node => node.tagName === 'summary');
   const multiple = find(body.children[0].children[2], node => node.tagName === 'summary');
   for (const control of [single, multiple]) {
     assert.ok(control);
-    const glyph = find(control, node => node.className === 'filter-alt-icon');
-    assert.ok(glyph, 'the editing affordance is a filter icon');
-    assert.equal(glyph.getAttribute('aria-hidden'), 'true');
+    assert.ok(find(control, node => node.className === 'choice-chip'), 'the selected value is inside the clickable summary');
+    assert.equal(find(control, node => node.className === 'filter-alt-icon'), null);
   }
   const buttonRule = [...html.matchAll(/\.entry-table \.multi-picker>summary\{([^}]+)\}/g)].map(match => match[1]).find(rule => rule.includes('width:20px')) || '';
-  assert.match(buttonRule, /width:20px/);
-  assert.match(buttonRule, /height:20px/);
-  assert.match(buttonRule, /border:0/);
-  assert.match(buttonRule, /background:#f1f3f5/);
-  assert.match(html, /filter_alt_20px\.svg/);
-  assert.match(html, /mask:var\(--filter-alt-glyph\)/);
+  assert.equal(buttonRule, '', 'filter-size trigger is no longer present');
+  const triggerRule = [...html.matchAll(/\.entry-table \.multi-picker>summary\{([^}]+)\}/g)][0]?.[1] || '';
+  assert.match(triggerRule, /cursor:pointer/);
 });
 
 test('project expand and collapse controls show only a simple glyph with no frame', () => {

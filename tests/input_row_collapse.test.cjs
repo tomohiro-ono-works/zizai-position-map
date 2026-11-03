@@ -274,14 +274,21 @@ test('input table headers use dark blue-gray with white text while preserving li
   assert.ok(find(body.children[0], node => node.className === 'choice-chip'));
 });
 
-test('expanded detail messages grow with content instead of scrolling inside a cell', () => {
+test('detail message shows one truncated preview line and opens full editor on demand', () => {
   const {body, find, storage} = setup(true);
   const firstRow = body.children[0];
   const detailWrap = find(firstRow.children[1], node => node.className === 'detail-message-wrap');
   assert.equal(detailWrap.hidden, true);
   find(firstRow, node => node.tagName === 'button' && node.textContent === '＞').dispatch('click');
   const detail = find(body.children[0].children[1], node => node.tagName === 'textarea' && node.attributes['aria-label'] === '業務の上位工程の詳細メッセージ');
+  const preview = find(body.children[0].children[1], node => node.className === 'detail-message-preview');
   assert.ok(detail, 'details stay under their existing column');
+  assert.ok(preview, 'a compact preview is visible');
+  assert.equal(detail.hidden, true, 'the full editor is initially hidden');
+  assert.ok(preview.textContent.length > 0);
+  preview.dispatch('click');
+  assert.equal(preview.hidden, true);
+  assert.equal(detail.hidden, false, 'the entire message remains editable');
   assert.equal(detail.getAttribute('data-autosize-detail'), 'true');
   assert.equal(detail.style.height, `${Math.max(65, detail.scrollHeight)}px`);
   const contents = '要件と設計の記録を詳細に残します。'.repeat(24);
@@ -289,6 +296,10 @@ test('expanded detail messages grow with content instead of scrolling inside a c
   detail.dispatch('input');
   assert.equal(detail.style.height, `${Math.max(65, detail.scrollHeight)}px`);
   assert.equal(JSON.parse(storage.get('dx_three_screens_v2')).projects[0].tree.children[0].detail, contents);
+  detail.dispatch('blur');
+  assert.equal(detail.hidden, true);
+  assert.equal(preview.hidden, false);
+  assert.match(preview.textContent, /要件と設計/);
   Object.defineProperty(detail, 'scrollHeight', {configurable: true, value: undefined});
   detail.dispatch('input');
   assert.equal(detail.style.height, '65px', 'unknown size falls back to a usable minimum');
@@ -297,6 +308,10 @@ test('expanded detail messages grow with content instead of scrolling inside a c
   assert.match(finalRule, /overflow:hidden/);
   assert.match(finalRule, /flex:none/);
   assert.match(finalRule, /resize:none/);
+  const previewRule = html.match(/\.entry-table \.detail-message-preview\{([^}]+)\}/)?.[1] || '';
+  assert.match(previewRule, /white-space:nowrap/);
+  assert.match(previewRule, /text-overflow:ellipsis/);
+  assert.match(previewRule, /overflow:hidden/);
 });
 
 test('expanded project has a slim left accent without a new row background', () => {
@@ -352,8 +367,8 @@ test('project expand and collapse controls show only a simple glyph with no fram
   const rule = [...html.matchAll(/\.project-row-toggle\{([^}]+)\}/g)].at(-1)?.[1] || '';
   assert.match(rule, /border:0/);
   assert.match(rule, /background:transparent/);
-  assert.match(rule, /font-size:14px/);
-  assert.match(rule, /width:19px/);
+  assert.match(rule, /font-size:12px/);
+  assert.match(rule, /width:17px/);
   assert.match(html, /\.project-row-toggle:hover\{background:transparent/);
 });
 

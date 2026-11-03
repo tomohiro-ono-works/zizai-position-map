@@ -295,6 +295,32 @@ test('pivot cell displays only values even when multiple fields supply different
   assert.equal(context.pivotCellDisplayValue('技術: 統計',['工程: 区分','技術']),'統計');
 });
 
+test('analysis hover groups matching records by root project and colors defined labels', () => {
+  const columns = [
+    {id:'name',name:'案件名',type:'text',options:[],cardinality:'1:1'},
+    {id:'tech',name:'技術の高度化',type:'select',options:['統計'],cardinality:'1:1',allowDetail:true,optionColors:{'統計':'#e3a4c5'}}
+  ];
+  const projects = [
+    {id:'p1',tree:{value:'案件A',children:[{value:'統計',detail:'回帰分析を実施',children:[]}]}},
+    {id:'p2',tree:{value:'案件B',children:[{value:'統計',detail:'分類モデルを検証',children:[]}]}}
+  ];
+  const snapshot = {detailUiVersion:1,columns,projects,
+    analysis:{rows:['技術の高度化'],columns:[],values:['技術の高度化'],tooltip:['技術の高度化','詳細メッセージ'],filters:{}}};
+  const {navigation,getElement,find} = setup(false,snapshot);
+  navigation.analysis.dispatch('click');
+  const cell = find(getElement('pivot-host'),node=>node.className==='hover-enabled');
+  cell.dispatch('mouseenter',{clientX:110,clientY:155});
+  const popup = getElement('analysis-hover-tooltip');
+  const groups = popup.children.filter(node=>node.className==='tooltip-project');
+  assert.equal(groups.length,2,'same matrix cell contains two separate root projects');
+  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-root').textContent),['案件A','案件B']);
+  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-value').textContent),[
+    '技術の高度化：回帰分析を実施','技術の高度化：分類モデルを検証'
+  ]);
+  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-choice').textContent),['統計','統計']);
+  assert.deepEqual(groups.map(group=>find(group,node=>node.className==='tooltip-choice').style.backgroundColor),['#e3a4c5','#e3a4c5']);
+});
+
 test('definition option editor toggles with a plain small chevron and no surrounding frame', () => {
   const {navigation, getElement, find} = setup();
   navigation.definition.dispatch('click');

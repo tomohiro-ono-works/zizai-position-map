@@ -4,66 +4,130 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DX案件ワークスペース｜項目定義・入力・分析</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&amp;display=swap">
 <style>
 :root{--bg:#f4f7fb;--ink:#182b43;--muted:#64768c;--line:#dce5f0;--blue:#2865dc;--nav:#102e52;--teal:#078e83;--pale:#edf4ff;--soft:#e9f7f3;--red:#a63d4c;--shadow:0 10px 30px #253e6010}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 system-ui,"Noto Sans JP","Yu Gothic",Meiryo,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}[hidden]{display:none!important}button:disabled{opacity:.45;cursor:default}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 "Noto Sans JP","Yu Gothic",Meiryo,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}[hidden]{display:none!important}button:disabled{opacity:.45;cursor:default}
 header{background:linear-gradient(110deg,#102e52,#164d72);color:#fff;padding:8px max(16px,calc((100vw - 1240px)/2)) 0}.header-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.brand{display:flex;gap:8px;align-items:center;min-width:0;flex:1}.brand-icon{width:27px;height:27px;border-radius:7px;background:#358ddd;display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:6px;flex-shrink:0}.brand-icon i{background:#d9f7ff;border-radius:2px}.brand h1{font-size:17px;letter-spacing:-.025em;margin:0;line-height:1.4;min-width:0}.workspace-title{width:min(520px,calc(100vw - 95px));max-width:100%;font:inherit;font-weight:800;letter-spacing:inherit;color:#fff;background:transparent;border:1px solid transparent;border-radius:4px;padding:1px 4px;outline:0}.workspace-title:hover{border-bottom-color:#b7d7eb}.workspace-title:focus{background:#ffffff16;border-color:#a5daed}.workspace-title::placeholder{color:#d2e8fa}.switch.header-format-switch{flex-shrink:0;margin-left:auto;padding:2px}.switch.header-format-switch button{padding:4px 10px}.nav{display:flex;gap:5px;margin-top:5px;overflow-x:auto}.nav button{padding:7px 13px;border:0;border-bottom:3px solid transparent;background:transparent;color:#b8cce4;font-weight:750;white-space:nowrap}.nav button.active{color:#fff;border-bottom-color:#65dbca;background:#ffffff12}.nav small{opacity:.65;margin-right:7px}
 main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex;justify-content:flex-end;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px}.panel{border:1px solid var(--line);background:#fff;border-radius:14px;box-shadow:var(--shadow);padding:19px;min-width:0}.panel h3{font-size:16px;margin:0 0 4px}.desc{font-size:11px;color:var(--muted);margin:0 0 13px}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:9px;margin-bottom:12px}.panel-head h3{margin:0}.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn{background:#fff;color:#365575;border:1px solid #cdd9e7;padding:9px 13px;border-radius:8px;font-weight:750;font-size:12px}.btn:hover{background:#f5f9ff}.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.primary:hover{background:#1b53ba}.btn.soft{background:var(--soft);border-color:#c9e9e0;color:#08746b}.btn.danger{color:var(--red);border-color:#edcdd3;background:#fff9fa}.btn.small{padding:6px 9px;font-size:11px}.control{min-width:0;border:1px solid #c8d5e4;background:#fff;color:var(--ink);padding:9px 10px;border-radius:8px;outline:0}.control:focus,.yaml-area:focus,.markdown:focus{border-color:#5286df;box-shadow:0 0 0 3px #ddeaff}.switch{display:inline-flex;gap:4px;padding:4px;border-radius:9px;background:#e7edf5}.switch button{border:0;border-radius:6px;background:transparent;color:#657791;font-size:12px;font-weight:800;padding:8px 14px}.switch button.active{background:#fff;color:var(--blue);box-shadow:0 2px 6px #1a45631a}
 .field-card{border:1px solid var(--line);border-radius:10px;background:#fbfcff;padding:12px;margin:9px 0}.field-main{display:flex;gap:8px;align-items:center}.field-main input{flex:1}.field-main select{width:152px}.field-extra{padding:10px 0 0 0}.field-extra label{display:block;font-size:11px;font-weight:800;color:#586c85;margin:0 0 5px}.option-area{display:block;width:100%;min-height:78px;resize:vertical;padding:9px 11px;border:1px solid #c8d5e4;border-radius:8px;font-size:12px;outline:0}
 .yaml-area{width:100%;min-height:490px;resize:vertical;display:block;background:#122840;color:#e6f1ff;border:1px solid #365675;border-radius:9px;padding:16px;font:12px/1.7 Consolas,"Yu Gothic",monospace;outline:0;tab-size:2}.yaml-info{margin:11px 0 0;color:var(--muted);font-size:11px}.error{font-size:12px;color:#ac3542;background:#fff1f2;border:1px solid #f1d3d7;border-radius:8px;padding:10px 12px;margin-top:12px;white-space:pre-wrap}
-.project{margin:12px 0}.project-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.project-header strong{font-size:14px}.markdown{display:block;width:100%;height:320px;resize:vertical;border:1px solid #c8d5e4;border-radius:9px;padding:14px;font:12px/1.6 Consolas,"Yu Gothic",Meiryo,monospace;outline:0}.add-wide{display:block;width:100%;border:1px dashed #83b7ae;border-radius:10px;background:#edf9f6;color:#08766c;padding:14px;margin-top:13px;font-weight:800}.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:11px}.entry-table{width:100%;min-width:1120px;table-layout:fixed;border-collapse:collapse}.entry-table th{background:#344f67;color:#fff;padding:11px;text-align:left;font-size:11px;border-bottom:1px solid #223e55}.entry-table tbody tr{height:160px}.entry-table td{position:relative;border-top:1px solid var(--line);border-right:1px solid var(--line);padding:5px;vertical-align:top}.entry-table td.text-cell,.entry-table td.choice-cell{padding:0}.entry-table td:last-child{border-right:0}.entry-table .control{width:100%;font-size:12px}.entry-table textarea.control{min-height:100px;resize:vertical;border:0;border-radius:0;background:transparent;padding:5px 3px;box-shadow:none;outline:none}.entry-table textarea.control:focus{border:0;box-shadow:none;background:#eef5ff}.checklist{border:1px solid #e0e8f0;background:#fbfcfe;border-radius:8px;max-height:190px;overflow:auto;padding:5px}.checklist label{display:flex;gap:7px;align-items:center;padding:6px;font-size:11px;cursor:pointer}.checklist label:hover{background:#f1f6fc}.checklist input{accent-color:var(--teal)}.select-summary{font-size:11px;color:#4d687b;margin:4px 0 7px}.input-note{font-size:11px;color:var(--muted);margin:12px 0}
+.project{margin:12px 0}.project-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.project-header strong{font-size:14px}.markdown{display:block;width:100%;height:320px;resize:vertical;border:1px solid #c8d5e4;border-radius:9px;padding:14px;font:12px/1.6 Consolas,"Yu Gothic",Meiryo,monospace;outline:0}.add-wide{display:block;width:100%;border:1px dashed #83b7ae;border-radius:10px;background:#edf9f6;color:#08766c;padding:14px;margin-top:13px;font-weight:800}.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:11px}.entry-table{width:150%;min-width:1680px;table-layout:fixed;border-collapse:collapse}.entry-table th{background:#344f67;color:#fff;padding:11px;text-align:left;font-size:11px;border-bottom:1px solid #223e55}.entry-table tbody tr{height:160px}.entry-table td{position:relative;border-top:1px solid var(--line);border-right:1px solid var(--line);padding:8px;vertical-align:top}.entry-table td.text-cell,.entry-table td.choice-cell{padding:0}.entry-table td:last-child{border-right:0}.entry-table .control{width:100%;font-size:12px}.entry-table textarea.control{min-height:100px;resize:vertical;border:0;border-radius:0;background:transparent;padding:8px;box-shadow:none;outline:none}.entry-table textarea.control:focus{border:0;box-shadow:none;background:#eef5ff}.checklist{border:1px solid #e0e8f0;background:#fbfcfe;border-radius:8px;max-height:190px;overflow:auto;padding:5px}.checklist label{display:flex;gap:7px;align-items:center;padding:6px;font-size:11px;cursor:pointer}.checklist label:hover{background:#f1f6fc}.checklist input{accent-color:var(--teal)}.select-summary{font-size:11px;color:#4d687b;margin:4px 0 7px}.input-note{font-size:11px;color:var(--muted);margin:12px 0}
 .analysis-layout{display:flex;flex-direction:column;gap:12px}.analysis-layout>.panel,.analysis-results{width:100%;min-width:0}.filter-group{padding:14px 0;border-top:1px solid var(--line)}.filter-group:first-of-type{border:0}.filter-group>label{display:block;font-weight:800;font-size:12px;margin-bottom:8px}.picker{border:1px solid #c8d5e4;border-radius:9px;background:#fff}.picker summary{padding:10px;font-size:11px;cursor:pointer;overflow-wrap:anywhere}.picker-options{padding:7px;max-height:240px;overflow:auto;border-top:1px solid var(--line)}.picker-options label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;padding:5px}.picker-options label:hover{background:#eef5fc}.picker-options input{accent-color:var(--blue)}.summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.summary span{border:1px solid var(--line);background:#fff;padding:7px 11px;border-radius:8px;font-size:11px;color:var(--muted)}.summary b{color:var(--ink);font-size:16px;margin-right:4px}.pivot-box{overflow:auto;border:1px solid var(--line);border-radius:11px;background:#fff;min-height:180px}.pivot{width:100%;border-collapse:separate;border-spacing:0}.pivot th,.pivot td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px;min-width:160px;vertical-align:top}.pivot tr>*:last-child{border-right:0}.pivot tr:last-child>*{border-bottom:0}.pivot th{background:#eff5ff;color:#395f92;text-align:left;font-size:11px;white-space:pre-line}.pivot th.corner{background:#163958;color:#fff;position:sticky;left:0;z-index:2;min-width:180px}.pivot tbody th{position:sticky;left:0;background:#f7faff;z-index:1}.cell-list{display:flex;flex-wrap:wrap;gap:5px}.cell-item{display:inline-block;border:1px solid #c8e8df;background:#eefaf6;color:#296e64;border-radius:6px;padding:4px 7px;font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere}.empty{color:#b5bfcd}.status{position:fixed;right:18px;bottom:18px;max-width:90vw;background:#163e57;color:#fff;padding:11px 14px;border-radius:9px;box-shadow:0 7px 24px #17395050;font-size:12px;z-index:10}
 /* Definition view: short rows and on-demand editors. */
 #definition-gui{display:flex;flex-direction:column;gap:14px;max-width:1040px}
-#definition-gui .panel{padding:16px 20px}
-#field-editor{overflow-x:auto}
-#field-editor .field-card{margin:0;padding:10px 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;display:grid;grid-template-columns:64px 102px minmax(0,1fr) 164px 62px;column-gap:8px;row-gap:5px;min-width:710px;align-items:center}
-#field-editor .field-card:last-child{border-bottom:0}
-#field-editor .field-card>input.control{width:100%;min-width:0}
+#definition-gui .panel{padding:22px 24px;border:0;background:transparent;box-shadow:none;border-radius:0}
+#field-editor{display:grid;gap:10px;overflow-x:auto;padding:2px}
+#field-editor .field-card{margin:0;padding:14px 16px;border:1px solid #dce5f0;border-radius:8px;background:#fff;box-shadow:none;display:grid;grid-template-columns:36px 44px minmax(0,1fr) 164px 62px;column-gap:6px;row-gap:4px;min-width:680px;align-items:center}
+#field-editor .field-card[data-drop-target="true"]{box-shadow:inset 0 2px #7099c5}
+#field-editor .field-order{justify-content:center}
+#field-editor .field-drag-handle{display:flex;align-items:center;justify-content:center;width:28px;height:30px;border:0;border-radius:3px;background:transparent;color:#8a9bad;font-size:19px;line-height:1;cursor:grab;touch-action:none}
+#field-editor .field-drag-handle:hover{color:#416583;background:#f3f6f8}
+#field-editor .field-drag-handle:active{cursor:grabbing}
+#field-editor .field-drag-handle:focus-visible{outline:2px solid #5286df;outline-offset:1px}
+#field-editor .field-name-label{font-size:11px;font-weight:750;color:#62768b;white-space:nowrap;text-align:right}
+#field-editor .field-card>input.control{width:100%;min-width:0;height:32px;padding:5px 8px;border:1px solid transparent;background:transparent;box-shadow:none;font-size:16px;font-weight:650}
+#field-editor .field-card>input.control:hover{border-color:#c8d5e4;background:#f7f8fa}
+#field-editor .field-card>input.control:focus{border-color:#5286df;background:#f7f8fa;box-shadow:0 0 0 2px #ddeaff}
+#field-editor .field-description-row{grid-column:2 / 4;grid-row:2;display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:6px;align-items:start;min-width:0}
+#field-editor .field-description-row label{font-size:11px;font-weight:700;color:#62768b;text-align:right;padding-top:6px;white-space:nowrap}
+#field-editor .field-description-row textarea{width:100%;min-width:0;min-height:32px;height:32px;padding:6px 8px;border:1px solid transparent;border-radius:4px;background:transparent;box-shadow:none;outline:0;font-size:11px;line-height:1.5;resize:none;overflow-y:hidden}
+#field-editor .field-description-row textarea:hover{border-color:#c8d5e4;background:#f7f8fa}
+#field-editor .field-description-row textarea:focus{border-color:#5286df;background:#f7f8fa;box-shadow:0 0 0 2px #ddeaff}
+#field-editor .field-card>select.control{height:32px;padding:4px 8px;border:0;background:#f7f8fa;border-radius:4px;box-shadow:none;font-size:11px}
+#field-editor .field-card>select.control:hover{background:#f1f3f5}
+#field-editor .field-card>select.control:focus{outline:2px solid #5286df;outline-offset:1px;box-shadow:none}
 #field-editor .field-card>select.control:not(.cardinality-select){width:164px}
-#field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{width:102px!important;height:38px;display:flex;align-items:center;justify-content:center}
-#field-editor .field-card>.btn{width:62px;padding:6px 3px;height:34px}
-#field-editor .field-settings{grid-column:3 / 5;display:flex;align-items:center;gap:12px;min-width:0}
+#field-editor .field-card>.root-mark,#field-editor .field-card>.cardinality-select{grid-column:4;grid-row:2;width:164px!important;height:32px;display:flex;align-items:center;justify-content:center}
+#field-editor .field-card>.btn{width:62px;padding:4px 3px;height:30px}
+#field-editor .field-settings{grid-column:3 / 5;grid-row:3;display:flex;align-items:center;gap:8px;min-width:0}
 #field-editor .field-settings>.definition-accordion{flex:1;min-width:0;align-self:stretch}
-.definition-accordion{margin:7px 0 0;border-radius:8px;background:#f6f9fc}
-.definition-accordion>summary{cursor:pointer;list-style-position:inside;padding:8px 11px;font-size:11px;color:#4e6480;font-weight:700}
-.definition-accordion[open]>summary{border-bottom:1px solid var(--line)}
-.definition-accordion .field-extra{padding:10px 12px 12px}
+.definition-accordion{margin:2px 0 0;border:0;border-radius:0;background:transparent}
+.definition-accordion>summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;border:0;background:transparent;padding:4px 2px;font-size:11px;color:#4e6480;font-weight:700}
+.definition-accordion>summary::-webkit-details-marker{display:none}
+.definition-accordion>summary:focus-visible{outline:2px solid #5286df;outline-offset:1px}
+.definition-accordion[open]>summary{border:0}
+.definition-chevron{display:inline-flex;align-items:center;justify-content:center;flex:none;width:12px;color:#375979;font-size:12px;line-height:1}
+.definition-option-chips{display:flex;flex-wrap:wrap;align-items:center;gap:3px;flex:1;min-width:0}
+.definition-option-chip{display:inline-block;max-width:100%;border:1px solid #cbd9e6;background:#edf4fa;background-image:none;box-shadow:none;border-radius:3px;padding:1px 5px;color:#365575;font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+.definition-option-empty{font-size:11px;color:#8a9bae}
+.definition-accordion .field-extra{padding:8px 8px 10px}
 .definition-accordion .option-area{min-height:70px}
 .field-color-list{display:grid;gap:5px;margin-top:5px}.field-color-row{display:flex;align-items:center;gap:9px;padding:4px 7px;background:#fff;border:1px solid #e1e8f0;border-radius:5px}.field-color-name{flex:1;min-width:0;overflow-wrap:anywhere;font-size:11px}.field-color-row input[type=color]{width:34px;height:27px;padding:2px;border:1px solid #c8d5e4;border-radius:5px;background:#fff;cursor:pointer}.field-color-row .btn{padding:3px 7px;font-size:10px}.field-color-heading{margin-top:13px!important}
+#field-editor .field-detail-toggle{border:0;border-radius:0;background:transparent;padding:4px 0}
+#field-editor .field-color-row{border:0;border-bottom:1px solid #e5edf3;border-radius:0;background:transparent;padding:4px 0}
+#field-editor .field-color-row:last-child{border-bottom:0}
+#field-editor .field-color-row input[type=color]{border:0;border-radius:3px;background:transparent;padding:1px}
 .field-order{display:flex;gap:3px;flex-shrink:0}.field-order .btn{min-width:27px;padding:5px}.root-mark{border-radius:7px;background:#e8f6f1;color:#127567;padding:6px 9px;white-space:nowrap;font-size:11px;font-weight:800}.cardinality-select{width:94px!important;flex:none!important}.root-help{font-size:11px;color:var(--muted);margin:0 0 8px}
-.entry-table .root-cell{background:#f7fbff;min-width:170px}.entry-table tr.project-first>td{border-top:2px solid #b7c9df}.entry-table tr.detail-follow>td{border-top:1px dashed #d7e3ee}.entry-table textarea.control{min-height:68px}.entry-editor-text{position:absolute;inset:0}.entry-editor-text>textarea.control{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:7px 6px 31px;resize:none}.cell-entry-actions{display:flex;gap:3px;justify-content:flex-end;margin-top:5px}.entry-editor-text>.cell-entry-actions{position:absolute;right:6px;bottom:6px;margin:0}.cell-entry-actions .btn{font-size:9px;padding:1px 5px;min-width:20px;min-height:20px;line-height:1.2}.entry-table .detail-empty{background:#fbfcfe}
+.entry-table .root-cell{background:#f7fbff;min-width:170px}.entry-table tr.project-first>td{border-top:2px solid #b7c9df}.entry-table tr.detail-follow>td{border-top:1px dashed #d7e3ee}.entry-table textarea.control{min-height:68px}.entry-editor-text{position:absolute;inset:0}.entry-editor-text>textarea.control{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:10px 8px 31px;resize:none}.cell-entry-actions{display:flex;gap:3px;justify-content:flex-end;margin-top:5px}.entry-editor-text>.cell-entry-actions{position:absolute;right:8px;bottom:8px;margin:0}.cell-entry-actions .btn{font-size:9px;padding:1px 5px;min-width:20px;min-height:20px;line-height:1.2}.entry-table .detail-empty{background:#fbfcfe}
 .entry-editor-choice{position:absolute;inset:0;display:flex;flex-direction:column;padding:5px;min-height:0}.entry-editor-choice>div{display:flex;flex-direction:column;flex:1;min-height:0}.entry-editor-choice .detail-message-wrap{flex:1;display:flex;flex-direction:column;min-height:0;margin-top:5px}.entry-editor-choice .detail-message-wrap textarea.control{flex:1;height:100%;min-height:0;resize:none;padding:5px 4px 29px}.entry-editor-choice>.cell-entry-actions{position:absolute;right:6px;bottom:6px;margin:0}.entry-editor-choice:has(.multi-picker[open]){z-index:2}
-.entry-table .entry-editor-choice{position:relative;inset:auto;min-height:160px;padding-bottom:29px}.entry-table tr.project-collapsed .entry-editor-choice{min-height:70px}
+.entry-table tbody tr{height:104px}.entry-table .entry-editor-choice{position:relative;inset:auto;min-height:104px;padding-bottom:6px}.entry-table tr.project-collapsed .entry-editor-choice{min-height:64px}
 .entry-table .choice-editor{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
 .entry-table .choice-control-bar{display:flex;align-items:flex-start;gap:5px;min-width:0}
 .entry-table .choice-chip-list{display:flex;flex-wrap:wrap;align-items:flex-start;gap:3px;flex:1;min-width:0}
 .entry-table .choice-chip{display:inline-block;max-width:100%;border:1px solid #cbd9e6;background:#edf4fa;background-image:none;box-shadow:none;border-radius:3px;padding:1px 5px;color:#365575;font-size:11px;line-height:1.35;overflow-wrap:anywhere}
 .entry-table .choice-placeholder{font-size:11px;color:#8a9bae;padding:3px 2px}
-.entry-table .multi-picker>summary{display:flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;min-height:20px;border:0;background:#f1f3f5;color:#456783;border-radius:3px;padding:0;cursor:pointer}
-.entry-table .multi-picker>summary:hover{background:#e3e8ec;color:#1d5077}
+.entry-table .multi-picker>summary{display:block;width:100%;min-height:22px;border:0;background:transparent;color:#456783;border-radius:3px;padding:0;text-align:left;cursor:pointer}
+.entry-table .multi-picker>summary:hover{background:#f8fafd}
 .entry-table .multi-picker>summary:focus-visible{outline:2px solid #5286df;outline-offset:2px}
-/* Google Material Symbols Outlined / filter_alt_20px.svg — Apache 2.0:
-   https://github.com/google/material-design-icons/blob/master/symbols/web/filter_alt/materialsymbolsoutlined/filter_alt_20px.svg */
-.entry-table .filter-alt-icon{--filter-alt-glyph:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='M456.18-192Q446-192 439-198.9t-7-17.1v-227L197-729q-9-12-2.74-25.5Q200.51-768 216-768h528q15.49 0 21.74 13.5Q772-741 763-729L528-443v227q0 10.2-6.88 17.1-6.89 6.9-17.06 6.9h-47.88ZM480-498l162-198H317l163 198Zm0 0Z'/%3E%3C/svg%3E");display:block;flex:none;width:20px;height:20px;background:currentColor;-webkit-mask:var(--filter-alt-glyph) center/contain no-repeat;mask:var(--filter-alt-glyph) center/contain no-repeat}
 .entry-table .choice-editor>select.control{width:100%;font-size:11px;padding:6px}
-.entry-table .multi-picker{flex:0 0 20px;position:relative;max-width:none;border:0;background:transparent}
+.entry-table .multi-picker{flex:1;min-width:0;position:relative;max-width:none;border:0;background:transparent}
 .entry-table .multi-picker>summary{list-style:none}.entry-table .multi-picker>summary::-webkit-details-marker{display:none}.entry-table .multi-picker[open]>summary{border-bottom:0}
 .entry-table .multi-picker .checklist{position:absolute;right:0;top:calc(100% + 4px);z-index:5;width:200px;max-height:200px;overflow:auto;border:1px solid #c8d5e4;background:#fff;box-shadow:0 5px 15px #264c6a24}
 .entry-table .multi-picker .choice-popover[popover]{position:fixed;inset:auto;margin:0;right:auto;bottom:auto;z-index:1000;width:200px;max-height:220px;overflow:auto;padding:5px;border:1px solid #c8d5e4;border-radius:5px;background:#fff;box-shadow:0 5px 15px #264c6a24}
 .entry-table tbody td{border-right-color:#e5edf3}
 .entry-table tr.project-first>td{border-top-color:#afc4d8}
 .entry-table tr.detail-follow>td{border-top-color:#e8eef5}
-.entry-table .entry-editor-choice{padding:6px 7px 29px}
+.entry-table .entry-editor-choice{padding:8px 8px 9px}.entry-table .entry-editor-choice:has(>.cell-entry-actions){padding-bottom:30px}
+.entry-table .cell-entry-actions{opacity:0;pointer-events:none;transition:opacity .12s ease}
+.entry-table td:hover .cell-entry-actions,.entry-table td:focus-within .cell-entry-actions{opacity:1;pointer-events:auto}
+@media(hover:none){.entry-table .cell-entry-actions{opacity:1;pointer-events:auto}}
 .entry-table tr.project-expanded .root-cell::before{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;background:#3d8b98;z-index:2;pointer-events:none}
-.entry-table tbody tr.project-collapsed{height:70px}.entry-table .root-cell .entry-editor-text>textarea.control{padding-left:31px}.project-row-toggle{position:absolute;top:9px;left:6px;z-index:1;width:19px;height:20px;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:#375979;font-size:14px}.project-row-toggle:hover{background:transparent;color:#1d5077}.project-row-toggle:focus-visible{outline:2px solid #5286df;outline-offset:1px}
+.entry-table tbody tr.project-collapsed{height:64px}.entry-table .root-cell .entry-editor-text>textarea.control{padding-left:31px;overflow-y:hidden}.project-row-toggle{position:absolute;top:9px;left:6px;z-index:1;width:17px;height:18px;display:flex;align-items:center;justify-content:center;padding:0;border:0;background:transparent;color:#375979;font-size:12px}.project-row-toggle:hover{background:transparent;color:#1d5077}.project-row-toggle:focus-visible{outline:2px solid #5286df;outline-offset:1px}
+.table-wrap{overscroll-behavior:contain}
+.entry-table thead th{position:sticky;top:0;z-index:7}
+.entry-table thead th:first-child{left:0;z-index:9;padding-left:68px}
+.entry-table thead th:first-child::before{content:"#";position:absolute;left:0;top:0;bottom:0;width:36px;display:flex;align-items:center;justify-content:center;background:#344f67;border-right:1px solid #688096;font-size:11px}
+.entry-table .root-cell{position:sticky;left:0;z-index:4}
+.entry-table .root-cell::after{content:attr(data-project-index);position:absolute;left:0;top:0;bottom:0;width:36px;display:flex;align-items:flex-start;justify-content:center;padding-top:11px;background:#f7fbff;border-right:1px solid #dce6f0;color:#3d5873;font-size:11px;font-weight:750;z-index:3;pointer-events:none}
+.entry-table .root-cell .entry-editor-text>textarea.control{padding-left:68px}
+.entry-table .project-row-toggle{left:42px;z-index:4}
+.entry-table tr.project-expanded .root-cell::before{z-index:5}
 .field-detail-toggle{display:flex!important;align-items:center;gap:7px;margin:0!important;padding:7px 9px;border:1px solid #c8d5e4;border-radius:8px;background:#fff;font-size:11px!important;white-space:nowrap;cursor:pointer}.field-detail-toggle input{accent-color:var(--teal);width:16px;height:16px}.multi-picker{border:1px solid #c8d5e4;border-radius:8px;background:#fff;max-width:100%}.multi-picker summary{cursor:pointer;font-size:11px;color:#4d687b;padding:9px 10px;overflow-wrap:anywhere;font-weight:700}.multi-picker[open] summary{border-bottom:1px solid var(--line)}.multi-picker .checklist{border:0;border-radius:0;max-height:190px}.detail-message-wrap{margin-top:8px}.detail-message-wrap label{display:block;color:#60788d;font-size:10px;font-weight:700;margin-bottom:4px}.entry-table .detail-message-wrap textarea.control{min-height:65px;font-size:11px}.entry-table .entry-editor-choice .detail-message-wrap textarea.control{min-height:0}
 .entry-table .entry-editor-choice .detail-message-wrap textarea.control{flex:none;height:auto;min-height:65px;overflow:hidden;resize:none;padding:5px 4px 8px}
+.entry-table .detail-message-preview{display:block;min-width:0;width:100%;max-width:100%;padding:3px 4px;border:0;background:transparent;color:var(--ink);font-size:11px;line-height:1.5;text-align:left;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;cursor:default}
+.entry-table .text-value-editor{position:absolute;inset:0;padding:10px 8px 30px;min-width:0}
+.entry-table .text-value-preview{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--ink);font-size:12px;line-height:1.5;cursor:default}
+.entry-table .text-value-editor>textarea.control{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:10px 8px 31px;resize:none}
+.entry-table .text-value-preview[hidden],.entry-table .detail-message-preview[hidden]{display:none}
 .pivot{width:max-content;table-layout:fixed}.pivot th,.pivot td{min-width:0;overflow-wrap:anywhere;box-sizing:border-box}.pivot .pivot-row-header{min-width:0;width:auto;max-width:none;overflow-wrap:anywhere}.pivot .pivot-column-header{position:relative;overflow-wrap:anywhere}.pivot th.corner{z-index:3;min-width:0}.pivot .pivot-resize-handle{position:absolute;top:0;right:0;bottom:0;width:8px;cursor:col-resize;touch-action:none;z-index:4}.pivot .pivot-resize-handle:hover,.pivot .pivot-resize-handle:focus{background:#2a83bd66;outline:none}.matrix-settings>summary{font-weight:800;font-size:16px;cursor:pointer;list-style-position:inside}.matrix-settings-body{padding-top:10px}.matrix-controls{display:grid;grid-template-columns:repeat(5,minmax(180px,1fr));gap:12px;align-items:start;overflow-x:auto;padding-bottom:4px}.matrix-controls .filter-group{padding:0;border:0;min-width:0}.matrix-reset-row{display:flex;justify-content:flex-end;margin-top:12px}.color-settings{margin-top:11px;border:1px solid var(--line);border-radius:8px;background:#f7faff}.color-settings>summary{font-size:11px;font-weight:800;cursor:pointer;padding:9px 10px;color:#44678b}.color-settings-body{padding:9px 10px 10px;border-top:1px solid var(--line)}.color-settings-body select.control{width:100%;font-size:11px;padding:7px 8px}.color-settings-tools{display:flex;align-items:center;gap:8px;margin-top:8px}.color-settings-tools input[type=color]{width:45px;height:33px;padding:3px;border:1px solid #c8d5e4;border-radius:7px;background:#fff;cursor:pointer}.color-settings-tools .btn{flex:1}.analysis-filter-bar{display:block;padding:12px;margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px}.analysis-filter-bar .filter-bar-heading{font-weight:800;font-size:12px;margin:0 0 7px}.analysis-filter-bar #analysis-filter-values{display:flex;align-items:start;flex-wrap:wrap;gap:8px}.analysis-filter-bar .filter-value-group{margin-top:0;min-width:170px;flex:0 1 230px}
-.axis-order{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;min-height:26px}.axis-chip{display:flex;gap:9px;align-items:center;padding:5px 8px;border:1px solid #bed3e8;border-radius:7px;background:#f0f6ff;color:#285378;font-size:11px;font-weight:750;cursor:grab;user-select:none;max-width:100%}.axis-chip:active{cursor:grabbing}.axis-chip:focus{outline:2px solid var(--blue)}.axis-chip .grip{color:#7596b4;font-size:13px;letter-spacing:-3px}.axis-empty{font-size:11px;color:#94a5b8}.filter-value-group{margin-top:9px;border:1px solid var(--line);border-radius:8px;background:#fbfcfe}.filter-value-group summary{font-size:11px;font-weight:750;padding:8px 10px;cursor:pointer}.filter-value-list{max-height:185px;overflow:auto;border-top:1px solid var(--line);padding:5px 8px}.filter-value-list label{display:flex;align-items:center;gap:6px;font-size:11px;padding:5px;cursor:pointer}.filter-value-list input{accent-color:var(--teal)}.pivot .hover-enabled{cursor:help}.analysis-hover-tooltip{position:fixed;z-index:200;width:max-content;min-width:220px;max-width:min(360px,85vw);max-height:58vh;overflow:auto;pointer-events:none;background:#15344f;color:#f4f9ff;padding:11px 13px;border-radius:9px;box-shadow:0 8px 22px #0c2c4866;font-size:11px}.analysis-hover-tooltip .tooltip-field{margin:0 0 8px}.analysis-hover-tooltip .tooltip-field:last-child{margin:0}.analysis-hover-tooltip strong{display:block;font-size:11px;color:#b8d8ee;margin-bottom:3px}.analysis-hover-tooltip .tooltip-value{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:2px 0}
+.pivot thead .pivot-column-header{vertical-align:middle;text-align:center}
+.pivot thead .pivot-column-field{background:#dceaf9;vertical-align:middle;text-align:center;font-weight:800}
+.pivot tbody .pivot-row-header{vertical-align:middle;text-align:left}
+.pivot tbody .pivot-row-field{background:#e9f2fc;vertical-align:middle;text-align:center;font-weight:800}
+.pivot tbody .pivot-row-field-text{display:inline-block;writing-mode:vertical-rl;text-orientation:sideways;transform:rotate(180deg);white-space:nowrap}
+.axis-order{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;min-height:26px}.axis-chip{display:flex;gap:9px;align-items:center;padding:5px 8px;border:1px solid #bed3e8;border-radius:7px;background:#f0f6ff;color:#285378;font-size:11px;font-weight:750;cursor:grab;user-select:none;max-width:100%}.axis-chip:active{cursor:grabbing}.axis-chip:focus{outline:2px solid var(--blue)}.axis-chip .grip{color:#7596b4;font-size:13px;letter-spacing:-3px}.axis-empty{font-size:11px;color:#94a5b8}.filter-value-group{margin-top:9px;border:1px solid var(--line);border-radius:8px;background:#fbfcfe}.filter-value-group summary{font-size:11px;font-weight:750;padding:8px 10px;cursor:pointer}.filter-value-list{max-height:185px;overflow:auto;border-top:1px solid var(--line);padding:5px 8px}.filter-value-list label{display:flex;align-items:center;gap:6px;font-size:11px;padding:5px;cursor:pointer}.filter-value-list input{accent-color:var(--teal)}.pivot .cell-root-links{display:flex;justify-content:flex-end;gap:2px;flex-wrap:wrap;margin-bottom:3px}.pivot .root-menu-trigger{border:0;border-radius:3px;background:transparent;color:#476c89;font-size:13px;line-height:1;padding:2px;cursor:pointer}.pivot .root-menu-trigger:hover,.pivot .root-menu-trigger[aria-expanded="true"]{background:#edf2f6;color:#164c75}.pivot .root-menu-trigger:focus-visible{outline:2px solid #4687c5;outline-offset:1px}.analysis-click-menu{position:fixed;z-index:200;width:max-content;min-width:220px;max-width:min(360px,85vw);max-height:58vh;overflow:auto;background:#fff;color:#1a2b3d;border:1px solid #cbd9e6;padding:11px 13px;border-radius:7px;box-shadow:0 5px 16px #102b4326;font-size:11px}.analysis-click-menu .menu-close{position:absolute;top:5px;right:6px;padding:2px 5px;border:0;background:transparent;color:#476c89;font-size:16px;cursor:pointer}.analysis-click-menu .tooltip-project{padding-right:16px}.analysis-click-menu .tooltip-root{font-size:12px;font-weight:800;color:#172b40;margin-bottom:8px}.analysis-click-menu .tooltip-field{margin:0 0 9px}.analysis-click-menu .tooltip-field:last-child{margin:0}.analysis-click-menu strong{display:block;font-size:11px;color:#40566b;margin-bottom:4px}.analysis-click-menu .tooltip-value{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:2px 0;color:#1a2b3d}.analysis-click-menu .tooltip-choice-list{display:flex;flex-wrap:wrap;gap:4px}.analysis-click-menu .tooltip-choice{display:inline-block;max-width:100%;border:1px solid #cbd9e6;background:#edf4fa;color:#365575;border-radius:3px;padding:1px 5px;line-height:1.35;overflow-wrap:anywhere}
+.analysis-click-menu{width:min(420px,calc(100vw - 44px));min-width:0;max-width:none}
+.analysis-click-menu .tooltip-root{position:relative;padding-left:14px;cursor:grab;user-select:none;touch-action:none}
+.analysis-click-menu .tooltip-root:active{cursor:grabbing}
+.analysis-click-menu .tooltip-root::before{content:'⋮⋮';position:absolute;left:0;top:0;color:#7890a6;letter-spacing:-3px}
+.analysis-click-menu .tooltip-group+.tooltip-group{margin-top:13px;padding-top:9px;border-top:1px solid #edf1f5}
+.analysis-click-menu .tooltip-group-name{margin:0 0 5px;font-size:11px;font-weight:750;color:#40566b}
+.analysis-click-menu .tooltip-choice-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.analysis-click-menu .tooltip-details{margin-top:7px;display:flex;flex-direction:column;gap:4px}
+.analysis-click-menu .tooltip-detail{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;color:#1a2b3d}
+.analysis-click-menu .tooltip-entry{display:grid;grid-template-columns:14px 116px 12px minmax(0,1fr);align-items:start;column-gap:3px;margin-top:5px;line-height:1.55}
+.analysis-click-menu .tooltip-entry .tooltip-choice{align-self:start;min-width:0}
+.analysis-click-menu .tooltip-entry .tooltip-bullet{color:#40566b}
+.analysis-click-menu .tooltip-entry .tooltip-label{min-width:0;font-weight:700;overflow-wrap:anywhere;color:#40566b}
+.analysis-click-menu .tooltip-entry .tooltip-separator{color:#1a2b3d}
+.analysis-click-menu .tooltip-entry .tooltip-value{min-width:0;padding:0}
+.analysis-click-menu .tooltip-text-value{font-size:11px;color:#1a2b3d;overflow-wrap:anywhere}
 .add-field-footer{display:flex;justify-content:flex-start;margin-top:12px}.matrix-settings>summary{font-size:13px}
-.analysis-extra-tabs{display:flex;gap:5px;flex-shrink:0}.nav .add-analysis-tab{align-self:center;display:flex;align-items:center;justify-content:center;width:27px;height:27px;border:1px solid #6388ac;border-radius:6px;padding:0;background:#224e74;color:#fff;font-size:18px;line-height:1;margin:0 0 3px 1px}.nav .add-analysis-tab:hover{background:#2d6593}.analysis-color-bar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;background:#f7faff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px}.analysis-color-heading{font-size:12px;font-weight:800;color:#2d4864}.analysis-color-bar select{min-width:200px;max-width:min(340px,100%);flex:0 1 270px;font-size:11px}.analysis-color-bar input[type=color]{width:43px;height:34px;cursor:pointer;border:1px solid #c8d5e4;border-radius:7px;padding:3px;background:#fff}.header-file-tools{display:flex;align-items:center;gap:6px;flex-shrink:0}.header-file-tools .btn{padding:6px 10px}
+.analysis-extra-tabs{display:flex;gap:5px;flex-shrink:0}.nav .add-analysis-tab{align-self:center;display:flex;align-items:center;justify-content:center;width:27px;height:27px;border:1px solid #6388ac;border-radius:6px;padding:0;background:#224e74;color:#fff;font-size:18px;line-height:1;margin:0 0 3px 1px}.nav .add-analysis-tab:hover{background:#2d6593}.header-file-tools{display:flex;align-items:center;gap:6px;flex-shrink:0}.header-file-tools .btn{padding:6px 10px}
 @media(max-width:900px){.two-col{grid-template-columns:1fr}}@media(max-width:520px){header{padding-left:12px;padding-right:12px}main{padding:20px 10px 55px}.panel{padding:14px}.view-head h2{font-size:21px}.field-main{flex-wrap:wrap}.field-main input{flex-basis:100%}.field-main select{flex:1}.nav button{padding:11px 13px}.tools{width:100%}.tools .btn{flex:1}#field-editor .field-main select{width:auto;flex:1}#definition-gui .panel{padding:14px}}
 .prompt-action-bar{display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px}
 </style>
@@ -72,14 +136,14 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
 <header><div class="header-top"><div class="brand"><div class="brand-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></div><h1><input id="workspace-title" class="workspace-title" type="text" aria-label="ワークスペースのタイトル" placeholder="DX案件ワークスペース" maxlength="80"></h1></div><div class="header-file-tools"><button id="workspace-yaml-save" class="btn small" type="button">YAML保存</button><button id="workspace-yaml-load" class="btn small" type="button">YAML読込</button><input id="workspace-yaml-file" type="file" accept=".yaml,.yml,text/yaml,text/x-yaml" aria-label="全体YAMLファイルを選択" multiple hidden></div><div class="switch header-format-switch" role="group" aria-label="共通表示形式"><button class="active" data-format-tab="table" type="button">表形式</button><button data-format-tab="yaml" type="button">YAML形式</button></div></div><nav class="nav" aria-label="画面切り替え"><button class="active" data-view-tab="definition"><small>01</small>項目定義</button><button data-view-tab="input"><small>02</small>項目入力</button><button data-view-tab="analysis"><small>03</small>項目分析</button><span id="analysis-extra-tabs" class="analysis-extra-tabs"></span><button id="add-analysis-tab" type="button" class="add-analysis-tab" aria-label="分析タブを追加" title="分析タブを追加">＋</button></nav></header>
 <main>
 <section id="definition-view">
-  <div class="prompt-action-bar"><button id="load-five-axis-sample" class="btn small" type="button">5軸サンプルに切替</button><button id="copy-definition-prompt" class="btn small soft" type="button">整形プロンプトをコピー</button></div>
+  <div id="definition-prompt-action-bar" class="prompt-action-bar" hidden><button id="copy-definition-prompt" class="btn small soft" type="button" hidden>整形プロンプトをコピー</button></div>
   <div id="definition-gui" class="two-col">
     <article class="panel"><div id="field-editor"></div><div class="add-field-footer"><button id="add-field" class="btn small soft" type="button">＋ 項目追加</button></div></article>
   </div>
-  <div id="definition-yaml-view" class="panel" hidden><div class="panel-head"><div><h3>YAMLで入力項目を編集</h3><p class="desc">項目の順序でルートキーが決まります。編集後に「定義を適用」を押してください。</p></div><button id="apply-yaml" type="button" class="btn primary">定義を適用</button></div><textarea id="definition-yaml" class="yaml-area" spellcheck="false" aria-label="定義YAML"></textarea><div id="yaml-error" class="error" hidden></div><p class="yaml-info">対応形式：`columns`、`name`、`type`、`options`、`cardinality`、`allowDetail`。</p></div>
+  <div id="definition-yaml-view" class="panel" hidden><div class="panel-head"><div><h3>YAMLで入力項目を編集</h3><p class="desc">項目の順序でルートキーが決まります。編集後に「定義を適用」を押してください。</p></div><button id="apply-yaml" type="button" class="btn primary">定義を適用</button></div><textarea id="definition-yaml" class="yaml-area" spellcheck="false" aria-label="定義YAML"></textarea><div id="yaml-error" class="error" hidden></div><p class="yaml-info">対応形式：`columns`、`name`、`description`、`type`、`options`、`cardinality`、`allowDetail`。</p></div>
 </section>
 <section id="input-view" hidden>
-  <div class="prompt-action-bar"><button id="copy-input-prompt" class="btn small soft" type="button">整形プロンプトをコピー</button></div>
+  <div id="input-prompt-action-bar" class="prompt-action-bar" hidden><button id="copy-input-prompt" class="btn small soft" type="button" hidden>整形プロンプトをコピー</button></div>
   <div id="markdown-input"><div id="markdown-projects"></div></div>
   <div id="table-input" hidden><div class="table-wrap"><table class="entry-table"><thead id="entry-head"></thead><tbody id="entry-body"></tbody></table></div><p class="input-note">1:Nは直前の項目に対する関係です。「＋」で同じ親の子項目とその下位フォームを追加します。</p></div>
   <div id="yaml-input" class="panel" hidden><div class="panel-head"><div><h3>案件データをYAMLで編集</h3><p class="desc">項目名ごとに親子関係を記述します。変更後は表に反映できます。</p></div><button id="apply-input-yaml" type="button" class="btn primary">表に反映</button></div><textarea id="input-yaml" class="yaml-area" spellcheck="false" aria-label="案件データYAML"></textarea><div id="input-yaml-error" class="error" hidden></div><p class="yaml-info">1:Nはリスト（- value）、1:1は value で表現します。詳細メッセージは detail に入力します。</p></div>
@@ -98,9 +162,8 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
             <label>セルの値（Values）</label><details class="picker" data-picker="values"><summary></summary><div class="picker-options"></div></details>
           </div>
           <div class="filter-group"><label>フィルター項目</label><details class="picker" data-picker="filters"><summary></summary><div class="picker-options"></div></details></div>
-          <div class="filter-group"><label>マウスオーバー</label><details class="picker" data-picker="tooltip"><summary></summary><div class="picker-options"></div></details></div>
+          <div class="filter-group"><label>クリックメニュー</label><details class="picker" data-picker="tooltip"><summary></summary><div class="picker-options"></div></details></div>
           </div>
-          <div id="analysis-color-bar" class="analysis-color-bar"><span class="analysis-color-heading">セル値の色</span><select id="analysis-color-target" class="control" aria-label="色を付ける値"></select><input id="analysis-color-input" type="color" aria-label="選択した値の背景色"><button id="analysis-color-clear" class="btn small" type="button">色を解除</button></div>
           <div class="matrix-reset-row"><button id="reset-pivot" type="button" class="btn">初期設定に戻す</button></div>
         </div>
       </details>
@@ -116,11 +179,11 @@ main{max-width:1280px;margin:auto;padding:27px 18px 70px}.view-head{display:flex
     <div class="panel-head"><h3>マトリクス設定をYAMLで編集</h3><button id="apply-analysis-yaml" class="btn primary" type="button">表に反映</button></div>
     <textarea id="analysis-yaml" class="yaml-area" spellcheck="false" aria-label="分析設定YAML"></textarea>
     <div id="analysis-yaml-error" class="error" hidden></div>
-    <p class="yaml-info">rows / columns / values / filters / tooltip / colors を編集できます。フィールド名と値は引用符で指定してください。</p>
+    <p class="yaml-info">rows / columns / values / filters / tooltip を編集できます。フィールド名と値は引用符で指定してください。</p>
   </div>
 </section>
 </main>
-<div id="analysis-hover-tooltip" class="analysis-hover-tooltip" role="tooltip" hidden></div>
+<div id="analysis-click-menu" class="analysis-click-menu" role="dialog" aria-label="案件の詳細" hidden></div>
 <div id="status" class="status" role="status" aria-live="polite" hidden></div>
 <script id="definition-core">
 /* Small, intentional subset of YAML for the displayed schema format. */
@@ -154,12 +217,13 @@ function parseSchema(source) {
       if(!inColumns)throw Error('先に columns: を指定してください。');
       if(indentation===2&&body.startsWith('- ')){
         const [key,value]=property(body.slice(2));if(key!=='name')throw Error('各項目の最初に - name: を指定してください。');
-        item={name:scalar(value),type:'text',options:[],cardinality:'1:1',allowDetail:false};
+        item={name:scalar(value),description:'',type:'text',options:[],cardinality:'1:1',allowDetail:false};
         result.columns.push(item);block=null;continue;
       }
       if(!item)throw Error('最初に - name: を指定してください。');
       if(indentation===4){const [key,value]=property(body);block=null;
         if(key==='name')item.name=scalar(value);
+        else if(key==='description')item.description=scalar(value);
         else if(key==='type')item.type=scalar(value);
         else if(key==='cardinality')item.cardinality=scalar(value);
         else if(key==='allowDetail'){
@@ -190,7 +254,7 @@ function serializeSchema(schema){
   const array=values=>`[${(values||[]).map(quote).join(', ')}]`;
   const out=['columns:'];
   for(const col of schema.columns){
-    out.push(`  - name: ${quote(col.name)}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);
+    out.push(`  - name: ${quote(col.name)}`,`    description: ${quote(col.description||'')}`,`    type: ${col.type}`,`    cardinality: ${col.cardinality||'1:1'}`);
     if(['select','multiselect'].includes(col.type)){
       out.push(`    options: ${array(col.options)}`,`    allowDetail: ${col.allowDetail===true}`);
       const colors=col.optionColors||{};
@@ -208,6 +272,7 @@ function validateSchema(schema){
   const types=['text','date','select','multiselect'], names=new Set();
   for(const col of schema.columns){
     if(typeof col.name!=='string'||!col.name.trim())throw Error('項目名は必須です。');
+    if(col.description!==undefined&&typeof col.description!=='string')throw Error(`${col.name}: 項目説明（description）は文字列で指定してください。`);
     if(names.has(col.name))throw Error(`項目名が重複しています: ${col.name}`);names.add(col.name);
     if(!types.includes(col.type))throw Error(`${col.name}: type は text / date / select / multiselect のいずれかです。`);
     if(col.allowDetail!==undefined&&typeof col.allowDetail!=='boolean')throw Error(`${col.name}: allowDetail は true または false で指定してください。`);
@@ -283,9 +348,17 @@ function treeRows(tree){
   };
   visit(tree,[]);return rows;
 }
-function treeRecords(projects,columns){return projects.flatMap(project=>treeRows(project.tree).map(path=>Object.fromEntries(
-  columns.map((col,depth)=>[col.name,path[depth]?.value??(col.type==='multiselect'?[]:'')])
-)));}
+const ANALYSIS_DETAIL_KEY=Symbol('analysis-detail');
+const ANALYSIS_PROJECT_INDEX_KEY=Symbol('analysis-project-index');
+function treeRecords(projects,columns){return projects.flatMap((project,projectIndex)=>treeRows(project.tree).map(path=>{
+  const record=Object.fromEntries(columns.map((col,depth)=>[col.name,path[depth]?.value??(col.type==='multiselect'?[]:'')]));
+  record[ANALYSIS_PROJECT_INDEX_KEY]=projectIndex;
+  record[ANALYSIS_DETAIL_KEY]=columns.flatMap((col,depth)=>{
+    const detail=String(path[depth]?.detail??'').trim();
+    return detail?[{field:col.name,detail}]:[];
+  });
+  return record;
+}));}
 function fromFlatData(data,columns){
   const root=makeDefaultTree(columns);root.value=nodeValue(data?.[columns[0].id],columns[0]);
   let parents=[root];
@@ -475,13 +548,17 @@ function buildDefinitionFormattingPrompt(columns){
   return `以下の入力内容を解析し、項目定義用のYAMLに整形してください。
 
 【変換ルール】
-- 自由文章・箇条書き・Markdownから項目定義を読み取り、誤字・表記揺れを整える。意味を変えず、情報を創作しない。
-- 現在の定義を基準とし、入力で明示された変更だけを反映する。
+- 整形を優先する。自由文章・箇条書き・Markdownから内容を読み取り、意味を変えずに項目名・説明・選択候補の誤字、表記揺れ、粒度を整える。既存情報をむやみに作り替えない。
+- 現在の定義を基準とし、既存の項目は原則として維持する。明確な必要性がない限り項目の削除、種類や親子関係の変更はしない。
+- 入力内容を表現するために不足する項目があれば追加する。新項目には name、description、type、cardinality を設定し、関連する項目の近くに配置する。
+- 既存のプルダウン候補では入力内容を表せない場合、不足する選択候補を追加する。元の候補やラベル色は、変更が必要な場合を除き維持する。
+- 同じ意味を表す既存の項目や候補があればそちらに統合し、重複する項目・候補は追加しない。
+- 追加の必要性を入力内容から判断できない場合、根拠のない項目や候補は追加しない。推測で内容を作らない。
 - 最上位キーは columns: のみ。項目の順序は親子関係の順序で、最初がルートキー。
-- 各項目は name、type、cardinality を記述し、select/multiselect は options と allowDetail も記述する。ラベル色は任意の optionColors に「候補名: #RRGGBB」で指定する。
+- 各項目は name、description、type、cardinality を記述し、description は空欄でも文字列として残す。select/multiselect は options と allowDetail も記述する。ラベル色は任意の optionColors に「候補名: #RRGGBB」で指定する。
 - type は text / date / select / multiselect、cardinality は 1:1 / 1:N。1:Nは直前の項目が親となる。
 - select/multiselect には選択候補を配列で指定し、detailを入力できる場合は allowDetail: true とする。
-- 未指定の項目・選択候補・1:1／1:N・detail可否・ラベル色は現在の定義を維持する。
+- 不足がない項目については、項目説明・選択候補・1:1／1:N・detail可否・ラベル色を現在の定義に合わせる。
 - インデントは半角スペース2個単位。項目名・選択肢はダブルクォートで囲む。
 - 項目入力・項目分析のデータは出力せず、YAMLのみを返す。説明・コードブロックは不要。
 
@@ -490,10 +567,6 @@ ${serializeSchema({columns}).trimEnd()}${formattingPromptInputBlock()}`;
 }
 
 function buildFormattingPrompt(columns){
-  const definitions=columns.map((col,index)=>{
-    const choices=['select','multiselect'].includes(col.type)?`、選択肢: ${(col.options||[]).map(option=>JSON.stringify(option)).join(' / ')}`:'';
-    return `${index+1}. ${col.name}（${col.type}、${col.cardinality||'1:1'}${choices}${col.allowDetail===true?'、detail可':''}）`;
-  }).join('\n');
   const sample=(depth=0)=>{
     const col=columns[depth];
     const value=col.type==='multiselect'?(col.options||[]).slice(0,2):col.type==='select'?(col.options?.[0]||''):`${col.name}の値`;
@@ -501,21 +574,25 @@ function buildFormattingPrompt(columns){
     if(col.allowDetail===true)node.detail=`${col.name}の補足説明`;
     return node;
   };
-  return `以下の入力内容を解析し、項目入力用のYAMLに整形してください。
+  return `以下の文章を、現在の項目定義を分類基準として読み取り、案件データのYAMLに整形してください。
 
 【変換ルール】
-- 自由文章・箇条書き・Markdownから案件と情報を判定し、対応する項目に自動分類する。誤字・表記揺れ・冗長表現を修正し、意味を変えず、情報を創作しない。
-- 案件が複数ある場合は projects: 配下に案件ごとのレコードを追加する。
-- 項目名・順序・型・選択肢は現在の項目定義に一致させる。単一選択は候補から1つ、複数選択は候補から配列で選ぶ。
+- 【項目定義】の項目名と項目説明の意味を優先して、文章中の情報をどの項目に対応させるか判断する。単語の完全一致だけに頼らず、内容・目的・文脈から分類する。
+- 項目定義の name、description、type、options、cardinality、allowDetail を読み取り、型・候補・階層の制約を厳守する。optionColors は表示色なので分類には使わない。
+- 自由文章・箇条書き・Markdownの意味を変えず、誤字・表記揺れ・冗長表現を整える。根拠のない情報は補完しない。
+- 複数案件が書かれていれば、projects: 配下に案件ごとのレコードを作る。1案件の情報を別案件へ混在させない。
+- 項目名・順序・型・選択候補は定義に合わせ、項目定義にない項目は追加しない。入力データをYAMLへ変換する処理であり、項目定義自体は編集しない。
+- 単一プルダウンは定義された選択候補の中から1つだけ選び、複数プルダウンは選択候補の中から該当するものを配列で選ぶ。候補にない値を新しく作らない。
+- 自由入力は文章の内容を簡潔に整え、日付は入力にある日付を文字列で表す。不明な値を推測しない。
 - 1:Nは直前の項目を親とし、複数値を同じ親の下の「- value:」として並べる。各子は独立した下位階層を持ち、別の親の情報を混在させない。
 - 1:1は1つのオブジェクトで「value:」を指定する。ルート項目は案件ごとのキーとする。
-- detail は許可された項目だけに、分類理由・背景・具体的な補足を文字列で付ける。補足がなければ detail を省略する。
+- 詳しい説明・背景・分類の根拠が入力文章にある場合、allowDetail: true の項目だけに detail として残す。補足がなければ detail を省略する。
 - 不明な情報は推測せず、文字列は ""、複数選択は [] とする。必須の下位階層は省略せず、空値で1件作る。
 - インデントは半角スペース2個単位。文字列・キーはダブルクォートで囲み、改行や引用符をエスケープする。
 - 項目定義・項目分析は出力せず、YAMLのみを返す。説明・コードブロックは不要。
 
-【現在の項目定義】
-${definitions}
+【項目定義（分類基準・変更禁止）】
+${serializeSchema({columns}).trimEnd()}
 
 【出力構造】
 ${serializeProjectsYaml([{id:'example',tree:sample()}],columns).trimEnd()}
@@ -531,6 +608,66 @@ function reorderAnalysisFields(fields,from,to){
 function analysisDataValues(value){
   return [...new Set((Array.isArray(value)?value:[value]).map(v=>String(v??'').trim()).filter(Boolean))];
 }
+const ANALYSIS_DETAIL_LABEL='詳細メッセージ';
+function analysisPickerFields(key,columns){
+  return columns.map(col=>col.name);
+}
+function analysisDetailValues(records){
+  const unique=new Map();
+  for(const record of records)for(const item of record[ANALYSIS_DETAIL_KEY]||[]){
+    const key=JSON.stringify([item.field,item.detail]);
+    if(!unique.has(key))unique.set(key,item);
+  }
+  return [...unique.values()];
+}
+function analysisClickMenuEntries(records,selectedFields,definitions,rootField){
+  return definitions.flatMap(column=>{
+    if(column.name===rootField||!selectedFields.includes(column.name))return [];
+    const byValue=new Map();
+    for(const record of records){
+      const details=(record[ANALYSIS_DETAIL_KEY]||[]).filter(item=>item.field===column.name).map(item=>item.detail);
+      const values=analysisDataValues(record[column.name]);
+      for(const value of values.length?values:['（未設定）']){
+        if(!byValue.has(value))byValue.set(value,new Set());
+        for(const detail of details)byValue.get(value).add(detail);
+      }
+    }
+    return [...byValue].flatMap(([value,details])=>details.size
+      ?[...details].map(detail=>({field:column.name,value,detail,type:column.type}))
+      :[{field:column.name,value,detail:'',type:column.type}]);
+  });
+}
+function groupAnalysisRecordsByRoot(records,rootField){
+  const groups=new Map();
+  for(const record of records){
+    const root=analysisDataValues(record[rootField])[0]||'（未設定）';
+    const projectIndex=record[ANALYSIS_PROJECT_INDEX_KEY];
+    const groupKey=Number.isInteger(projectIndex)?`project:${projectIndex}`:`root:${root}`;
+    if(!groups.has(groupKey))groups.set(groupKey,{root,number:Number.isInteger(projectIndex)?projectIndex+1:null,records:[]});
+    groups.get(groupKey).records.push(record);
+  }
+  return [...groups.values()];
+}
+function pivotValueColorMap(records,valueFields,definitions){
+  const byName=new Map(definitions.map(col=>[col.name,col]));
+  const colors=new Map();
+  for(const record of records)for(const field of valueFields){
+    const optionColors=byName.get(field)?.optionColors;
+    if(!optionColors)continue;
+    for(const value of analysisDataValues(record[field])){
+      const background=optionColors[value];
+      if(typeof background==='string'&&/^#[0-9a-f]{6}$/i.test(background)){
+        colors.set(valueFields.length>1?`${field}: ${value}`:value,background);
+      }
+    }
+  }
+  return colors;
+}
+function pivotCellDisplayValue(label,valueFields){
+  if(valueFields.length<2)return label;
+  const field=[...valueFields].sort((a,b)=>b.length-a.length).find(name=>label.startsWith(`${name}: `));
+  return field?label.slice(field.length+2):label;
+}
 function analysisFilterValues(records,field){
   return [...new Set(records.flatMap(record=>{
     const values=analysisDataValues(record[field]);return values.length?values:['（未設定）'];
@@ -543,13 +680,22 @@ function filterAnalysisRecords(records,filters){
     return (values.length?values:['（未設定）']).some(value=>selected.includes(value));
   }));
 }
-function makePivot(records,rowFields,colFields,valueFields){
-  const rows=[],columns=[],cells=Object.create(null),recordCells=Object.create(null),rSeen=new Set(),cSeen=new Set();
+function makePivot(records,rowFields,colFields,valueFields,definitions=[]){
+  const cells=Object.create(null),recordCells=Object.create(null),byName=new Map(definitions.map(col=>[col.name,col]));
   const values=analysisDataValues;
   const combos=(record,fields)=>fields.reduce((acc,field)=>acc.flatMap(a=>(values(record[field]).length?values(record[field]):['（未設定）']).map(v=>[...a,v])),[[]]);
+  const axis=fields=>{
+    const paths=fields.reduce((acc,field)=>{
+      const definition=byName.get(field),options=['select','multiselect'].includes(definition?.type)?definition.options||[]:[];
+      const choices=[...new Set([...options,...analysisFilterValues(records,field)])];
+      return acc.flatMap(path=>choices.map(value=>[...path,value]));
+    },[[]]);
+    return orderPivotAxis(paths.map(path=>({key:JSON.stringify(path),values:path})));
+  };
+  const rows=axis(rowFields),columns=axis(colFields);
   for(const record of records){const rCombos=combos(record,rowFields),cCombos=combos(record,colFields);const items=valueFields.flatMap(field=>values(record[field]).map(v=>valueFields.length>1?`${field}: ${v}`:v));
-    for(const r of rCombos){const rk=JSON.stringify(r);if(!rSeen.has(rk)){rSeen.add(rk);rows.push({key:rk,values:r});}for(const c of cCombos){const ck=JSON.stringify(c);if(!cSeen.has(ck)){cSeen.add(ck);columns.push({key:ck,values:c});}if(!cells[rk])cells[rk]=Object.create(null);if(!cells[rk][ck])cells[rk][ck]=[];for(const item of items)if(!cells[rk][ck].includes(item))cells[rk][ck].push(item);if(!recordCells[rk])recordCells[rk]=Object.create(null);if(!recordCells[rk][ck])recordCells[rk][ck]=[];recordCells[rk][ck].push(record);}}
-  }return {rows:orderPivotAxis(rows),columns:orderPivotAxis(columns),cells,recordCells};
+    for(const r of rCombos){const rk=JSON.stringify(r);for(const c of cCombos){const ck=JSON.stringify(c);if(!cells[rk])cells[rk]=Object.create(null);if(!cells[rk][ck])cells[rk][ck]=[];for(const item of items)if(!cells[rk][ck].includes(item))cells[rk][ck].push(item);if(!recordCells[rk])recordCells[rk]=Object.create(null);if(!recordCells[rk][ck])recordCells[rk][ck]=[];recordCells[rk][ck].push(record);}}
+  }return {rows,columns,cells,recordCells};
 }
 // Keep each parent prefix together without sorting or renaming user-entered values.
 function orderPivotAxis(axis){
@@ -575,22 +721,10 @@ function pivotAxisGroups(items,level){
 /* YAML subset for editing pivot settings without external libraries. */
 function serializeAnalysisYaml(analysis){
   const names=['rows','columns','values','tooltip'],lines=[];
-  for(const name of names)lines.push(name+': '+JSON.stringify(analysis[name]||[]));
+  for(const name of names)lines.push(name+': '+JSON.stringify(name==='tooltip'?(analysis[name]||[]).filter(field=>field!==ANALYSIS_DETAIL_LABEL):analysis[name]||[]));
   const filters=analysis.filters||{},filterNames=Object.keys(filters);
   lines.push(filterNames.length?'filters:':'filters: {}');
   for(const field of filterNames)lines.push('  '+JSON.stringify(field)+': '+JSON.stringify(filters[field]));
-  const grouped=new Map();
-  for(const [key,color] of Object.entries(analysis.valueColors||{})){
-    let pair;try{pair=JSON.parse(key);}catch{continue;}
-    if(!Array.isArray(pair)||pair.length!==2||pair.some(v=>typeof v!=='string')||!/^#[0-9a-f]{6}$/i.test(color))continue;
-    if(!grouped.has(pair[0]))grouped.set(pair[0],[]);
-    grouped.get(pair[0]).push([pair[1],color]);
-  }
-  lines.push(grouped.size?'colors:':'colors: {}');
-  for(const [field,entries] of grouped){
-    lines.push('  '+JSON.stringify(field)+':');
-    for(const [value,color] of entries)lines.push('    '+JSON.stringify(value)+': '+JSON.stringify(color));
-  }
   return lines.join('\n')+'\n';
 }
 function parseAnalysisYaml(source,availableFields){
@@ -669,25 +803,23 @@ function parseAnalysisYaml(source,availableFields){
   const known=new Set(availableFields);
   for(const key of lists){
     if(new Set(document[key]).size!==document[key].length)throw Error(key+': 同じ項目を重複指定できません。');
-    for(const field of document[key])if(!known.has(field))throw Error(key+': 未定義の項目「'+field+'」です。');
+    for(const field of document[key])if(!known.has(field)&&!(key==='tooltip'&&field===ANALYSIS_DETAIL_LABEL))throw Error(key+': 未定義の項目「'+field+'」です。');
   }
   for(const field of Object.keys(document.filters||{}))if(!known.has(field))throw Error('filters: 未定義の項目「'+field+'」です。');
-  const valueColors={};
   for(const [field,values] of Object.entries(document.colors||{})){
     if(!known.has(field))throw Error('colors: 未定義の項目「'+field+'」です。');
     for(const [value,color] of Object.entries(values)){
       if(!/^#[0-9a-f]{6}$/i.test(color))throw Error('colors: '+field+' / '+value+' の色は #RRGGBB で指定してください。');
-      valueColors[JSON.stringify([field,value])]=color.toLowerCase();
     }
   }
-  return {rows:document.rows,columns:document.columns,values:document.values,tooltip:document.tooltip,filters:document.filters||{},valueColors};
+  return {rows:document.rows,columns:document.columns,values:document.values,tooltip:document.tooltip.filter(field=>field!==ANALYSIS_DETAIL_LABEL),filters:document.filters||{}};
 }
 </script>
 <script id="workspace-yaml-core">
 /* Standalone, strict YAML 1.2 subset for complete offline workspace backups. */
 function serializeWorkspaceYaml(workspace){
   const snapshot={version:1,title:workspace.title,columns:workspace.columns,projects:workspace.projects,
-    analysisTabs:workspace.analysisTabs,activeAnalysisTabId:workspace.activeAnalysisTabId};
+    analysisTabs:workspace.analysisTabs,activeAnalysisTabId:workspace.activeAnalysisTabId,descriptionPresetVersion:workspace.descriptionPresetVersion??1};
   const scalar=value=>JSON.stringify(value);
   const isContainer=value=>value!==null&&typeof value==='object';
   const isNested=value=>isContainer(value)&&(Array.isArray(value)?value.length>0:Object.keys(value).length>0);
@@ -767,10 +899,12 @@ function parseWorkspaceYaml(source){
   const document=parseBlock(0);
   if(cursor!==tokens.length)fail('項目のインデントが不正です。');
   if(!document||Array.isArray(document)||typeof document!=='object')throw Error('全体YAMLは項目名を持つ形式にしてください。');
-  const allowed=['version','title','columns','projects','analysisTabs','activeAnalysisTabId'];
+  const required=['version','title','columns','projects','analysisTabs','activeAnalysisTabId'];
+  const allowed=[...required,'descriptionPresetVersion'];
   for(const key of Object.keys(document))if(!allowed.includes(key))throw Error('不明な項目です: '+key);
-  for(const key of allowed)if(!Object.prototype.hasOwnProperty.call(document,key))throw Error('必須項目がありません: '+key);
+  for(const key of required)if(!Object.prototype.hasOwnProperty.call(document,key))throw Error('必須項目がありません: '+key);
   if(document.version!==1)throw Error('対応していないYAMLバージョンです。');
+  if(document.descriptionPresetVersion!==undefined&&document.descriptionPresetVersion!==1)throw Error('descriptionPresetVersion は 1 で指定してください。');
   if(typeof document.title!=='string'||!document.title.trim())throw Error('title は文字列で指定してください。');
   if(!Array.isArray(document.columns)||!document.columns.length)throw Error('columns は項目配列で指定してください。');
   if(!Array.isArray(document.projects)||!document.projects.length)throw Error('projects は案件配列で指定してください。');
@@ -782,7 +916,7 @@ function parseWorkspaceYaml(source){
 function mergeWorkspaceYamlSnapshots(workspaces){
   if(!Array.isArray(workspaces)||!workspaces.length)throw Error('読み込むYAMLファイルがありません。');
   const definitionKey=columns=>JSON.stringify(columns.map(col=>[
-    col.name,col.type,col.options||[],col.cardinality||'1:1',col.allowDetail===true,
+    col.name,col.description||'',col.type,col.options||[],col.cardinality||'1:1',col.allowDetail===true,
     (col.options||[]).map(option=>col.optionColors?.[option]||null)
   ]));
   const reference=definitionKey(workspaces[0].columns);
@@ -807,7 +941,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   const el=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x;};
   const button=(text,callback,cls='btn small')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',callback);return b;};
   const uid=()=>`id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,9)}`;
-  const column=(id,name,type='text',options=[],cardinality='1:1',allowDetail=false)=>({id,name,type,options,cardinality,allowDetail});
+  const column=(id,name,type='text',options=[],cardinality='1:1',allowDetail=false)=>({id,name,description:'',type,options,cardinality,allowDetail});
   const initialColumns=[
     column('name','案件名'),
     column('businessStage','業務の上位工程','select',['1 実行・処理','2 要件整理','3 設計','4 解釈・評価','5 意思決定支援'],'1:1',true),
@@ -816,6 +950,15 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     column('operationSavings','運用工数の削減','select',['1 手作業','2 標準化','3 人間と機械の分離','4 半自動化','5 自動化'],'1:1',true),
     column('creationSavings','作成工数の削減','select',['1 手作業','2 ナレッジ化','3 工程の自動化','4 共通部品化','5 循環的な開発（仮）'],'1:1',true)
   ];
+  const initialDescriptions={
+    name:'支援対象となる案件やプロジェクトを識別する名称を記載します。',
+    businessStage:'業務の中で支援が担う工程や役割を示します。実行・処理から意思決定支援までの位置づけを選びます。',
+    businessQuality:'業務上の判断や成果物の品質がどの観点で高度化したかを示します。正確性、解像度、妥当性などを選びます。',
+    technicalLevel:'支援に用いる技術領域を示します。エンジニアリング、統計、機械学習、推論・生成AIから該当するものを選びます。',
+    operationSavings:'導入後の定常運用で人手による作業や確認の工数をどれだけ削減できるかを、作業の自動化段階で示します。',
+    creationSavings:'成果物や仕組みの作成・改修に必要な工数をどれだけ削減できるかを、ナレッジ化・再利用・開発工程の自動化などで示します。'
+  };
+  for(const col of initialColumns)col.description=initialDescriptions[col.id]||'';
   // Sample colors are editable in the definition view; other values remain neutral.
   initialColumns[3].optionColors={
     'エンジニアリング':'#dceafe','統計':'#ebe2f9','機械学習':'#d7f1e5','推論・生成AI':'#fbe5d5'
@@ -844,28 +987,34 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     const row=names.includes('業務の上位工程')?'業務の上位工程':names.includes('成熟度')?'成熟度':names[0];
     const col=names.includes('技術の高度化')?'技術の高度化':names.includes('工程')?'工程':names[1];
     const value=names.includes('支援内容')?'支援内容':names.includes('案件名')?'案件名':names[0];
-    return {rows:row?[row]:[],columns:col?[col]:[],values:value?[value]:[],filters:{},tooltip:[],columnWidths:{},valueColors:{},matrixOpen:true};
+    return {rows:row?[row]:[],columns:col?[col]:[],values:value?[value]:[],filters:{},tooltip:[],columnWidths:{},matrixOpen:true};
   };
   const initial=()=>({title:'DX案件ワークスペース',columns:structuredClone(initialColumns),projects:structuredClone(initialProjects),analysis:defaultAnalysis()});
-  let state,view='',formatMode='table',definitionMode='gui',inputMode='table',analysisMode='table',statusTimeout,inputYamlBaseline=null,analysisYamlBaseline=null,activeColorKey='';
+  let state,view='',formatMode='table',definitionMode='gui',inputMode='table',analysisMode='table',statusTimeout,inputYamlBaseline=null,analysisYamlBaseline=null,activeAnalysisMenuTrigger=null,analysisMenuDrag=null;
   const openFieldOptions=new Set(),expandedInputProjects=new Set();
+  let draggingDefinitionFieldId=null;
   function toast(message){const n=$('status');n.textContent=message;n.hidden=false;clearTimeout(statusTimeout);statusTimeout=setTimeout(()=>n.hidden=true,4000);}
   function persist(){
     const active=state.analysisTabs?.find(tab=>tab.id===state.activeAnalysisTabId);
     if(active)active.analysis=structuredClone(state.analysis);
     try{localStorage.setItem(STORE,JSON.stringify(state));}catch{toast('ブラウザ内保存できませんでした。');}
   }
-  function asSchema(){return {columns:state.columns.map(({name,type,options,cardinality,allowDetail,optionColors})=>({name,type,options,cardinality,allowDetail:allowDetail===true,optionColors}))};}
+  function asSchema(){return {columns:state.columns.map(({name,description,type,options,cardinality,allowDetail,optionColors})=>({name,description:description||'',type,options,cardinality,allowDetail:allowDetail===true,optionColors}))};}
   const byName=name=>state.columns.find(c=>c.name===name);
+  const describeAnalysisField=(node,name)=>{
+    const description=byName(name)?.description?.trim();
+    if(description)node.setAttribute('title',description);
+    return node;
+  };
   const blankValue=col=>isManyColumn(col)?[]:'';
   function normalizeAnalysisConfig(analysis){
     const filters=analysis.filters&&typeof analysis.filters==='object'&&!Array.isArray(analysis.filters)?analysis.filters:{};
     const columnWidths=analysis.columnWidths&&typeof analysis.columnWidths==='object'&&!Array.isArray(analysis.columnWidths)?analysis.columnWidths:{};
-    const valueColors=analysis.valueColors&&typeof analysis.valueColors==='object'&&!Array.isArray(analysis.valueColors)?analysis.valueColors:{};
-    return {...analysis,rows:Array.isArray(analysis.rows)?analysis.rows:[],columns:Array.isArray(analysis.columns)?analysis.columns:[],values:Array.isArray(analysis.values)?analysis.values:[],
+    const {valueColors:legacyColors,...retained}=analysis;
+    return {...retained,rows:Array.isArray(analysis.rows)?analysis.rows:[],columns:Array.isArray(analysis.columns)?analysis.columns:[],values:Array.isArray(analysis.values)?analysis.values:[],
       filters:Object.fromEntries(Object.entries(filters).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,v.filter(x=>typeof x==='string')])),
-      tooltip:Array.isArray(analysis.tooltip)?analysis.tooltip:[],columnWidths:Object.fromEntries(Object.entries(columnWidths).filter(([,v])=>Number.isFinite(v)&&v>=90&&v<=700)),
-      valueColors:Object.fromEntries(Object.entries(valueColors).filter(([k,v])=>typeof k==='string'&&/^#[0-9a-f]{6}$/i.test(v))),matrixOpen:analysis.matrixOpen!==false};
+      tooltip:Array.isArray(analysis.tooltip)?analysis.tooltip.filter(field=>field!==ANALYSIS_DETAIL_LABEL):[],columnWidths:Object.fromEntries(Object.entries(columnWidths).filter(([,v])=>Number.isFinite(v)&&v>=90&&v<=700)),
+      matrixOpen:analysis.matrixOpen!==false};
   }
   function normalizeState(loaded,upgradeLocalState=false){
     if(loaded&&Array.isArray(loaded.columns)&&Array.isArray(loaded.projects)){
@@ -873,9 +1022,12 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const {hierarchies,ontology,...clean}=loaded;
       clean.title=typeof loaded.title==='string'&&loaded.title.trim()?loaded.title.slice(0,80):'DX案件ワークスペース';
       const enableLegacyDetails=upgradeLocalState&&loaded.detailUiVersion!==1;
-      clean.columns=clean.columns.map(col=>({...col,cardinality:col.cardinality||'1:1',
+      clean.columns=clean.columns.map(col=>({...col,
+        description:col.description||(loaded.descriptionPresetVersion!==1&&initialColumns.some(preset=>preset.id===col.id&&preset.name===col.name)?initialDescriptions[col.id]:''),
+        cardinality:col.cardinality||'1:1',
         allowDetail:enableLegacyDetails&&['select','multiselect'].includes(col.type)?true:col.allowDetail===true}));
       clean.detailUiVersion=1;
+      clean.descriptionPresetVersion=1;
       if(clean.columns.length)clean.columns[0].cardinality='1:1';
       clean.projects=clean.projects.map(project=>({id:project.id,tree:project.tree?
         normalizeTree(structuredClone(project.tree),clean.columns):fromFlatData(project.data||{},clean.columns)}));
@@ -946,7 +1098,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     const current=state.analysisTabs.find(tab=>tab.id===state.activeAnalysisTabId);
     if(current)current.analysis=structuredClone(state.analysis);
     state.activeAnalysisTabId=id;state.analysis=structuredClone(target.analysis);
-    analysisYamlBaseline=null;activeColorKey='';persist();renderAnalysis();renderAnalysisTabs();
+    analysisYamlBaseline=null;persist();renderAnalysis();renderAnalysisTabs();
   }
   function addAnalysisTab(){
     if(view!=='analysis'){switchView('analysis');if(view!=='analysis')return;}
@@ -962,7 +1114,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     }
     if(view==='input'&&next!=='input'&&inputMode==='yaml'&&!applyInputYaml())return;
     if(view==='analysis'&&next!=='analysis'&&analysisMode==='yaml'&&!applyAnalysisYaml())return;
-    if(next!=='analysis')$('analysis-hover-tooltip').hidden=true;
+    if(next!=='analysis')closeAnalysisClickMenu();
     view=next;for(const key of ['definition','input','analysis']){
       $(`${key}-view`).hidden=key!==next;document.querySelector(`[data-view-tab="${key}"]`).classList.toggle('active',key===next);
     }
@@ -973,6 +1125,11 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   }
   function renderFormatControls(){
     for(const mode of ['table','yaml'])document.querySelector(`[data-format-tab="${mode}"]`).classList.toggle('active',formatMode===mode);
+    const showYamlPrompt=formatMode==='yaml';
+    $('copy-definition-prompt').hidden=!showYamlPrompt;
+    $('definition-prompt-action-bar').hidden=!showYamlPrompt;
+    $('copy-input-prompt').hidden=!showYamlPrompt;
+    $('input-prompt-action-bar').hidden=!showYamlPrompt;
   }
   function switchFormat(next,alreadyApplied=false){
     if(!['table','yaml'].includes(next)||next===formatMode)return;
@@ -1009,12 +1166,8 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const updatedFilters={};for(const [name,values] of Object.entries(analysis.filters||{})){
         const mapped=remap([name])[0];if(mapped)updatedFilters[mapped]=values;
       }
-      const updatedColors={};for(const [key,color] of Object.entries(analysis.valueColors||{})){
-        try{const pair=JSON.parse(key),name=Array.isArray(pair)?remap([pair[0]])[0]:null;
-          if(name)updatedColors[JSON.stringify([name,pair[1]])]=color;
-        }catch{}
-      }
-      return {...analysis,rows:remap(analysis.rows||[]),columns:remap(analysis.columns||[]),values:remap(analysis.values||[]),tooltip:remap(analysis.tooltip||[]),filters:updatedFilters,valueColors:updatedColors};
+      const tooltip=(analysis.tooltip||[]).flatMap(name=>name===ANALYSIS_DETAIL_LABEL?[name]:remap([name]));
+      return {...analysis,rows:remap(analysis.rows||[]),columns:remap(analysis.columns||[]),values:remap(analysis.values||[]),tooltip,filters:updatedFilters};
     };
     state={...state,columns,projects,analysis:remapAnalysis(state.analysis),analysisTabs:state.analysisTabs.map(tab=>({...tab,analysis:remapAnalysis(tab.analysis)}))};
     persist();
@@ -1025,16 +1178,63 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     if(mode==='yaml'){$('definition-yaml').value=serializeSchema(asSchema());$('yaml-error').hidden=true;}
     else renderDefinition();
   }
+  function applyOptionColor(label,background){
+    if(typeof background==='string'&&/^#[0-9a-f]{6}$/i.test(background)){
+      const red=parseInt(background.slice(1,3),16),green=parseInt(background.slice(3,5),16),blue=parseInt(background.slice(5,7),16);
+      label.style.backgroundColor=background;
+      label.style.borderColor=background;
+      label.style.color=(red*299+green*587+blue*114)/1000<150?'#ffffff':'#'+[red,green,blue].map(channel=>Math.round(channel*0.35).toString(16).padStart(2,'0')).join('');
+    }
+    return label;
+  }
+  function coloredChoiceChip(item,col,className='choice-chip'){
+    return applyOptionColor(el('span',className,item),col.optionColors?.[item]);
+  }
   function renderDefinition(){
     if(definitionMode!=='gui')return;
     const editor=$('field-editor');editor.replaceChildren();
+    const clearDropTargets=()=>{for(const row of editor.children)delete row.dataset.dropTarget;};
     for(const [index,col] of state.columns.entries()){
       const box=el('div','field-card');
       const order=el('div','field-order');
-      const up=button('↑',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index-1);}), 'btn small');up.disabled=index===0;up.setAttribute('aria-label',`${col.name}を上に移動`);
-      const down=button('↓',()=>safeMutation(()=>{state.columns=moveColumn(state.columns,index,index+1);}), 'btn small');down.disabled=index===state.columns.length-1;down.setAttribute('aria-label',`${col.name}を下に移動`);
-      order.append(up,down);
-      const input=el('input','control');input.value=col.name;input.setAttribute('aria-label','項目名');
+      const handle=el('button','field-drag-handle','⠿');handle.type='button';handle.draggable=true;
+      const handleId=`field-grip-${col.id}`;handle.setAttribute('id',handleId);
+      handle.setAttribute('aria-label',`${col.name}をドラッグして並び替え。上下矢印キーでも移動できます`);
+      handle.title='ドラッグして並び替え（上下キーでも操作）';
+      handle.addEventListener('dragstart',event=>{
+        draggingDefinitionFieldId=col.id;
+        if(event.dataTransfer){event.dataTransfer.setData('text/plain',col.id);event.dataTransfer.effectAllowed='move';}
+      });
+      handle.addEventListener('dragend',()=>{draggingDefinitionFieldId=null;clearDropTargets();});
+      handle.addEventListener('keydown',event=>{
+        if(event.key!=='ArrowUp'&&event.key!=='ArrowDown')return;
+        event.preventDefault();
+        const to=index+(event.key==='ArrowUp'?-1:1);
+        if(to<0||to>=state.columns.length)return;
+        safeMutation(()=>{state.columns=moveColumn(state.columns,index,to);});
+        document.getElementById(handleId)?.focus?.();
+      });
+      order.append(handle);
+      box.addEventListener('dragover',event=>{
+        if(!draggingDefinitionFieldId||draggingDefinitionFieldId===col.id)return;
+        event.preventDefault();
+        if(event.dataTransfer)event.dataTransfer.dropEffect='move';
+        clearDropTargets();box.dataset.dropTarget='true';
+      });
+      box.addEventListener('dragleave',event=>{
+        if(!event.relatedTarget||!box.contains?.(event.relatedTarget))delete box.dataset.dropTarget;
+      });
+      box.addEventListener('drop',event=>{
+        if(!draggingDefinitionFieldId)return;
+        event.preventDefault();
+        const from=state.columns.findIndex(field=>field.id===draggingDefinitionFieldId);
+        const to=state.columns.findIndex(field=>field.id===col.id);
+        draggingDefinitionFieldId=null;clearDropTargets();
+        if(from>=0&&to>=0&&from!==to)safeMutation(()=>{state.columns=moveColumn(state.columns,from,to);});
+      });
+      const nameId=`definition-name-${col.id}`;
+      const nameLabel=el('label','field-name-label','項目名');nameLabel.setAttribute('for',nameId);
+      const input=el('input','control');input.value=col.name;input.setAttribute('id',nameId);input.setAttribute('aria-label','項目名');
       input.addEventListener('change',()=>safeMutation(()=>{
         const next=input.value.trim();const previous=col.name;
         col.name=next;
@@ -1062,12 +1262,27 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         relation.value=col.cardinality||'1:1';
         relation.addEventListener('change',()=>safeMutation(()=>{col.cardinality=relation.value;}));marker=relation;
       }
-      box.append(order,marker,input,type,remove);
+      box.append(order,nameLabel,input,type,remove,marker);
+      const descriptionRow=el('div','field-description-row'),descriptionLabel=el('label','','項目説明'),description=el('textarea');
+      const descriptionId=`definition-description-${col.id}`;
+      descriptionLabel.setAttribute('for',descriptionId);
+      description.setAttribute('id',descriptionId);description.setAttribute('aria-label',`${col.name}の項目説明`);
+      description.setAttribute('rows','1');description.value=col.description||'';
+      description.placeholder='項目の意味や適用範囲を入力';
+      const resizeDescription=()=>{description.style.height='auto';description.style.height=`${Math.max(32,description.scrollHeight||32)}px`;};
+      description.addEventListener('input',resizeDescription);
+      description.addEventListener('change',()=>safeMutation(()=>{col.description=description.value;}));
+      descriptionRow.append(descriptionLabel,description);box.append(descriptionRow);
       if(['select','multiselect'].includes(col.type)){
         const settings=el('div','field-settings');
         const details=el('details','definition-accordion');details.open=openFieldOptions.has(col.id);
-        details.addEventListener('toggle',()=>{if(details.open)openFieldOptions.add(col.id);else openFieldOptions.delete(col.id);});
-        details.append(el('summary','',`候補 ${col.options.length}件：${col.options.slice(0,3).join('・')}${col.options.length>3?'…':''}（編集）`));
+        const summary=el('summary'),chevron=el('span','definition-chevron',details.open?'⋁':'＞');
+        summary.setAttribute('aria-label',`${col.name}の候補を編集`);
+        const chips=el('div','definition-option-chips');
+        chips.append(...(col.options.length?col.options.map(option=>coloredChoiceChip(option,col,'definition-option-chip')):[el('span','definition-option-empty','候補未設定')]));
+        summary.append(chevron,chips);
+        details.addEventListener('toggle',()=>{chevron.textContent=details.open?'⋁':'＞';if(details.open)openFieldOptions.add(col.id);else openFieldOptions.delete(col.id);});
+        details.append(summary);
         const extra=el('div','field-extra'),label=el('label','', '候補値（1行に1つ）'),area=el('textarea','option-area');area.value=col.options.join('\n');area.setAttribute('aria-label',`${col.name} の候補`);
         area.addEventListener('change',()=>safeMutation(()=>{
           col.options=area.value.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
@@ -1095,6 +1310,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         settings.append(details,allowLabel);box.append(settings);
       }
       editor.append(box);
+      resizeDescription();
     }
   }
   function renderInput(){
@@ -1129,6 +1345,24 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     area.style.height='auto';
     area.style.height=`${Math.max(65,Number(area.scrollHeight)||0)}px`;
   }
+  function sizeRootNameRow(row,area,collapsedMinimum=64){
+    if(!row.style)return;
+    const minimum=row.className.includes('project-collapsed')?collapsedMinimum:104;
+    row.style.height=`${minimum}px`;
+    const visibleHeight=area.style.height||'';
+    area.style.height='0px';
+    const contentHeight=Math.ceil(Number(area.scrollHeight)||0);
+    area.style.height=visibleHeight;
+    row.style.height=`${Math.max(minimum,contentHeight)}px`;
+  }
+  function updateInputTableHeight(){
+    if(view!=='input'||inputMode!=='table')return;
+    const scroll=$('table-input').querySelector('.table-wrap');
+    const top=scroll.getBoundingClientRect().top;
+    const height=Math.max(120,Math.floor(window.innerHeight-Math.max(0,top)-12));
+    scroll.style.height=`${height}px`;
+    scroll.style.maxHeight=`${height}px`;
+  }
   function positionChoicePopover(popup,trigger){
     const anchor=trigger.getBoundingClientRect(),box=popup.getBoundingClientRect();
     const viewportHeight=window.innerHeight,viewportWidth=window.innerWidth,gap=4,edge=8;
@@ -1145,40 +1379,42 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     popup.style.left=`${Math.max(edge,Math.min(anchor.right-width,viewportWidth-width-edge))}px`;
     popup.style.top=`${upward?Math.max(edge,anchor.top-gap-visibleHeight):anchor.bottom+gap}px`;
   }
-  function tableNodeEditor(node,col,showDetails=true){
+  function tableNodeEditor(node,col,showDetails=true,onTextInput,onOpen){
     const value=node.value,save=next=>{node.value=next;persist();};
-    const filterIcon=()=>{const glyph=el('span','filter-alt-icon');glyph.setAttribute('aria-hidden','true');return glyph;};
     const makeChipList=values=>{
       const list=el('div','choice-chip-list');
-      const chip=item=>{
-        const label=el('span','choice-chip',item),background=col.optionColors?.[item];
-        if(typeof background==='string'&&/^#[0-9a-f]{6}$/i.test(background)){
-          const red=parseInt(background.slice(1,3),16),green=parseInt(background.slice(3,5),16),blue=parseInt(background.slice(5,7),16);
-          label.style.backgroundColor=background;
-          label.style.borderColor=background;
-          label.style.color=(red*299+green*587+blue*114)/1000<150?'#ffffff':'#'+[red,green,blue].map(channel=>Math.round(channel*0.35).toString(16).padStart(2,'0')).join('');
-        }
-        return label;
-      };
       const update=next=>{
         const selected=next.filter(Boolean);
-        list.replaceChildren(...(selected.length?selected.map(chip):[el('span','choice-placeholder','未選択')]));
+        list.replaceChildren(...(selected.length?selected.map(item=>coloredChoiceChip(item,col)):[el('span','choice-placeholder','未選択')]));
       };
       update(values);
       return {list,update};
     };
     const detailEditor=()=>{
       const outer=el('div','detail-message-wrap'),label=el('label','', '詳細メッセージ');
+      const preview=el('div','detail-message-preview');
+      const updatePreview=()=>{
+        preview.textContent=String(node.detail??'').replace(/\s+/g,' ')||'詳細を入力';
+        preview.title=String(node.detail??'');
+      };
       const area=el('textarea','control');area.value=String(node.detail??'');
       area.setAttribute('aria-label',`${col.name}の詳細メッセージ`);
       area.setAttribute('data-autosize-detail','true');
       area.setAttribute('placeholder','選択した内容の補足を入力');
-      area.addEventListener('input',()=>{node.detail=area.value;persist();sizeDetailTextarea(area);});
-      outer.append(label,area);return outer;
+      area.hidden=!showDetails;preview.hidden=showDetails;updatePreview();
+      area.addEventListener('input',()=>{node.detail=area.value;persist();updatePreview();sizeDetailTextarea(area);});
+      outer.addEventListener('dblclick',()=>onOpen?.());
+      outer.append(label,preview,area);return outer;
     };
     if(col.type==='text'){
       const area=el('textarea','control');area.value=String(value??'');area.setAttribute('aria-label',col.name);
-      area.hidden=!showDetails;area.addEventListener('input',()=>save(area.value));return area;
+      area.hidden=!showDetails;area.addEventListener('input',()=>{save(area.value);onTextInput?.(area);});
+      if(onTextInput)return area;
+      const wrapper=el('div','text-value-editor'),preview=el('div','text-value-preview',String(value??'')||'未入力');
+      preview.hidden=showDetails;
+      wrapper.addEventListener('dblclick',()=>onOpen?.());
+      wrapper.append(preview,area);
+      return wrapper;
     }
     if(col.type==='date'){
       const input=el('input','control');input.type='date';input.value=/^\d{4}-\d{2}-\d{2}$/.test(String(value))?String(value):'';
@@ -1186,9 +1422,9 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       input.addEventListener('change',()=>save(input.value));return input;
     }
     const single=col.type==='select',selected=single?(value?[String(value)]:[]):Array.isArray(value)?value:[];
-    const wrapper=el('div','choice-editor'),bar=el('div','choice-control-bar'),chips=makeChipList(selected);
+    const wrapper=el('div','choice-editor'),chips=makeChipList(selected);
     const picker=el('details','multi-picker'),summary=el('summary'),checks=el('div','checklist choice-popover');
-    summary.append(filterIcon());
+    summary.append(chips.list);
     summary.setAttribute('aria-label',`${col.name}の選択を編集`);
     checks.setAttribute('popover','auto');checks.hidden=true;
     picker.addEventListener('toggle',()=>{
@@ -1202,7 +1438,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     });
     checks.addEventListener('toggle',event=>{if(event.newState==='closed'&&picker.open)picker.open=false;});
     const detail=col.allowDetail?detailEditor():null;
-    if(detail)detail.hidden=!showDetails||selected.length===0;
+    if(detail)detail.hidden=selected.length===0;
     const radioGroup=single?uid():'';
     for(const option of single?['',...col.options]:col.options){const label=el('label'),check=el('input');
       check.type=single?'radio':'checkbox';if(single)check.name=radioGroup;
@@ -1211,7 +1447,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       check.addEventListener('change',()=>{
         if(single){
           save(option);chips.update(option?[option]:[]);
-          if(detail)detail.hidden=!showDetails||!option;
+          if(detail)detail.hidden=!option;
           picker.open=false;
           if(typeof checks.hidePopover==='function'&&(!checks.matches||checks.matches(':popover-open')))checks.hidePopover();
           checks.hidden=true;
@@ -1219,20 +1455,27 @@ function mergeWorkspaceYamlSnapshots(workspaces){
           const current=Array.isArray(node.value)?node.value:[];
           const next=check.checked?[...new Set([...current,option])]:current.filter(v=>v!==option);
           save(next);chips.update(next);
-          if(detail)detail.hidden=!showDetails||next.length===0;
+          if(detail)detail.hidden=next.length===0;
         }
       });
       label.append(check,el('span','',option||'未選択'));checks.append(label);
     }
-    picker.append(summary,checks);bar.append(chips.list,picker);wrapper.append(bar);if(detail)wrapper.append(detail);return wrapper;
+    picker.append(summary,checks);wrapper.append(picker);if(detail)wrapper.append(detail);return wrapper;
   }
   function renderTableInput(){
     const head=$('entry-head'),body=$('entry-body'),scroll=$('table-input').querySelector('.table-wrap'),left=scroll.scrollLeft,top=scroll.scrollTop;
     head.replaceChildren();body.replaceChildren();const header=el('tr');
+    const rootNames=[];
+    const collapsedTextMinimum=state.columns.slice(1).some(col=>col.type==='text')?96:64;
     for(const col of state.columns)header.append(el('th','',`${col.name}${isRepeatedColumn(col)?' (1:N)':''}`));
     head.append(header);
-    for(const project of state.projects){
+    for(const [projectIndex,project] of state.projects.entries()){
       const paths=treeRows(project.tree),seen=new Set(),expanded=expandedInputProjects.has(project.id);
+      const toggleProject=()=>{
+        if(expandedInputProjects.has(project.id))expandedInputProjects.delete(project.id);
+        else expandedInputProjects.add(project.id);
+        renderTableInput();
+      };
       for(const [index,path] of paths.entries()){
         const row=el('tr',`${index===0?'project-first':'detail-follow'} ${expanded?'project-expanded':'project-collapsed'}`);
         for(const [depth,node] of path.entries()){
@@ -1242,8 +1485,11 @@ function mergeWorkspaceYamlSnapshots(workspaces){
           const className=[depth===0?'root-cell':'',col.type==='text'?'text-cell':['select','multiselect'].includes(col.type)?'choice-cell':''].filter(Boolean).join(' ');
           const cell=el('td',className);
           cell.rowSpan=node.rowSpan;
+          if(depth===0)cell.setAttribute('data-project-index',`#${projectIndex+1}`);
           const editor=el('div',col.type==='text'?'entry-editor entry-editor-text':['select','multiselect'].includes(col.type)?'entry-editor entry-editor-choice':'entry-editor');
-          editor.append(tableNodeEditor(node,col,expanded||depth===0));cell.append(editor);
+          const content=tableNodeEditor(node,col,expanded||depth===0,depth===0?area=>sizeRootNameRow(row,area,collapsedTextMinimum):null,toggleProject);
+          editor.append(content);cell.append(editor);
+          if(depth===0&&col.type==='text')rootNames.push([row,content]);
           if(depth>0&&col.cardinality==='1:N'){
             const parent=path[depth-1],childIndex=parent.children.indexOf(node),controls=el('div','cell-entry-actions');
             if(parent.children.length>1)controls.append(button('－',()=>{
@@ -1255,11 +1501,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
             editor.append(controls);
           }
           if(depth===0){
-            const toggle=button(expanded?'⋁':'＞',()=>{
-              if(expanded)expandedInputProjects.delete(project.id);
-              else expandedInputProjects.add(project.id);
-              renderTableInput();
-            },'project-row-toggle');
+            const toggle=button(expanded?'⋁':'＞',toggleProject,'project-row-toggle');
             toggle.setAttribute('aria-label',expanded?'案件の詳細を閉じる':'案件の詳細を表示');
             toggle.setAttribute('aria-expanded',String(expanded));
             editor.append(toggle);
@@ -1281,8 +1523,10 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         body.append(row);
       }
     }
+    for(const [row,area] of rootNames)sizeRootNameRow(row,area,collapsedTextMinimum);
     for(const area of body.querySelectorAll?.('textarea[data-autosize-detail="true"]')??[])sizeDetailTextarea(area);
     scroll.scrollLeft=left;scroll.scrollTop=top;
+    updateInputTableHeight();
   }
   function downloadFile(contents,mime,filename){
     const blob=new Blob([contents],{type:mime}),url=URL.createObjectURL(blob),a=el('a');
@@ -1320,7 +1564,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       }
       const loaded=mergeWorkspaceYamlSnapshots(snapshots);
       if(!confirm(`${snapshots.length}個のYAML（合計${loaded.projects.length}案件）を統合します。現在のワークスペースはすべて置き換わります。よろしいですか？`))return;
-      state=loaded;inputYamlBaseline=null;analysisYamlBaseline=null;activeColorKey='';openFieldOptions.clear();
+      state=loaded;inputYamlBaseline=null;analysisYamlBaseline=null;openFieldOptions.clear();
       formatMode='table';definitionMode='gui';inputMode='table';analysisMode='table';
       updateWorkspaceTitle();persist();view='';switchView('definition');renderFormatControls();
       toast(`${snapshots.length}個のYAMLから${loaded.projects.length}案件を読み込みました。`);
@@ -1329,30 +1573,13 @@ function mergeWorkspaceYamlSnapshots(workspaces){
   }
   function availableFields(){return state.columns.map(c=>c.name);}
   function analysisRecords(){return treeRecords(state.projects,state.columns);}
-  function analysisColorChoices(records){
-    const choices=new Map(),fields=state.analysis.values;
-    for(const record of records)for(const field of fields)for(const value of analysisDataValues(record[field])){
-      const key=JSON.stringify([field,value]),label=fields.length>1?`${field}: ${value}`:value;
-      if(!choices.has(key))choices.set(key,{key,label});
-    }
-    return [...choices.values()];
-  }
-  function renderColorControls(){
-    const target=$('analysis-color-target'),input=$('analysis-color-input'),clear=$('analysis-color-clear');
-    const choices=analysisColorChoices(analysisRecords());target.replaceChildren();
-    if(!choices.some(choice=>choice.key===activeColorKey))activeColorKey=choices[0]?.key||'';
-    for(const choice of choices){const option=el('option','',choice.label);option.value=choice.key;target.append(option);}
-    if(!choices.length){const option=el('option','','色を設定できる値がありません');option.value='';target.append(option);}
-    target.value=activeColorKey;target.disabled=!choices.length;input.disabled=!choices.length;
-    input.value=state.analysis.valueColors[activeColorKey]||'#eefaf6';
-    clear.disabled=!state.analysis.valueColors[activeColorKey];
-  }
-  function renderPickers(){const fields=availableFields();for(const key of ['rows','columns','values','tooltip']){
+  function renderPickers(){for(const key of ['rows','columns','values','tooltip']){
+    const fields=analysisPickerFields(key,state.columns);
     state.analysis[key]=(state.analysis[key]||[]).filter(f=>fields.includes(f));
     const details=document.querySelector(`[data-picker="${key}"]`),host=details.querySelector('.picker-options');host.replaceChildren();details.querySelector('summary').textContent=state.analysis[key].length?state.analysis[key].join(' ＋ '):'選択なし（全件）';
     if(key==='tooltip'&&!state.analysis[key].length)details.querySelector('summary').textContent='表示項目を選択';
-    for(const name of fields){const label=el('label'),check=el('input');check.type='checkbox';check.checked=state.analysis[key].includes(name);check.setAttribute('aria-label',`${key==='tooltip'?'マウスオーバー':key} ${name}`);check.addEventListener('change',()=>{
-      state.analysis[key]=check.checked?[...new Set([...state.analysis[key],name])]:state.analysis[key].filter(x=>x!==name);persist();renderPickers();renderAxisOrder();renderColorControls();renderPivot();
+    for(const name of fields){const label=describeAnalysisField(el('label'),name),check=el('input');check.type='checkbox';check.checked=state.analysis[key].includes(name);check.setAttribute('aria-label',`${key==='tooltip'?'クリックメニュー':key} ${name}`);check.addEventListener('change',()=>{
+      state.analysis[key]=check.checked?[...new Set([...state.analysis[key],name])]:state.analysis[key].filter(x=>x!==name);persist();renderPickers();renderAxisOrder();renderPivot();
     });label.append(check,el('span','',name));host.append(label);}
   }}
   function renderAxisOrder(){
@@ -1360,7 +1587,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       const host=$(hostId);host.replaceChildren();
       if(!state.analysis[axis].length){host.append(el('span','axis-empty','項目を選択すると並び替えできます'));continue;}
       state.analysis[axis].forEach((name,index)=>{
-        const chip=el('div','axis-chip');chip.draggable=true;chip.setAttribute('aria-label',`${name}をドラッグして順番変更`);
+        const chip=describeAnalysisField(el('div','axis-chip'),name);chip.draggable=true;chip.setAttribute('aria-label',`${name}をドラッグして順番変更`);
         chip.append(el('span','',name),el('span','grip','⋮⋮'));
         chip.addEventListener('dragstart',e=>{e.dataTransfer?.setData('text/plain',`${axis}:${index}`);});
         chip.addEventListener('dragover',e=>e.preventDefault());
@@ -1407,41 +1634,109 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       group.append(list);host.append(group);
     }
   }
-  function showAnalysisTooltip(records,event){
-    const popup=$('analysis-hover-tooltip');popup.replaceChildren();
-    for(const field of state.analysis.tooltip){
-      const block=el('div','tooltip-field');block.append(el('strong','',field));
-      for(const value of analysisFilterValues(records,field))block.append(el('span','tooltip-value',value));
-      popup.append(block);
-    }
-    if(!popup.children.length)return;
-    popup.hidden=false;positionAnalysisTooltip(event);
+  function closeAnalysisClickMenu(){
+    analysisMenuDrag=null;
+    $('analysis-click-menu').hidden=true;
+    if(activeAnalysisMenuTrigger)activeAnalysisMenuTrigger.setAttribute('aria-expanded','false');
+    activeAnalysisMenuTrigger=null;
   }
-  function positionAnalysisTooltip(event){
-    const popup=$('analysis-hover-tooltip'),x=Number.isFinite(event?.clientX)?event.clientX+14:28,y=Number.isFinite(event?.clientY)?event.clientY+14:28;
-    const width=typeof window!=='undefined'?window.innerWidth:1280,height=typeof window!=='undefined'?window.innerHeight:800;
-    popup.style.left=`${Math.max(8,Math.min(x,width-368))}px`;
-    popup.style.top=`${Math.max(8,Math.min(y,height-260))}px`;
+  function startAnalysisClickMenuDrag(event){
+    if(event.button!==undefined&&event.button!==0)return;
+    const popup=$('analysis-click-menu');
+    if(popup.hidden)return;
+    analysisMenuDrag={pointerId:event.pointerId??null,x:event.clientX,y:event.clientY,
+      left:parseFloat(popup.style.left)||0,top:parseFloat(popup.style.top)||0};
+    event.preventDefault?.();
+  }
+  function moveAnalysisClickMenu(event){
+    if(!analysisMenuDrag)return;
+    const drag=analysisMenuDrag;
+    if(drag.pointerId!==null&&event.pointerId!==drag.pointerId)return;
+    const popup=$('analysis-click-menu');
+    if(popup.hidden){analysisMenuDrag=null;return;}
+    const width=popup.offsetWidth||popup.getBoundingClientRect().width||280;
+    const height=popup.offsetHeight||popup.getBoundingClientRect().height||180;
+    const clamp=(value,max)=>Math.max(8,Math.min(value,Math.max(8,max)));
+    popup.style.left=`${clamp(drag.left+event.clientX-drag.x,window.innerWidth-width-8)}px`;
+    popup.style.top=`${clamp(drag.top+event.clientY-drag.y,window.innerHeight-height-8)}px`;
+  }
+  function endAnalysisClickMenuDrag(event){
+    if(analysisMenuDrag&&(analysisMenuDrag.pointerId===null||event.pointerId===analysisMenuDrag.pointerId))analysisMenuDrag=null;
+  }
+  function positionAnalysisClickMenu(anchor){
+    const popup=$('analysis-click-menu'),rect=anchor.getBoundingClientRect();
+    const viewportWidth=window.innerWidth,viewportHeight=window.innerHeight;
+    const menuWidth=popup.offsetWidth||popup.getBoundingClientRect().width||280;
+    const menuHeight=popup.offsetHeight||popup.getBoundingClientRect().height||180;
+    const left=Math.max(8,Math.min(rect.right-menuWidth,viewportWidth-menuWidth-8));
+    const above=rect.top-menuHeight-8,below=rect.bottom+8;
+    const top=above>=8?above:below+menuHeight<=viewportHeight-8?below:Math.max(8,Math.min(below,viewportHeight-menuHeight-8));
+    popup.style.left=`${left}px`;
+    popup.style.top=`${top}px`;
+  }
+  function toggleAnalysisClickMenu(group,anchor,trigger){
+    const popup=$('analysis-click-menu');
+    if(activeAnalysisMenuTrigger===trigger&&!popup.hidden){closeAnalysisClickMenu();return;}
+    closeAnalysisClickMenu();popup.replaceChildren();
+    const close=el('button','menu-close','×');close.type='button';close.setAttribute('aria-label','閉じる');
+    close.addEventListener('click',closeAnalysisClickMenu);popup.append(close);
+    const section=el('section','tooltip-project'),title=el('div','tooltip-root',group.root);
+    title.setAttribute('title','ドラッグして移動');
+    title.addEventListener('pointerdown',startAnalysisClickMenuDrag);
+    section.append(title);
+    const entries=analysisClickMenuEntries(group.records,state.analysis.tooltip,state.columns,state.columns[0]?.name);
+    for(const field of state.columns.map(column=>column.name)){
+      const fieldEntries=entries.filter(entry=>entry.field===field);
+      if(!fieldEntries.length)continue;
+      const type=fieldEntries[0].type,selectable=type==='select'||type==='multiselect';
+      const block=el('div','tooltip-group');block.setAttribute('data-field',field);
+      if(selectable){
+        block.append(el('div','tooltip-group-name',field));
+        const choices=el('div','tooltip-choice-list');
+        for(const value of new Set(fieldEntries.map(entry=>entry.value))){
+          choices.append(applyOptionColor(el('span','tooltip-choice',value),byName(field)?.optionColors?.[value]));
+        }
+        block.append(choices);
+      }else{
+        for(const value of new Set(fieldEntries.map(entry=>entry.value))){
+          const line=el('div','tooltip-entry');
+          line.append(el('span','tooltip-bullet',''),el('span','tooltip-label',field),el('span','tooltip-separator','：'),el('span','tooltip-value',value));
+          block.append(line);
+        }
+      }
+      const distinctDetails=[...new Set(fieldEntries.map(entry=>entry.detail).filter(Boolean))];
+      if(distinctDetails.length){
+        const details=el('div','tooltip-details');
+        for(const detail of distinctDetails)details.append(el('div','tooltip-detail',detail));
+        block.append(details);
+      }
+      section.append(block);
+    }
+    popup.append(section);popup.hidden=false;
+    activeAnalysisMenuTrigger=trigger;trigger.setAttribute('aria-expanded','true');
+    positionAnalysisClickMenu(anchor);
   }
   function renderPivot(){
-    $('analysis-hover-tooltip').hidden=true;
-    const records=filterAnalysisRecords(analysisRecords(),state.analysis.filters),{rows,columns,cells,recordCells}=makePivot(records,state.analysis.rows,state.analysis.columns,state.analysis.values);
-    const colorKeysByLabel=new Map();
-    for(const choice of analysisColorChoices(records))colorKeysByLabel.set(choice.label,choice.key);
-    const host=$('pivot-host');host.replaceChildren();if(!records.length){host.append(el('div','hint',Object.keys(state.analysis.filters).length?'条件に一致する明細がありません。':'案件データがありません。'));return;}
+    closeAnalysisClickMenu();
+    const records=filterAnalysisRecords(analysisRecords(),state.analysis.filters),{rows,columns,cells,recordCells}=makePivot(records,state.analysis.rows,state.analysis.columns,state.analysis.values,state.columns);
+    const cellColors=pivotValueColorMap(records,state.analysis.values,state.columns);
+    const host=$('pivot-host');host.replaceChildren();if(!rows.length||!columns.length){host.append(el('div','hint',Object.keys(state.analysis.filters).length?'条件に一致する明細がありません。':'案件データがありません。'));return;}
     const table=el('table','pivot'),thead=el('thead'),rowDepth=Math.max(1,state.analysis.rows.length),columnDepth=Math.max(1,state.analysis.columns.length);
-    const widthKeys=[...Array.from({length:rowDepth},(_,level)=>`row:${state.analysis.rows[level]||'__all__'}`),
+    const rowWidthKeys=state.analysis.rows.length?state.analysis.rows.flatMap(field=>[`row-field:${field}`,`row:${field}`]):['row:__all__'];
+    const rowHeaderColumns=rowWidthKeys.length;
+    const widthKeys=[...rowWidthKeys,
       ...columns.map(c=>`data:${JSON.stringify(state.analysis.columns)}:${c.key}`)];
-    const widths=widthKeys.map((key,index)=>state.analysis.columnWidths[key]||(index<rowDepth?160:180));
+    const widths=widthKeys.map((key,index)=>state.analysis.columnWidths[key]||(key.startsWith('row-field:')?64:index<rowHeaderColumns?160:180));
     const colgroup=el('colgroup'),colElements=widths.map(width=>{const col=el('col');col.style.width=`${width}px`;colgroup.append(col);return col;});
     table.style.width=`${widths.reduce((total,width)=>total+width,0)}px`;
     table.append(colgroup);
-    const rowHeaderCellsByLevel=Array.from({length:rowDepth},()=>[]);
+    const rowHeaderCellsByLevel=Array.from({length:rowHeaderColumns},()=>[]);
+    const minimumColumnWidth=index=>widthKeys[index].startsWith('row-field:')?48:90;
     function updateColumnWidth(index,newWidth){
-      widths[index]=Math.max(90,Math.min(700,newWidth));
+      widths[index]=Math.max(minimumColumnWidth(index),Math.min(700,newWidth));
       colElements[index].style.width=`${widths[index]}px`;
       table.style.width=`${widths.reduce((total,width)=>total+width,0)}px`;
-      for(let level=0,offset=0;level<rowDepth;offset+=widths[level],level++){
+      for(let level=0,offset=0;level<rowHeaderColumns;offset+=widths[level],level++){
         for(const header of rowHeaderCellsByLevel[level])header.style.left=`${offset}px`;
       }
     }
@@ -1454,7 +1749,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
         event.preventDefault();event.stopPropagation?.();
         const startingX=event.clientX,startingWidth=widths[index];let changed=false;
         const move=pointer=>{
-          const nextWidth=Math.max(90,Math.min(700,startingWidth+pointer.clientX-startingX));
+          const nextWidth=Math.max(minimumColumnWidth(index),Math.min(700,startingWidth+pointer.clientX-startingX));
           if(nextWidth!==widths[index]){updateColumnWidth(index,nextWidth);changed=true;}
         };
         const finish=()=>{
@@ -1469,47 +1764,73 @@ function mergeWorkspaceYamlSnapshots(workspaces){
       });
       header.append(handle);
     }
+    const makeCorner=()=>{
+      const corner=el('th','corner','');
+      corner.rowSpan=columnDepth*(state.analysis.columns.length?2:1);
+      corner.colSpan=rowHeaderColumns;
+      corner.setAttribute('aria-label','行・列の見出し');
+      return corner;
+    };
     for(let level=0;level<columnDepth;level++){
+      if(state.analysis.columns.length){
+        const names=el('tr');
+        if(level===0)names.append(makeCorner());
+        const parents=level===0?[{start:0,span:columns.length}]:pivotAxisGroups(columns,level-1);
+        for(const group of parents){
+          const fieldName=state.analysis.columns[level],th=describeAnalysisField(el('th','pivot-column-field',fieldName),fieldName);
+          th.colSpan=group.span;names.append(th);
+        }
+        thead.append(names);
+      }
       const header=el('tr');
-      if(level===0){const corner=el('th','corner','');corner.rowSpan=columnDepth;corner.colSpan=rowDepth;corner.setAttribute('aria-label','行・列の見出し');header.append(corner);}
+      if(level===0&&!state.analysis.columns.length)header.append(makeCorner());
       for(const group of pivotAxisGroups(columns,level)){
         const th=el('th','pivot-column-header',String(group.value));th.colSpan=group.span;
-        if(level===columnDepth-1)addResizeHandle(th,rowDepth+group.start);
+        if(level===columnDepth-1)addResizeHandle(th,rowHeaderColumns+group.start);
         header.append(th);
       }
       thead.append(header);
     }
     table.append(thead);
     const rowHeaderGroups=Array.from({length:rowDepth},(_,level)=>new Map(pivotAxisGroups(rows,level).map(group=>[group.start,group])));
+    const rowFieldGroups=state.analysis.rows.map((_,level)=>new Map((level===0?[{start:0,span:rows.length}]:pivotAxisGroups(rows,level-1)).map(group=>[group.start,group])));
     const tbody=el('tbody');for(const [index,r] of rows.entries()){const tr=el('tr');
       for(let level=0;level<rowDepth;level++){
+        if(state.analysis.rows.length){
+          const fieldGroup=rowFieldGroups[level].get(index);
+          if(fieldGroup){
+            const axisIndex=2*level,th=describeAnalysisField(el('th','pivot-row-field'),state.analysis.rows[level]);
+            th.append(el('span','pivot-row-field-text',state.analysis.rows[level]));
+            th.rowSpan=fieldGroup.span;
+            th.style.left=`${widths.slice(0,axisIndex).reduce((total,width)=>total+width,0)}px`;
+            rowHeaderCellsByLevel[axisIndex].push(th);addResizeHandle(th,axisIndex);tr.append(th);
+          }
+        }
         const group=rowHeaderGroups[level].get(index);
         if(!group)continue;
+        const axisIndex=state.analysis.rows.length?2*level+1:level;
         const th=el('th','pivot-row-header',String(group.value));th.rowSpan=group.span;
-        th.style.left=`${widths.slice(0,level).reduce((total,width)=>total+width,0)}px`;
-        rowHeaderCellsByLevel[level].push(th);addResizeHandle(th,level);tr.append(th);
+        th.style.left=`${widths.slice(0,axisIndex).reduce((total,width)=>total+width,0)}px`;
+        rowHeaderCellsByLevel[axisIndex].push(th);addResizeHandle(th,axisIndex);tr.append(th);
       }
       for(const c of columns){const td=el('td'),list=el('div','cell-list'),values=cells[r.key]?.[c.key]||[];
         if(values.length){for(const v of values){
-          const item=el('span','cell-item',v),background=state.analysis.valueColors[colorKeysByLabel.get(v)];
-          if(background){
-            const red=parseInt(background.slice(1,3),16),green=parseInt(background.slice(3,5),16),blue=parseInt(background.slice(5,7),16);
-            const border='#'+[red,green,blue].map(channel=>Math.round(channel*0.85).toString(16).padStart(2,'0')).join('');
-            item.style.backgroundColor=background;item.style.borderColor=border;
-            item.style.color=(red*299+green*587+blue*114)/1000<150?'#ffffff':'#'+[red,green,blue].map(channel=>Math.round(channel*0.35).toString(16).padStart(2,'0')).join('');
-          }
-          list.append(item);
-        }}else list.append(el('span','empty','—'));
-        td.append(list);
+          list.append(applyOptionColor(el('span','cell-item',pivotCellDisplayValue(v,state.analysis.values)),cellColors.get(v)));
+        }}
         const cellRecords=recordCells[r.key]?.[c.key]||[];
         if(state.analysis.tooltip.length&&cellRecords.length){
-          td.className='hover-enabled';td.setAttribute('tabindex','0');
-          td.addEventListener('mouseenter',event=>showAnalysisTooltip(cellRecords,event));
-          td.addEventListener('mousemove',positionAnalysisTooltip);
-          td.addEventListener('mouseleave',()=>$('analysis-hover-tooltip').hidden=true);
-          td.addEventListener('focus',event=>showAnalysisTooltip(cellRecords,event));
-          td.addEventListener('blur',()=>$('analysis-hover-tooltip').hidden=true);
+          const links=el('div','cell-root-links');
+          for(const [rootIndex,group] of groupAnalysisRecordsByRoot(cellRecords,state.columns[0]?.name).entries()){
+            const label=`#${group.number??rootIndex+1}`;
+            const button=el('button','root-menu-trigger',label);button.type='button';
+            button.setAttribute('aria-label',`${group.root}の詳細を表示`);
+            button.setAttribute('aria-controls','analysis-click-menu');button.setAttribute('aria-expanded','false');
+            button.addEventListener('click',()=>toggleAnalysisClickMenu(group,td,button));
+            links.append(button);
+          }
+          td.append(links);
         }
+        td.append(list);
         tr.append(td);}
       tbody.append(tr);
     }table.append(tbody);host.append(table);
@@ -1540,7 +1861,7 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     }
     const matrix=$('matrix-settings');matrix.open=state.analysis.matrixOpen;
     $('analysis-layout').classList.toggle('matrix-collapsed',!matrix.open);
-    renderPickers();renderAxisOrder();renderFilterControls();renderColorControls();renderPivot();
+    renderPickers();renderAxisOrder();renderFilterControls();renderPivot();
   }
 
   async function copyFormattingPrompt(kind){
@@ -1560,17 +1881,17 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     }catch(error){toast('コピーに失敗しました。ブラウザのクリップボード権限を確認してください。');}
   }
 
-  function loadFiveAxisSample(){
-    if(!confirm('現在の項目定義・入力案件・分析設定を5軸サンプルで置き換えます。既存データは失われます。続行しますか？'))return;
-    state=normalizeState(initial());
-    view='';formatMode='table';definitionMode='gui';inputMode='table';analysisMode='table';
-    inputYamlBaseline=null;analysisYamlBaseline=null;activeColorKey='';openFieldOptions.clear();
-    updateWorkspaceTitle();persist();renderFormatControls();switchView('definition');
-    toast('5軸の評価体系とサンプル案件を読み込みました。');
-  }
-
   document.querySelectorAll('[data-view-tab]').forEach(b=>b.addEventListener('click',()=>b.dataset.viewTab==='analysis'?activateAnalysisTab(state.analysisTabs[0].id):switchView(b.dataset.viewTab)));
-  $('load-five-axis-sample').addEventListener('click',loadFiveAxisSample);
+  window.addEventListener('resize',updateInputTableHeight);
+  document.addEventListener('click',event=>{
+    if($('analysis-click-menu').hidden)return;
+    if(event.target.closest?.('.root-menu-trigger')||$('analysis-click-menu').contains(event.target))return;
+    closeAnalysisClickMenu();
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape')closeAnalysisClickMenu();});
+  document.addEventListener('pointermove',moveAnalysisClickMenu);
+  document.addEventListener('pointerup',endAnalysisClickMenuDrag);
+  document.addEventListener('pointercancel',endAnalysisClickMenuDrag);
   $('copy-definition-prompt').addEventListener('click',()=>copyFormattingPrompt('definition'));
   $('copy-input-prompt').addEventListener('click',()=>copyFormattingPrompt('input'));
   $('add-analysis-tab').addEventListener('click',addAnalysisTab);
@@ -1609,21 +1930,6 @@ function mergeWorkspaceYamlSnapshots(workspaces){
     const opened=$('matrix-settings').open;
     $('analysis-layout').classList.toggle('matrix-collapsed',!opened);
     if(opened!==state.analysis.matrixOpen){state.analysis.matrixOpen=opened;persist();}
-  });
-  $('analysis-color-target').addEventListener('change',()=>{
-    activeColorKey=$('analysis-color-target').value;renderColorControls();
-  });
-  const saveColor=()=>{
-    if(!activeColorKey)return;
-    const color=$('analysis-color-input').value;
-    if(!/^#[0-9a-f]{6}$/i.test(color))return;
-    state.analysis.valueColors[activeColorKey]=color.toLowerCase();persist();renderColorControls();renderPivot();
-  };
-  $('analysis-color-input').addEventListener('input',saveColor);
-  $('analysis-color-input').addEventListener('change',saveColor);
-  $('analysis-color-clear').addEventListener('click',()=>{
-    if(!activeColorKey)return;
-    delete state.analysis.valueColors[activeColorKey];persist();renderColorControls();renderPivot();
   });
   $('reset-pivot').addEventListener('click',()=>{
     state.analysis={...defaultAnalysis(state.columns),matrixOpen:state.analysis.matrixOpen};persist();renderAnalysis();

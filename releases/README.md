@@ -1,6 +1,14 @@
-# Zizai Star Schema v0.4.6
+# Zizai Star Schema VSIX 配布
 
-VS Code拡張機能（.vsix）の配布版です。既存のブラウザ版 index.html は変更していません。
+VS Code拡張機能（.vsix）の配布版です。既存のブラウザ版 `index.html` は変更していません。
+
+## 最新版: v0.4.7
+
+- ファイル: [zizai-star-schema-0.4.7.vsix](./zizai-star-schema-0.4.7.vsix)
+- SHA-256: `61169a9bd73bf2d58b059b7f114587f36cf7e1177445263710e1117bf8c3b325`
+- 主な変更: `.mkrm` のダブルクリックで専用エディタを開くCustom Editor登録、既存の開く／新規作成コマンドを維持
+
+## 旧版: v0.4.6
 
 - ファイル: [zizai-star-schema-0.4.6.vsix](./zizai-star-schema-0.4.6.vsix)
 - SHA-256: `7cb2e3cd4045269ef79814c58286f9f4ca461f072a47e09c86a06623bb492efb`
